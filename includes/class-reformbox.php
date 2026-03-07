@@ -73,6 +73,8 @@ class ReformBox {
 			$asset['version']
 		);
 
+		wp_set_script_translations( 'reformbox-editor', 'reformbox' );
+
 		if ( file_exists( REFORMBOX_PLUGIN_DIR . 'build/editor.css' ) ) {
 			wp_enqueue_style(
 				'reformbox-editor',

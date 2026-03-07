@@ -148,8 +148,13 @@ import './style.scss';
 		if (trigger) {
 			e.preventDefault();
 			const targetId = trigger.getAttribute('data-reformbox-trigger');
-			const overlay = document.getElementById(targetId);
-			if (overlay) {
+			const overlay = targetId
+				? document.getElementById(targetId)
+				: null;
+			if (
+				overlay &&
+				overlay.classList.contains('reformbox-overlay')
+			) {
 				openLightbox(overlay, trigger);
 			}
 			return;
