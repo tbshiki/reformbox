@@ -69,6 +69,13 @@ import './style.scss';
 
 		const ownerDocument = overlay.ownerDocument || document;
 
+		// Pause any playing media inside the overlay.
+		overlay.querySelectorAll( 'video, audio' ).forEach( function ( media ) {
+			if ( ! media.paused ) {
+				media.pause();
+			}
+		} );
+
 		overlay.classList.remove( 'reformbox-active' );
 		overlay.setAttribute( 'aria-hidden', 'true' );
 		ownerDocument.body.classList.remove( 'reformbox-open' );
@@ -112,6 +119,13 @@ import './style.scss';
 		const last = focusable[ focusable.length - 1 ];
 		const ownerDocument = activeOverlay.ownerDocument || document;
 		const activeElement = ownerDocument.activeElement;
+
+		// Single focusable element — prevent Tab from leaving the overlay.
+		if ( focusable.length === 1 ) {
+			e.preventDefault();
+			first.focus();
+			return;
+		}
 
 		if ( e.shiftKey ) {
 			if ( activeElement === first ) {

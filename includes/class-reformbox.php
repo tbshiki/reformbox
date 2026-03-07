@@ -204,26 +204,89 @@ class ReformBox {
 	/**
 	 * Add a trigger data-attribute to the first tag in block HTML.
 	 *
+	 * For Button blocks the outer wrapper is a <div> but the clickable
+	 * element is the inner <a>. This method handles that case by
+	 * targeting the inner interactive element when appropriate.
+	 *
 	 * @param string $html      Block HTML.
 	 * @param string $target_id Target lightbox ID.
 	 * @return string Modified HTML.
 	 */
 	private function add_trigger_attribute( $html, $target_id ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
-		if ( $processor->next_tag() ) {
-			$processor->set_attribute( 'data-reformbox-trigger', $target_id );
+		if ( ! $processor->next_tag() ) {
+			return $html;
+		}
 
-			$tag_name = strtolower( (string) $processor->get_tag() );
-			if ( ! in_array( $tag_name, array( 'a', 'button', 'input', 'select', 'textarea', 'summary' ), true ) ) {
-				if ( null === $processor->get_attribute( 'role' ) ) {
-					$processor->set_attribute( 'role', 'button' );
-				}
-				if ( null === $processor->get_attribute( 'tabindex' ) ) {
-					$processor->set_attribute( 'tabindex', '0' );
-				}
+		$tag_name = strtolower( (string) $processor->get_tag() );
+		$classes  = (string) $processor->get_attribute( 'class' );
+
+		// Button block: outer <div class="wp-block-button"> wraps the
+		// clickable <a class="wp-block-button__link">. Put the trigger
+		// on the inner <a> so click delegation works correctly.
+		if ( 'div' === $tag_name && false !== strpos( $classes, 'wp-block-button' ) ) {
+			if ( $processor->next_tag( 'a' ) ) {
+				$processor->set_attribute( 'data-reformbox-trigger', $target_id );
+				return $processor->get_updated_html();
+			}
+			// Fallback: no inner <a> found, use the wrapper.
+			$processor = new WP_HTML_Tag_Processor( $html );
+			$processor->next_tag();
+		}
+
+		$processor->set_attribute( 'data-reformbox-trigger', $target_id );
+
+		$interactive_tags = array( 'a', 'button', 'input', 'select', 'textarea', 'summary' );
+		if ( ! in_array( $tag_name, $interactive_tags, true ) ) {
+			if ( null === $processor->get_attribute( 'role' ) ) {
+				$processor->set_attribute( 'role', 'button' );
+			}
+			if ( null === $processor->get_attribute( 'tabindex' ) ) {
+				$processor->set_attribute( 'tabindex', '0' );
 			}
 		}
+
 		return $processor->get_updated_html();
+	}
+
+	/**
+	 * Build a video trigger element: shows the video poster as a
+	 * thumbnail with a play icon, rather than duplicating the
+	 * full <video> element in the page.
+	 *
+	 * @param string $block_content Original video block HTML.
+	 * @param string $id            Target lightbox ID.
+	 * @param array  $attrs         Block attributes.
+	 * @return string Trigger HTML.
+	 */
+	private function build_video_trigger( $block_content, $id, $attrs ) {
+		$poster = '';
+		if ( ! empty( $attrs['poster'] ) ) {
+			$poster = $attrs['poster'];
+		} else {
+			// Try to extract poster from <video> tag.
+			$processor = new WP_HTML_Tag_Processor( $block_content );
+			if ( $processor->next_tag( 'video' ) ) {
+				$poster = (string) $processor->get_attribute( 'poster' );
+			}
+		}
+
+		if ( $poster ) {
+			$trigger_html = sprintf(
+				'<div class="reformbox-video-trigger" data-reformbox-trigger="%s" role="button" tabindex="0">'
+				. '<img src="%s" alt="%s" class="reformbox-video-trigger__poster" />'
+				. '<span class="reformbox-video-trigger__play" aria-hidden="true">&#9654;</span>'
+				. '</div>',
+				esc_attr( $id ),
+				esc_url( $poster ),
+				esc_attr__( 'Play video', 'reformbox' ),
+			);
+		} else {
+			// No poster available — fall back to adding trigger on original block.
+			$trigger_html = $this->add_trigger_attribute( $block_content, $id );
+		}
+
+		return $trigger_html;
 	}
 
 	/* ------------------------------------------------------------------
@@ -302,9 +365,10 @@ class ReformBox {
 			$this->enqueue_frontend();
 			$id = $this->get_reformbox_id( $block['attrs'] );
 
-			// Use original video markup in the overlay.
+			// Build a placeholder trigger that shows a play icon overlay.
+			// The actual video is only inside the lightbox overlay.
+			$trigger_content = $this->build_video_trigger( $block_content, $id, $block['attrs'] );
 			$lightbox_html   = $this->get_lightbox_overlay( $block_content, $id, $block['attrs'], 'media' );
-			$trigger_content = $this->add_trigger_attribute( $block_content, $id );
 
 			return $trigger_content . $lightbox_html;
 		}

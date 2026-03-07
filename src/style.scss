@@ -159,6 +159,45 @@ body.reformbox-open {
 }
 
 /* ------------------------------------------------------------------
+ * Video trigger (poster thumbnail + play icon)
+ * ----------------------------------------------------------------*/
+
+.reformbox-video-trigger {
+	position: relative;
+	display: inline-block;
+	cursor: pointer;
+	line-height: 0;
+
+	&__poster {
+		display: block;
+		max-width: 100%;
+		height: auto;
+	}
+
+	&__play {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		font-size: 3rem;
+		color: #fff;
+		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+		pointer-events: none;
+		transition: transform 0.2s ease;
+	}
+
+	&:hover &__play,
+	&:focus-visible &__play {
+		transform: translate(-50%, -50%) scale(1.15);
+	}
+
+	&:focus-visible {
+		outline: 2px solid #007cba;
+		outline-offset: 2px;
+	}
+}
+
+/* ------------------------------------------------------------------
  * Trigger cursor
  * ----------------------------------------------------------------*/
 
