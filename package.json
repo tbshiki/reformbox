@@ -8,7 +8,7 @@
     "build": "node node_modules/@wordpress/scripts/bin/wp-scripts.js build",
     "start": "node node_modules/@wordpress/scripts/bin/wp-scripts.js start",
     "lint:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js src/",
-    "lint:css": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-style src/"
+    "lint:css": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-style src/**/*.scss"
   },
   "devDependencies": {
     "@wordpress/scripts": "^30.0.0"

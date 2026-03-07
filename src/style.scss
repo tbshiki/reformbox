@@ -38,6 +38,10 @@
 	background: #fff;
 	border-radius: 8px;
 	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+	--reformbox-transform: none;
+	--reformbox-transform-transition: transform 0.3s ease;
+	transform: var(--reformbox-transform);
+	transition: var(--reformbox-transform-transition);
 }
 
 .reformbox-content {
@@ -89,6 +93,7 @@
  * ----------------------------------------------------------------*/
 
 .reformbox-overlay--media {
+
 	.reformbox-container {
 		background: transparent;
 		box-shadow: none;
@@ -118,38 +123,31 @@
 
 /* Fade (default) */
 .reformbox-animation-fade {
-	.reformbox-container {
-		transform: scale(0.97);
-		transition: transform 0.3s ease;
-	}
 
-	&.reformbox-active .reformbox-container {
-		transform: scale(1);
+	.reformbox-container {
+		--reformbox-transform: scale(0.97);
 	}
 }
 
 /* Zoom */
 .reformbox-animation-zoom {
-	.reformbox-container {
-		transform: scale(0.5);
-		transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-	}
 
-	&.reformbox-active .reformbox-container {
-		transform: scale(1);
+	.reformbox-container {
+		--reformbox-transform: scale(0.5);
+		--reformbox-transform-transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 	}
 }
 
 /* Slide */
 .reformbox-animation-slide {
-	.reformbox-container {
-		transform: translateY(40px);
-		transition: transform 0.3s ease;
-	}
 
-	&.reformbox-active .reformbox-container {
-		transform: translateY(0);
+	.reformbox-container {
+		--reformbox-transform: translateY(40px);
 	}
+}
+
+.reformbox-overlay.reformbox-active .reformbox-container {
+	transform: none;
 }
 
 /* ------------------------------------------------------------------

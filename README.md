@@ -23,7 +23,7 @@ Traditional lightbox plugins only enlarge images. ReformBox redefines the lightb
 
 | Feature | Status |
 |---|---|
-| Image Block -> Lightbox | ✅ |
+| Image Block -> Lightbox (WordPress Core) | ✅ |
 | Video Block -> Lightbox | ✅ |
 | Group Block as Lightbox Container | ✅ |
 | Cover Block as Lightbox Container | ✅ |
@@ -48,7 +48,7 @@ ReformBox adds a **"ReformBox" panel** to the Block Editor sidebar for supported
 | Role | Blocks | Description |
 |---|---|---|
 | **Container** | Group, Cover | Content displayed inside the lightbox |
-| **Self-Lightbox** | Image, Video | Clicks itself to open in a lightbox |
+| **Self-Lightbox** | Image (Core), Video (ReformBox) | Clicks itself to open in a lightbox |
 | **Trigger** | Button, Paragraph, Heading, Image, Video | Clicks to open a linked lightbox |
 
 ### Workflow
@@ -57,14 +57,16 @@ ReformBox adds a **"ReformBox" panel** to the Block Editor sidebar for supported
 2. **Create a trigger** - Add a Button (or any trigger block), and set its **Lightbox Target ID** to match the container's ReformBox ID.
 3. **Done** - Visitors click the trigger and the container content appears in a modal overlay.
 
-For Image/Video blocks, simply toggle "Enable Lightbox on Click" - no separate container needed.
+For **Video** blocks, simply toggle "Enable Lightbox on Click" in the ReformBox panel.
+For **Image** blocks, ReformBox delegates to the WordPress core lightbox via "Enable Core Image Lightbox".
 
 ### Settings
 
 | Setting | Available On | Options |
 |---|---|---|
-| Enable ReformBox | Container, Self-Lightbox | On / Off |
-| ReformBox ID | Container, Self-Lightbox | Auto-generated or custom |
+| Enable ReformBox | Container, Video (Self-Lightbox) | On / Off |
+| Enable Core Image Lightbox | Image | On / Off |
+| ReformBox ID | Container, Video (Self-Lightbox) | Auto-generated or custom |
 | Lightbox Target ID | Trigger | ID of the target lightbox |
 | Animation | Container | Fade, Zoom, Slide |
 | Close on Overlay Click | Container | On / Off |
@@ -115,6 +117,7 @@ reformbox/
 ### Architecture
 
 - **No custom blocks** - Extends core blocks via `blocks.registerBlockType`, `editor.BlockEdit`, and `editor.BlockListBlock` WordPress JS filters
+- **Core-first image lightbox** - `core/image` self-lightbox behavior is delegated to WordPress core lightbox
 - **Server-side rendering** - PHP `render_block_core/{name}` filters inject lightbox markup on the frontend
 - **Non-destructive** - No `save()` modifications, so blocks remain valid with or without the plugin active
 - **Lazy loading** - CSS/JS only enqueued when a page contains lightbox-enabled blocks

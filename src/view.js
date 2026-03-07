@@ -7,140 +7,173 @@
 
 import './style.scss';
 
-(function () {
-  'use strict';
+( function () {
+	'use strict';
 
-  /* ------------------------------------------------------------------
-   * State
-   * ----------------------------------------------------------------*/
+	/* ------------------------------------------------------------------
+	 * State
+	 * ----------------------------------------------------------------*/
 
-  let activeOverlay = null;
-  let previousFocus = null;
+	let activeOverlay = null;
+	let previousFocus = null;
 
-  /* ------------------------------------------------------------------
-   * Open / Close
-   * ----------------------------------------------------------------*/
+	function getElementTarget( target ) {
+		return target && target.nodeType === 1 ? target : null;
+	}
 
-  function openLightbox(overlay) {
-    if (!overlay || activeOverlay) {
-      return;
-    }
+	function getTriggerFromTarget( target ) {
+		const element = getElementTarget( target );
+		return element ? element.closest( '[data-reformbox-trigger]' ) : null;
+	}
 
-    previousFocus = document.activeElement;
-    activeOverlay = overlay;
+	/* ------------------------------------------------------------------
+	 * Open / Close
+	 * ----------------------------------------------------------------*/
 
-    overlay.setAttribute('aria-hidden', 'false');
-    overlay.classList.add('reformbox-active');
-    document.body.classList.add('reformbox-open');
+	function openLightbox( overlay ) {
+		if ( ! overlay ) {
+			return;
+		}
 
-    // Focus the close button.
-    const closeBtn = overlay.querySelector('.reformbox-close');
-    if (closeBtn) {
-      closeBtn.focus();
-    }
-  }
+		if ( activeOverlay === overlay ) {
+			return;
+		}
 
-  function closeLightbox(overlay) {
-    if (!overlay) {
-      return;
-    }
+		if ( activeOverlay ) {
+			closeLightbox( activeOverlay, false );
+		}
 
-    overlay.classList.remove('reformbox-active');
-    overlay.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('reformbox-open');
-    activeOverlay = null;
+		const ownerDocument = overlay.ownerDocument || document;
+		previousFocus = ownerDocument.activeElement;
+		activeOverlay = overlay;
 
-    // Return focus to the trigger.
-    if (previousFocus) {
-      previousFocus.focus();
-      previousFocus = null;
-    }
-  }
+		overlay.setAttribute( 'aria-hidden', 'false' );
+		overlay.classList.add( 'reformbox-active' );
+		ownerDocument.body.classList.add( 'reformbox-open' );
 
-  /* ------------------------------------------------------------------
-   * Focus trap
-   * ----------------------------------------------------------------*/
+		// Focus the close button.
+		const closeBtn = overlay.querySelector( '.reformbox-close' );
+		if ( closeBtn ) {
+			closeBtn.focus();
+		}
+	}
 
-  const FOCUSABLE =
-    'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+	function closeLightbox( overlay, restoreFocus = true ) {
+		if ( ! overlay ) {
+			return;
+		}
 
-  function handleTabKey(e) {
-    if (!activeOverlay || e.key !== 'Tab') {
-      return;
-    }
+		const ownerDocument = overlay.ownerDocument || document;
 
-    const focusable = Array.from(
-      activeOverlay.querySelectorAll(FOCUSABLE)
-    );
-    if (!focusable.length) {
-      return;
-    }
+		overlay.classList.remove( 'reformbox-active' );
+		overlay.setAttribute( 'aria-hidden', 'true' );
+		ownerDocument.body.classList.remove( 'reformbox-open' );
+		activeOverlay = null;
 
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
+		// Return focus to the trigger.
+		if (
+			restoreFocus &&
+			previousFocus &&
+			typeof previousFocus.focus === 'function'
+		) {
+			previousFocus.focus();
+		}
+		previousFocus = null;
+	}
 
-    if (e.shiftKey) {
-      if (document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      }
-    } else if (document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  }
+	/* ------------------------------------------------------------------
+	 * Focus trap
+	 * ----------------------------------------------------------------*/
 
-  /* ------------------------------------------------------------------
-   * Event delegation (works with late-injected DOM)
-   * ----------------------------------------------------------------*/
+	const FOCUSABLE =
+		'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
-  document.addEventListener('click', function (e) {
-    // --- Trigger click ---
-    const trigger = e.target.closest('[data-reformbox-trigger]');
-    if (trigger) {
-      e.preventDefault();
-      const targetId = trigger.getAttribute('data-reformbox-trigger');
-      const overlay = document.getElementById(targetId);
-      if (overlay) {
-        openLightbox(overlay);
-      }
-      return;
-    }
+	function handleTabKey( e ) {
+		if ( ! activeOverlay || e.key !== 'Tab' ) {
+			return;
+		}
 
-    // --- Close button ---
-    if (e.target.closest('.reformbox-close')) {
-      closeLightbox(activeOverlay);
-      return;
-    }
+		const focusable = Array.from(
+			activeOverlay.querySelectorAll( FOCUSABLE )
+		);
+		if ( ! focusable.length ) {
+			return;
+		}
 
-    // --- Overlay background click ---
-    if (
-      e.target.classList.contains('reformbox-overlay') &&
-      e.target.dataset.reformboxOverlayClose !== 'false'
-    ) {
-      closeLightbox(activeOverlay);
-    }
-  });
+		const first = focusable[ 0 ];
+		const last = focusable[ focusable.length - 1 ];
+		const ownerDocument = activeOverlay.ownerDocument || document;
+		const activeElement = ownerDocument.activeElement;
 
-  // Keyboard: open trigger via Enter/Space, close via ESC, trap Tab.
-  document.addEventListener('keydown', function (e) {
-    // Enter / Space on trigger.
-    if (
-      (e.key === 'Enter' || e.key === ' ') &&
-      e.target.hasAttribute('data-reformbox-trigger')
-    ) {
-      e.preventDefault();
-      e.target.click();
-      return;
-    }
+		if ( e.shiftKey ) {
+			if ( activeElement === first ) {
+				e.preventDefault();
+				last.focus();
+			}
+		} else if ( activeElement === last ) {
+			e.preventDefault();
+			first.focus();
+		}
+	}
 
-    // ESC close.
-    if (e.key === 'Escape' && activeOverlay) {
-      closeLightbox(activeOverlay);
-      return;
-    }
+	/* ------------------------------------------------------------------
+	 * Event delegation (works with late-injected DOM)
+	 * ----------------------------------------------------------------*/
 
-    // Focus trap.
-    handleTabKey(e);
-  });
-})();
+	document.addEventListener( 'click', function ( e ) {
+		// --- Trigger click ---
+		const trigger = getTriggerFromTarget( e.target );
+		if ( trigger ) {
+			e.preventDefault();
+			const targetId = trigger.getAttribute( 'data-reformbox-trigger' );
+			const overlay = document.getElementById( targetId );
+			if ( overlay ) {
+				openLightbox( overlay );
+			}
+			return;
+		}
+
+		const target = getElementTarget( e.target );
+		if ( ! target ) {
+			return;
+		}
+
+		// --- Close button ---
+		if ( target.closest( '.reformbox-close' ) ) {
+			closeLightbox( activeOverlay );
+			return;
+		}
+
+		// --- Overlay background click ---
+		if (
+			target.classList.contains( 'reformbox-overlay' ) &&
+			target.dataset.reformboxOverlayClose !== 'false'
+		) {
+			closeLightbox( activeOverlay );
+		}
+	} );
+
+	// Keyboard: open trigger via Enter/Space, close via ESC, trap Tab.
+	document.addEventListener( 'keydown', function ( e ) {
+		const trigger = getTriggerFromTarget( e.target );
+
+		// Enter / Space on trigger.
+		if (
+			trigger &&
+			( e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' )
+		) {
+			e.preventDefault();
+			trigger.click();
+			return;
+		}
+
+		// ESC close.
+		if ( e.key === 'Escape' && activeOverlay ) {
+			closeLightbox( activeOverlay );
+			return;
+		}
+
+		// Focus trap.
+		handleTabKey( e );
+	} );
+} )();

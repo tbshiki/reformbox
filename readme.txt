@@ -16,7 +16,7 @@ ReformBox extends WordPress Lightbox functionality beyond images. Display any bl
 
 **Supported Blocks:**
 
-* Image Block – Click to open full-size image in lightbox
+* Image Block – Uses WordPress core lightbox behavior (integrated via ReformBox controls)
 * Video Block – Click to open video in lightbox
 * Group Block – Use as a lightbox container for any content
 * Cover Block – Use as a lightbox container
@@ -27,6 +27,7 @@ ReformBox extends WordPress Lightbox functionality beyond images. Display any bl
 **Features:**
 
 * No-code lightbox creation via block editor controls
+* Core-first image lightbox integration (`core/image`)
 * Fade, zoom, and slide animations
 * ESC key and overlay click to close
 * Accessible (ARIA attributes, focus management, keyboard navigation)

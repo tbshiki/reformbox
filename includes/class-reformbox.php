@@ -42,7 +42,7 @@ class ReformBox {
 		add_filter( 'render_block_core/group', array( $this, 'render_container_block' ), 10, 2 );
 		add_filter( 'render_block_core/cover', array( $this, 'render_container_block' ), 10, 2 );
 
-		// Self-lightbox blocks (click to open self in lightbox).
+		// Image (core lightbox + optional ReformBox trigger) / self-lightbox blocks.
 		add_filter( 'render_block_core/image', array( $this, 'render_image_block' ), 10, 2 );
 		add_filter( 'render_block_core/video', array( $this, 'render_video_block' ), 10, 2 );
 
@@ -128,9 +128,20 @@ class ReformBox {
 		if ( $this->has_lightbox ) {
 			return;
 		}
+
+		// Defensive registration for render contexts where wp_enqueue_scripts may not have fired yet.
+		if ( ! wp_script_is( 'reformbox-view', 'registered' ) || ! wp_style_is( 'reformbox-view', 'registered' ) ) {
+			$this->register_frontend_assets();
+		}
+
 		$this->has_lightbox = true;
-		wp_enqueue_style( 'reformbox-view' );
-		wp_enqueue_script( 'reformbox-view' );
+
+		if ( wp_style_is( 'reformbox-view', 'registered' ) ) {
+			wp_enqueue_style( 'reformbox-view' );
+		}
+		if ( wp_script_is( 'reformbox-view', 'registered' ) ) {
+			wp_enqueue_script( 'reformbox-view' );
+		}
 	}
 
 	/* ------------------------------------------------------------------
@@ -168,6 +179,7 @@ class ReformBox {
 	 */
 	private function get_lightbox_overlay( $content, $id, $attrs, $type = 'content' ) {
 		$animation     = isset( $attrs['reformboxAnimation'] ) ? sanitize_key( $attrs['reformboxAnimation'] ) : 'fade';
+		$animation     = in_array( $animation, array( 'fade', 'zoom', 'slide' ), true ) ? $animation : 'fade';
 		$overlay_close = isset( $attrs['reformboxOverlayClose'] ) ? (bool) $attrs['reformboxOverlayClose'] : true;
 
 		$overlay_class = 'reformbox-overlay reformbox-animation-' . $animation;
@@ -201,8 +213,16 @@ class ReformBox {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		if ( $processor->next_tag() ) {
 			$processor->set_attribute( 'data-reformbox-trigger', $target_id );
-			$processor->set_attribute( 'role', 'button' );
-			$processor->set_attribute( 'tabindex', '0' );
+
+			$tag_name = strtolower( (string) $processor->get_tag() );
+			if ( ! in_array( $tag_name, array( 'a', 'button', 'input', 'select', 'textarea', 'summary' ), true ) ) {
+				if ( null === $processor->get_attribute( 'role' ) ) {
+					$processor->set_attribute( 'role', 'button' );
+				}
+				if ( null === $processor->get_attribute( 'tabindex' ) ) {
+					$processor->set_attribute( 'tabindex', '0' );
+				}
+			}
 		}
 		return $processor->get_updated_html();
 	}
@@ -226,10 +246,15 @@ class ReformBox {
 	}
 
 	/**
-	 * Image → self-lightbox or trigger.
+	 * Image → core lightbox (if enabled) or ReformBox trigger.
 	 */
 	public function render_image_block( $block_content, $block ) {
-		// Self-lightbox.
+		// Respect WordPress core lightbox when enabled for Image block.
+		if ( ! empty( $block['attrs']['lightbox']['enabled'] ) ) {
+			return $block_content;
+		}
+
+		// Legacy fallback for posts saved before core-image delegation.
 		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {
 			$this->enqueue_frontend();
 			$id = $this->get_reformbox_id( $block['attrs'] );
