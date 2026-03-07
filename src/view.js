@@ -30,7 +30,7 @@ import './style.scss';
 	 * Open / Close
 	 * ----------------------------------------------------------------*/
 
-	function openLightbox( overlay ) {
+	function openLightbox( overlay, trigger = null ) {
 		if ( ! overlay ) {
 			return;
 		}
@@ -44,7 +44,11 @@ import './style.scss';
 		}
 
 		const ownerDocument = overlay.ownerDocument || document;
-		previousFocus = ownerDocument.activeElement;
+		if ( trigger && typeof trigger.focus === 'function' ) {
+			previousFocus = trigger;
+		} else {
+			previousFocus = ownerDocument.activeElement;
+		}
 		activeOverlay = overlay;
 
 		overlay.setAttribute( 'aria-hidden', 'false' );
@@ -76,7 +80,11 @@ import './style.scss';
 			previousFocus &&
 			typeof previousFocus.focus === 'function'
 		) {
-			previousFocus.focus();
+			try {
+				previousFocus.focus();
+			} catch ( error ) {
+				// Ignore focus restoration errors for detached elements.
+			}
 		}
 		previousFocus = null;
 	}
@@ -128,7 +136,7 @@ import './style.scss';
 			const targetId = trigger.getAttribute( 'data-reformbox-trigger' );
 			const overlay = document.getElementById( targetId );
 			if ( overlay ) {
-				openLightbox( overlay );
+				openLightbox( overlay, trigger );
 			}
 			return;
 		}

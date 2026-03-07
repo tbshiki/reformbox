@@ -117,7 +117,6 @@ class ReformBox {
 				$asset['version']
 			);
 			wp_style_add_data( 'reformbox-view', 'rtl', 'replace' );
-			wp_style_add_data( 'reformbox-view', 'suffix', '.css' );
 		}
 	}
 
