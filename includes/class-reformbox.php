@@ -105,14 +105,10 @@ class ReformBox {
 			array( 'in_footer' => true, 'strategy' => 'defer' )
 		);
 
-		$css_file = file_exists( REFORMBOX_PLUGIN_DIR . 'build/style-view.css' )
-			? 'build/style-view.css'
-			: 'build/view.css';
-
-		if ( file_exists( REFORMBOX_PLUGIN_DIR . $css_file ) ) {
+		if ( file_exists( REFORMBOX_PLUGIN_DIR . 'build/style-view.css' ) ) {
 			wp_register_style(
 				'reformbox-view',
-				REFORMBOX_PLUGIN_URL . $css_file,
+				REFORMBOX_PLUGIN_URL . 'build/style-view.css',
 				array(),
 				$asset['version']
 			);
@@ -158,13 +154,9 @@ class ReformBox {
 	 * Get or generate a ReformBox ID from block attributes.
 	 */
 	private function get_reformbox_id( $attrs ) {
-		$id = isset( $attrs['reformboxId'] )
+		return isset( $attrs['reformboxId'] )
 			? $this->sanitize_reformbox_id( $attrs['reformboxId'] )
 			: '';
-		if ( '' === $id ) {
-			$id = wp_unique_id( 'rb-' );
-		}
-		return $id;
 	}
 
 	/**
@@ -301,8 +293,12 @@ class ReformBox {
 			return $block_content;
 		}
 
-		$this->enqueue_frontend();
 		$id = $this->get_reformbox_id( $block['attrs'] );
+		if ( '' === $id ) {
+			return $block_content;
+		}
+
+		$this->enqueue_frontend();
 
 		return $this->get_lightbox_overlay( $block_content, $id, $block['attrs'] );
 	}
@@ -311,38 +307,9 @@ class ReformBox {
 	 * Image → core lightbox (if enabled) or ReformBox trigger.
 	 */
 	public function render_image_block( $block_content, $block ) {
-		// Respect WordPress core lightbox when enabled for Image block.
+		// WordPress core lightbox handles image display – pass through.
 		if ( ! empty( $block['attrs']['lightbox']['enabled'] ) ) {
 			return $block_content;
-		}
-
-		// Legacy fallback for posts saved before core-image delegation.
-		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {
-			$this->enqueue_frontend();
-			$id = $this->get_reformbox_id( $block['attrs'] );
-
-			// Resolve full-size URL.
-			$image_url = '';
-			if ( ! empty( $block['attrs']['id'] ) ) {
-				$full_src  = wp_get_attachment_image_src( (int) $block['attrs']['id'], 'full' );
-				$image_url = $full_src ? $full_src[0] : '';
-			}
-			if ( empty( $image_url ) && ! empty( $block['attrs']['url'] ) ) {
-				$image_url = $block['attrs']['url'];
-			}
-			if ( empty( $image_url ) ) {
-				return $block_content;
-			}
-
-			$alt             = ! empty( $block['attrs']['alt'] ) ? $block['attrs']['alt'] : '';
-			$lightbox_html   = sprintf(
-				'<img src="%s" alt="%s" />',
-				esc_url( $image_url ),
-				esc_attr( $alt )
-			);
-			$trigger_content = $this->add_trigger_attribute( $block_content, $id );
-
-			return $trigger_content . $this->get_lightbox_overlay( $lightbox_html, $id, $block['attrs'], 'media' );
 		}
 
 		// Trigger for another lightbox.
@@ -362,8 +329,12 @@ class ReformBox {
 	 */
 	public function render_video_block( $block_content, $block ) {
 		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {
-			$this->enqueue_frontend();
 			$id = $this->get_reformbox_id( $block['attrs'] );
+			if ( '' === $id ) {
+				return $block_content;
+			}
+
+			$this->enqueue_frontend();
 
 			// Build a placeholder trigger that shows a play icon overlay.
 			// The actual video is only inside the lightbox overlay.
