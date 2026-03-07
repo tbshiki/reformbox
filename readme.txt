@@ -41,6 +41,17 @@ ReformBox extends WordPress Lightbox functionality beyond images. Display any bl
 3. Open the block editor and select any supported block
 4. Enable ReformBox in the block's settings panel
 
+== Development ==
+
+To build and create a distributable ZIP:
+
+1. `npm install`
+2. `npm run lint:js`
+3. `npm run lint:css`
+4. `npm run release:zip`
+
+This creates `reformbox.zip` in the project root.
+
 == Changelog ==
 
 = 0.1.0 =

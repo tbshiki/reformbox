@@ -94,7 +94,23 @@ npm run start
 
 # Production build
 npm run build
+
+# Create distributable plugin ZIP (reformbox.zip)
+npm run release:zip
 ```
+
+### Distributable ZIP
+
+Run this before publishing a release:
+
+```bash
+npm install
+npm run lint:js
+npm run lint:css
+npm run release:zip
+```
+
+This generates `reformbox.zip` at the project root, ready to upload in **WP Admin -> Plugins -> Add New Plugin -> Upload Plugin**.
 
 ### Project Structure
 

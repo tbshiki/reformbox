@@ -94,7 +94,23 @@ npm run start
 
 # プロダクションビルド
 npm run build
+
+# 配布用プラグイン ZIP を作成（reformbox.zip）
+npm run release:zip
 ```
+
+### 配布用 ZIP の作成
+
+リリース前は次の手順を実行します。
+
+```bash
+npm install
+npm run lint:js
+npm run lint:css
+npm run release:zip
+```
+
+プロジェクトルートに `reformbox.zip` が生成され、**WP 管理画面 -> プラグイン -> プラグインを追加 -> プラグインのアップロード** からそのままインストールできます。
 
 ### プロジェクト構成
 
