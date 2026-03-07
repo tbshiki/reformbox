@@ -122,9 +122,9 @@ reformbox/
 ├── src/
 │   ├── editor/
 │   │   ├── index.js           # Block Editor extensions (filters + UI)
-│   │   └── editor.scss        # Editor-only styles
+│   │   └── editor.css         # Editor-only styles
 │   ├── view.js                # Frontend lightbox (vanilla JS)
-│   └── style.scss             # Frontend styles
+│   └── style.css              # Frontend styles
 ├── build/                     # Compiled assets (git-ignored)
 ├── package.json
 └── webpack.config.js

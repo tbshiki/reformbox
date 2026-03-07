@@ -122,9 +122,9 @@ reformbox/
 ├── src/
 │   ├── editor/
 │   │   ├── index.js           # ブロックエディタ拡張（フィルタ + UI）
-│   │   └── editor.scss        # エディタ専用スタイル
+│   │   └── editor.css         # エディタ専用スタイル
 │   ├── view.js                # フロントエンドライトボックス（バニラ JS）
-│   └── style.scss             # フロントエンドスタイル
+│   └── style.css              # フロントエンドスタイル
 ├── build/                     # コンパイル済みアセット（git-ignored）
 ├── package.json
 └── webpack.config.js

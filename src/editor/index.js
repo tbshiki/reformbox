@@ -16,7 +16,7 @@ import { useEffect } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
 import { __ } from '@wordpress/i18n';
 
-import './editor.scss';
+import './editor.css';
 
 const CONTAINER_BLOCKS = [ 'core/group', 'core/cover' ];
 const SELF_LIGHTBOX_BLOCKS = [ 'core/video' ];

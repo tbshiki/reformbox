@@ -9,7 +9,7 @@
     "start": "node node_modules/@wordpress/scripts/bin/wp-scripts.js start",
     "lint:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js src/",
     "format:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js src/ --fix",
-    "lint:css": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-style src/**/*.scss",
+    "lint:css": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-style src/**/*.css",
     "package:zip": "node node_modules/@wordpress/scripts/bin/wp-scripts.js plugin-zip",
     "release:zip": "npm run build && npm run package:zip"
   },

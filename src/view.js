@@ -5,7 +5,7 @@
  * Handles trigger clicks, overlay close, ESC key, and focus management.
  */
 
-import './style.scss';
+import './style.css';
 
 ( () => {
 	'use strict';

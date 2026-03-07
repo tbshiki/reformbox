@@ -1,5 +1,5 @@
 /**
- * ReformBox – Frontend styles.
+ * ReformBox - Frontend styles.
  */
 
 /* ------------------------------------------------------------------
@@ -18,16 +18,16 @@
 	visibility: hidden;
 	pointer-events: none;
 	transition: opacity 0.3s ease, visibility 0.3s ease;
+}
 
-	&.reformbox-active {
-		opacity: 1;
-		visibility: visible;
-		pointer-events: auto;
-	}
+.reformbox-overlay.reformbox-active {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+}
 
-	&:focus {
-		outline: none;
-	}
+.reformbox-overlay:focus {
+	outline: none;
 }
 
 /* ------------------------------------------------------------------
@@ -50,12 +50,12 @@
 
 .reformbox-content {
 	padding: 2rem;
+}
 
-	img {
-		display: block;
-		max-width: 100%;
-		height: auto;
-	}
+.reformbox-content img {
+	display: block;
+	max-width: 100%;
+	height: auto;
 }
 
 /* ------------------------------------------------------------------
@@ -82,43 +82,40 @@
 	cursor: pointer;
 	z-index: 1;
 	transition: color 0.2s ease, background 0.2s ease;
+}
 
-	&:hover,
-	&:focus-visible {
-		color: #000;
-		background: #fff;
-		outline: 2px solid #007cba;
-		outline-offset: 2px;
-	}
+.reformbox-close:hover,
+.reformbox-close:focus-visible {
+	color: #000;
+	background: #fff;
+	outline: 2px solid #007cba;
+	outline-offset: 2px;
 }
 
 /* ------------------------------------------------------------------
  * Media variant (images / video)
  * ----------------------------------------------------------------*/
 
-.reformbox-overlay--media {
+.reformbox-overlay--media .reformbox-container {
+	background: transparent;
+	box-shadow: none;
+}
 
-	.reformbox-container {
-		background: transparent;
-		box-shadow: none;
-	}
+.reformbox-overlay--media .reformbox-content {
+	padding: 0;
+}
 
-	.reformbox-content {
-		padding: 0;
-	}
+.reformbox-overlay--media .reformbox-close {
+	top: -2.5rem;
+	right: 0;
+	color: #fff;
+	background: rgba(0, 0, 0, 0.5);
+}
 
-	.reformbox-close {
-		top: -2.5rem;
-		right: 0;
-		color: #fff;
-		background: rgba(0, 0, 0, 0.5);
-
-		&:hover,
-		&:focus-visible {
-			background: rgba(0, 0, 0, 0.8);
-			color: #fff;
-		}
-	}
+.reformbox-overlay--media .reformbox-close:hover,
+.reformbox-overlay--media .reformbox-close:focus-visible {
+	background: rgba(0, 0, 0, 0.8);
+	color: #fff;
 }
 
 /* ------------------------------------------------------------------
@@ -126,28 +123,19 @@
  * ----------------------------------------------------------------*/
 
 /* Fade (default) */
-.reformbox-animation-fade {
-
-	.reformbox-container {
-		--reformbox-transform: scale(0.97);
-	}
+.reformbox-animation-fade .reformbox-container {
+	--reformbox-transform: scale(0.97);
 }
 
 /* Zoom */
-.reformbox-animation-zoom {
-
-	.reformbox-container {
-		--reformbox-transform: scale(0.5);
-		--reformbox-transform-transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-	}
+.reformbox-animation-zoom .reformbox-container {
+	--reformbox-transform: scale(0.5);
+	--reformbox-transform-transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Slide */
-.reformbox-animation-slide {
-
-	.reformbox-container {
-		--reformbox-transform: translateY(40px);
-	}
+.reformbox-animation-slide .reformbox-container {
+	--reformbox-transform: translateY(40px);
 }
 
 .reformbox-overlay.reformbox-active .reformbox-container {
@@ -178,40 +166,40 @@ body.reformbox-open {
 .reformbox-video-trigger {
 	position: relative;
 	cursor: pointer;
+}
 
-	&__frame {
-		position: relative;
-		display: block;
-		line-height: 0;
-	}
+.reformbox-video-trigger__frame {
+	position: relative;
+	display: block;
+	line-height: 0;
+}
 
-	&__poster {
-		display: block;
-		max-width: 100%;
-		height: auto;
-	}
+.reformbox-video-trigger__poster {
+	display: block;
+	max-width: 100%;
+	height: auto;
+}
 
-	&__play {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		font-size: 3rem;
-		color: #fff;
-		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-		pointer-events: none;
-		transition: transform 0.2s ease;
-	}
+.reformbox-video-trigger__play {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 3rem;
+	color: #fff;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+	pointer-events: none;
+	transition: transform 0.2s ease;
+}
 
-	&:hover &__play,
-	&:focus-visible &__play {
-		transform: translate(-50%, -50%) scale(1.15);
-	}
+.reformbox-video-trigger:hover .reformbox-video-trigger__play,
+.reformbox-video-trigger:focus-visible .reformbox-video-trigger__play {
+	transform: translate(-50%, -50%) scale(1.15);
+}
 
-	&:focus-visible {
-		outline: 2px solid #007cba;
-		outline-offset: 2px;
-	}
+.reformbox-video-trigger:focus-visible {
+	outline: 2px solid #007cba;
+	outline-offset: 2px;
 }
 
 /* ------------------------------------------------------------------
