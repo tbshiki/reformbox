@@ -16,8 +16,8 @@ ReformBox extends WordPress Lightbox functionality beyond images. Display any bl
 
 **Supported Blocks:**
 
-* Image Block – Uses WordPress core lightbox behavior (integrated via ReformBox controls)
-* Video Block – Click to open video in lightbox
+* Image Block – Uses WordPress core lightbox behavior or acts as a trigger for another ReformBox target
+* Video Block – Click to open video in lightbox or acts as a trigger for another ReformBox target
 * Group Block – Use as a lightbox container for any content
 * Cover Block – Use as a lightbox container
 * Button Block – Use as a lightbox trigger
@@ -58,6 +58,6 @@ This creates `reformbox.zip` in the project root.
 * Initial release
 * Group/Cover block as lightbox container
 * Image/Video block self-lightbox
-* Button/Paragraph/Heading block as trigger
+* Button/Paragraph/Heading/Image/Video block as trigger
 * Fade, zoom, slide animations
 * Keyboard and accessibility support

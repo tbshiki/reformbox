@@ -24,6 +24,10 @@
 		visibility: visible;
 		pointer-events: auto;
 	}
+
+	&:focus {
+		outline: none;
+	}
 }
 
 /* ------------------------------------------------------------------
@@ -164,9 +168,13 @@ body.reformbox-open {
 
 .reformbox-video-trigger {
 	position: relative;
-	display: inline-block;
 	cursor: pointer;
-	line-height: 0;
+
+	&__frame {
+		position: relative;
+		display: block;
+		line-height: 0;
+	}
 
 	&__poster {
 		display: block;

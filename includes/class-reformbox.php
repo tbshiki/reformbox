@@ -18,6 +18,9 @@ class ReformBox {
 	/** @var bool Whether the current page has lightbox content. */
 	private $has_lightbox = false;
 
+	/** @var bool Whether frontend assets have been registered for the request. */
+	private $frontend_assets_registered = false;
+
 	/**
 	 * Initialize the singleton instance.
 	 */
@@ -32,6 +35,8 @@ class ReformBox {
 	 * Constructor – registers all hooks.
 	 */
 	private function __construct() {
+		add_action( 'init', array( $this, 'load_textdomain' ) );
+
 		// Editor assets.
 		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
 
@@ -50,6 +55,17 @@ class ReformBox {
 		add_filter( 'render_block_core/button', array( $this, 'render_trigger_block' ), 10, 2 );
 		add_filter( 'render_block_core/paragraph', array( $this, 'render_trigger_block' ), 10, 2 );
 		add_filter( 'render_block_core/heading', array( $this, 'render_trigger_block' ), 10, 2 );
+	}
+
+	/**
+	 * Load plugin translations.
+	 */
+	public function load_textdomain() {
+		load_plugin_textdomain(
+			'reformbox',
+			false,
+			dirname( REFORMBOX_PLUGIN_BASENAME ) . '/languages'
+		);
 	}
 
 	/* ------------------------------------------------------------------
@@ -91,6 +107,10 @@ class ReformBox {
 	 * They will be enqueued lazily when a lightbox block is rendered.
 	 */
 	public function register_frontend_assets() {
+		if ( $this->frontend_assets_registered ) {
+			return;
+		}
+
 		$asset_file = REFORMBOX_PLUGIN_DIR . 'build/view.asset.php';
 		$asset      = file_exists( $asset_file )
 			? require $asset_file
@@ -116,6 +136,8 @@ class ReformBox {
 			);
 			wp_style_add_data( 'reformbox-view', 'rtl', 'replace' );
 		}
+
+		$this->frontend_assets_registered = true;
 	}
 
 	/**
@@ -127,7 +149,7 @@ class ReformBox {
 		}
 
 		// Defensive registration for render contexts where wp_enqueue_scripts may not have fired yet.
-		if ( ! wp_script_is( 'reformbox-view', 'registered' ) || ! wp_style_is( 'reformbox-view', 'registered' ) ) {
+		if ( ! $this->frontend_assets_registered || ! wp_script_is( 'reformbox-view', 'registered' ) ) {
 			$this->register_frontend_assets();
 		}
 
@@ -181,7 +203,7 @@ class ReformBox {
 		}
 
 		return sprintf(
-			'<div class="%s" id="%s" data-reformbox-overlay-close="%s" aria-hidden="true" role="dialog" aria-modal="true" aria-label="%s">'
+			'<div class="%s" id="%s" data-reformbox-overlay-close="%s" aria-hidden="true" role="dialog" aria-modal="true" aria-label="%s" tabindex="-1">'
 			. '<div class="reformbox-container">'
 			. '<button class="reformbox-close" type="button" aria-label="%s">&times;</button>'
 			. '<div class="reformbox-content">%s</div>'
@@ -219,16 +241,32 @@ class ReformBox {
 		// clickable <a class="wp-block-button__link">. Put the trigger
 		// on the inner <a> so click delegation works correctly.
 		if ( 'div' === $tag_name && false !== strpos( $classes, 'wp-block-button' ) ) {
-			if ( $processor->next_tag( 'a' ) ) {
-				$processor->set_attribute( 'data-reformbox-trigger', $target_id );
-				return $processor->get_updated_html();
+			$link_processor = new WP_HTML_Tag_Processor( $html );
+			$link_processor->next_tag();
+
+			if ( $link_processor->next_tag( array( 'tag_name' => 'a' ) ) ) {
+				$processor = $link_processor;
+				$tag_name  = strtolower( (string) $processor->get_tag() );
+			} else {
+				$button_processor = new WP_HTML_Tag_Processor( $html );
+				$button_processor->next_tag();
+
+				if ( $button_processor->next_tag( array( 'tag_name' => 'button' ) ) ) {
+					$processor = $button_processor;
+					$tag_name  = strtolower( (string) $processor->get_tag() );
+				} else {
+					// Fallback: no inner interactive element found, use the wrapper.
+					$processor = new WP_HTML_Tag_Processor( $html );
+					$processor->next_tag();
+					$tag_name = strtolower( (string) $processor->get_tag() );
+				}
 			}
-			// Fallback: no inner <a> found, use the wrapper.
-			$processor = new WP_HTML_Tag_Processor( $html );
-			$processor->next_tag();
 		}
 
 		$processor->set_attribute( 'data-reformbox-trigger', $target_id );
+		$processor->set_attribute( 'aria-controls', $target_id );
+		$processor->set_attribute( 'aria-expanded', 'false' );
+		$processor->set_attribute( 'aria-haspopup', 'dialog' );
 
 		$interactive_tags = array( 'a', 'button', 'input', 'select', 'textarea', 'summary' );
 		if ( ! in_array( $tag_name, $interactive_tags, true ) ) {
@@ -241,6 +279,72 @@ class ReformBox {
 		}
 
 		return $processor->get_updated_html();
+	}
+
+	/**
+	 * Extract wrapper tag attributes used for the lightweight video trigger.
+	 *
+	 * @param string $block_content Original video block HTML.
+	 * @return array{tag:string,class:string,style:string}
+	 */
+	private function get_video_trigger_wrapper( $block_content ) {
+		$processor = new WP_HTML_Tag_Processor( $block_content );
+		if ( ! $processor->next_tag() ) {
+			return array(
+				'tag'   => 'div',
+				'class' => '',
+				'style' => '',
+			);
+		}
+
+		$tag_name = strtolower( (string) $processor->get_tag() );
+		if ( ! in_array( $tag_name, array( 'figure', 'div' ), true ) ) {
+			$tag_name = 'div';
+		}
+
+		return array(
+			'tag'   => $tag_name,
+			'class' => (string) $processor->get_attribute( 'class' ),
+			'style' => (string) $processor->get_attribute( 'style' ),
+		);
+	}
+
+	/**
+	 * Extract the figcaption HTML from a block, when present.
+	 *
+	 * @param string $block_content Original block HTML.
+	 * @return string
+	 */
+	private function get_figcaption_html( $block_content ) {
+		if ( preg_match( '/<figcaption\b[^>]*>.*?<\/figcaption>/is', $block_content, $matches ) ) {
+			return $matches[0];
+		}
+
+		return '';
+	}
+
+	/**
+	 * Convert an associative array into escaped HTML attributes.
+	 *
+	 * @param array<string,string> $attributes Attribute map.
+	 * @return string
+	 */
+	private function build_html_attributes( $attributes ) {
+		$parts = array();
+
+		foreach ( $attributes as $name => $value ) {
+			if ( '' === $value ) {
+				continue;
+			}
+
+			$parts[] = sprintf(
+				' %s="%s"',
+				esc_attr( $name ),
+				esc_attr( $value )
+			);
+		}
+
+		return implode( '', $parts );
 	}
 
 	/**
@@ -266,14 +370,32 @@ class ReformBox {
 		}
 
 		if ( $poster ) {
+			$wrapper          = $this->get_video_trigger_wrapper( $block_content );
+			$wrapper_tag      = $wrapper['tag'];
+			$wrapper_classes  = trim( $wrapper['class'] . ' reformbox-video-trigger' );
+			$wrapper_style    = $wrapper['style'];
+			$caption_html     = $this->get_figcaption_html( $block_content );
+			$wrapper_attrs    = array(
+				'class'                 => $wrapper_classes,
+				'data-reformbox-trigger' => $id,
+				'aria-controls'         => $id,
+				'aria-expanded'         => 'false',
+				'aria-haspopup'         => 'dialog',
+				'aria-label'            => __( 'Play video', 'reformbox' ),
+				'role'                  => 'button',
+				'tabindex'              => '0',
+			);
+
+			if ( $wrapper_style ) {
+				$wrapper_attrs['style'] = $wrapper_style;
+			}
+
 			$trigger_html = sprintf(
-				'<div class="reformbox-video-trigger" data-reformbox-trigger="%s" role="button" tabindex="0">'
-				. '<img src="%s" alt="%s" class="reformbox-video-trigger__poster" />'
-				. '<span class="reformbox-video-trigger__play" aria-hidden="true">&#9654;</span>'
-				. '</div>',
-				esc_attr( $id ),
+				'<%1$s%2$s><span class="reformbox-video-trigger__frame"><img src="%3$s" alt="" class="reformbox-video-trigger__poster" loading="lazy" decoding="async" /><span class="reformbox-video-trigger__play" aria-hidden="true">&#9654;</span></span>%4$s</%1$s>',
+				tag_escape( $wrapper_tag ),
+				$this->build_html_attributes( $wrapper_attrs ),
 				esc_url( $poster ),
-				esc_attr__( 'Play video', 'reformbox' ),
+				$caption_html
 			);
 		} else {
 			// No poster available — fall back to adding trigger on original block.

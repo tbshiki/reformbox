@@ -27,7 +27,7 @@ Traditional lightbox plugins only enlarge images. ReformBox redefines the lightb
 | Video Block -> Lightbox | ✅ |
 | Group Block as Lightbox Container | ✅ |
 | Cover Block as Lightbox Container | ✅ |
-| Button / Paragraph / Heading as Trigger | ✅ |
+| Button / Paragraph / Heading / Image / Video as Trigger | ✅ |
 | Fade / Zoom / Slide animation | ✅ |
 | ESC key close | ✅ |
 | Overlay click close (optional) | ✅ |
@@ -143,7 +143,13 @@ reformbox/
 
 ```html
 <!-- Trigger -->
-<button data-reformbox-trigger="rb-abc123" role="button" tabindex="0">
+<button
+  data-reformbox-trigger="rb-abc123"
+  aria-controls="rb-abc123"
+  aria-expanded="false"
+  aria-haspopup="dialog"
+  role="button"
+  tabindex="0">
   Open Modal
 </button>
 
@@ -153,7 +159,8 @@ reformbox/
      data-reformbox-overlay-close="true"
      aria-hidden="true"
      role="dialog"
-     aria-modal="true">
+     aria-modal="true"
+     tabindex="-1">
   <div class="reformbox-container">
     <button class="reformbox-close" type="button" aria-label="Close">&times;</button>
     <div class="reformbox-content">
