@@ -32,6 +32,30 @@ import './style.scss';
 		}
 	}
 
+	function prepareOverlayMedia( overlay ) {
+		overlay
+			.querySelectorAll( 'video[data-reformbox-video="true"]' )
+			.forEach( ( media ) => {
+				if (
+					media.dataset.reformboxLoaded !== 'true' &&
+					typeof media.load === 'function'
+				) {
+					media.load();
+					media.dataset.reformboxLoaded = 'true';
+				}
+
+				if (
+					media.dataset.reformboxAutoplay === 'true' &&
+					typeof media.play === 'function'
+				) {
+					const playResult = media.play();
+					if ( typeof playResult?.catch === 'function' ) {
+						playResult.catch( () => {} );
+					}
+				}
+			} );
+	}
+
 	function openLightbox( overlay, trigger = null ) {
 		if ( ! overlay || activeOverlay === overlay ) {
 			return;
@@ -53,6 +77,7 @@ import './style.scss';
 		overlay.setAttribute( 'aria-hidden', 'false' );
 		overlay.classList.add( 'reformbox-active' );
 		ownerDocument.body?.classList.add( 'reformbox-open' );
+		prepareOverlayMedia( overlay );
 
 		const focusTarget =
 			overlay.querySelector( '.reformbox-close' ) || overlay;
@@ -125,12 +150,21 @@ import './style.scss';
 			return;
 		}
 
+		if ( ! activeOverlay.contains( activeElement ) ) {
+			event.preventDefault();
+			( event.shiftKey ? last : first ).focus();
+			return;
+		}
+
 		if ( event.shiftKey ) {
-			if ( activeElement === first ) {
+			if ( activeElement === first || activeElement === activeOverlay ) {
 				event.preventDefault();
 				last.focus();
 			}
-		} else if ( activeElement === last ) {
+		} else if (
+			activeElement === last ||
+			activeElement === activeOverlay
+		) {
 			event.preventDefault();
 			first.focus();
 		}

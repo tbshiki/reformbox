@@ -28,10 +28,12 @@ ReformBox extends WordPress Lightbox functionality beyond images. Display any bl
 
 * No-code lightbox creation via block editor controls
 * Core-first image lightbox integration (`core/image`)
+* Core-aligned overlay markup for custom lightboxes
 * Fade, zoom, and slide animations
 * ESC key and overlay click to close
 * Accessible (ARIA attributes, focus management, keyboard navigation)
 * Lazy-loaded assets (CSS/JS only loaded when needed)
+* Self-lightbox videos defer preload/autoplay until opened
 * Lightweight and performant
 
 == Installation ==

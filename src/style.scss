@@ -154,6 +154,15 @@
 	transform: none;
 }
 
+@media (prefers-reduced-motion: reduce) {
+
+	.reformbox-overlay,
+	.reformbox-container,
+	.reformbox-video-trigger__play {
+		transition: none;
+	}
+}
+
 /* ------------------------------------------------------------------
  * Body lock
  * ----------------------------------------------------------------*/

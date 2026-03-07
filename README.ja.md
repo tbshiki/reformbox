@@ -57,7 +57,7 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 2. **トリガーを作成** - ボタンなどのトリガーブロックを追加し、**ライトボックスターゲット ID** にコンテナの ReformBox ID を入力します。
 3. **完了** - 訪問者がトリガーをクリックすると、コンテナ内容がモーダルオーバーレイで表示されます。
 
-動画ブロックの場合は ReformBox パネルの「クリックでライトボックス表示」を ON にするだけです。
+動画ブロックの場合は ReformBox パネルの「クリックでライトボックス表示」を ON にし、必要に応じてアニメーションやオーバーレイクリック時の挙動も設定できます。
 画像ブロックの場合は ReformBox パネルから WordPress コア Lightbox（「Enable Core Image Lightbox」）を有効化します。
 
 ### 設定項目
@@ -68,8 +68,8 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 | Core 画像 Lightbox を有効化 | 画像 | ON / OFF |
 | ReformBox ID | コンテナ, 動画（セルフライトボックス） | 自動生成またはカスタム |
 | ライトボックスターゲット ID | トリガー | 対象ライトボックスの ID |
-| アニメーション | コンテナ | Fade, Zoom, Slide |
-| オーバーレイクリックで閉じる | コンテナ | ON / OFF |
+| アニメーション | コンテナ, 動画（セルフライトボックス） | Fade, Zoom, Slide |
+| オーバーレイクリックで閉じる | コンテナ, 動画（セルフライトボックス） | ON / OFF |
 
 ## 動作要件
 
@@ -134,9 +134,11 @@ reformbox/
 
 - **カスタムブロック不使用** - WordPress JS フィルタ（`blocks.registerBlockType`, `editor.BlockEdit`, `editor.BlockListBlock`）でコアブロックを拡張
 - **画像ライトボックスは Core 優先** - `core/image` のセルフライトボックスは WordPress コア Lightbox に委譲
+- **カスタムオーバーレイも Core に寄せる** - `wp-lightbox-overlay`, `close-button`, `wp-lightbox-container` など、使える箇所ではコア Lightbox のクラス規約に合わせる
 - **サーバーサイドレンダリング** - PHP `render_block_core/{name}` フィルタでフロントエンドにライトボックス HTML を注入
 - **非破壊的設計** - `save()` を変更しないため、プラグインの有効/無効に関わらずブロックは常に有効
 - **遅延ロード** - ライトボックス対応ブロックがページに存在する場合のみ CSS/JS をエンキュー
+- **動画は開くまで先読みしない** - セルフライトボックスの動画は、オーバーレイを開くまで eager preload / autoplay を抑制
 - **軽量フロントエンド** - WordPress 依存なしのバニラ JS（ミニファイ後 約2.3 KB）
 
 ### CSS カスタマイズ

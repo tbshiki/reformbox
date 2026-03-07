@@ -196,22 +196,26 @@ class ReformBox {
 		$animation     = isset( $attrs['reformboxAnimation'] ) ? sanitize_key( $attrs['reformboxAnimation'] ) : 'fade';
 		$animation     = in_array( $animation, array( 'fade', 'zoom', 'slide' ), true ) ? $animation : 'fade';
 		$overlay_close = isset( $attrs['reformboxOverlayClose'] ) ? (bool) $attrs['reformboxOverlayClose'] : true;
+		$dialog_label  = 'media' === $type
+			? __( 'Video lightbox dialog', 'reformbox' )
+			: __( 'Lightbox dialog', 'reformbox' );
 
-		$overlay_class = 'reformbox-overlay reformbox-animation-' . $animation;
+		$overlay_class = 'reformbox-overlay wp-lightbox-overlay reformbox-animation-' . $animation;
 		if ( 'media' === $type ) {
 			$overlay_class .= ' reformbox-overlay--media';
 		}
 
 		return sprintf(
-			'<div class="%s" id="%s" data-reformbox-overlay-close="%s" aria-hidden="true" role="dialog" aria-modal="true" aria-label="%s" tabindex="-1">'
+			'<div class="%s" id="%s" data-reformbox-dialog-type="%s" data-reformbox-overlay-close="%s" aria-hidden="true" role="dialog" aria-modal="true" aria-label="%s" tabindex="-1">'
 			. '<div class="reformbox-container">'
-			. '<button class="reformbox-close" type="button" aria-label="%s">&times;</button>'
+			. '<button class="reformbox-close close-button" type="button" aria-label="%s">&times;</button>'
 			. '<div class="reformbox-content">%s</div>'
 			. '</div></div>',
 			esc_attr( $overlay_class ),
 			esc_attr( $id ),
+			esc_attr( $type ),
 			esc_attr( $overlay_close ? 'true' : 'false' ),
-			esc_attr__( 'Content', 'reformbox' ),
+			esc_attr( $dialog_label ),
 			esc_attr__( 'Close', 'reformbox' ),
 			$content // Already rendered block HTML – escaped by core.
 		);
@@ -348,6 +352,32 @@ class ReformBox {
 	}
 
 	/**
+	 * Prepare video markup for lazy loading inside the lightbox overlay.
+	 *
+	 * The overlay stays hidden until opened, so prevent eager preload/autoplay
+	 * and restore playback in the frontend script only when needed.
+	 *
+	 * @param string $block_content Original video block HTML.
+	 * @return string
+	 */
+	private function prepare_video_lightbox_content( $block_content ) {
+		$processor = new WP_HTML_Tag_Processor( $block_content );
+		if ( ! $processor->next_tag( 'video' ) ) {
+			return $block_content;
+		}
+
+		$processor->set_attribute( 'preload', 'none' );
+		$processor->set_attribute( 'data-reformbox-video', 'true' );
+
+		if ( null !== $processor->get_attribute( 'autoplay' ) ) {
+			$processor->remove_attribute( 'autoplay' );
+			$processor->set_attribute( 'data-reformbox-autoplay', 'true' );
+		}
+
+		return $processor->get_updated_html();
+	}
+
+	/**
 	 * Build a video trigger element: shows the video poster as a
 	 * thumbnail with a play icon, rather than duplicating the
 	 * full <video> element in the page.
@@ -372,7 +402,7 @@ class ReformBox {
 		if ( $poster ) {
 			$wrapper          = $this->get_video_trigger_wrapper( $block_content );
 			$wrapper_tag      = $wrapper['tag'];
-			$wrapper_classes  = trim( $wrapper['class'] . ' reformbox-video-trigger' );
+			$wrapper_classes  = trim( $wrapper['class'] . ' reformbox-video-trigger wp-lightbox-container' );
 			$wrapper_style    = $wrapper['style'];
 			$caption_html     = $this->get_figcaption_html( $block_content );
 			$wrapper_attrs    = array(
@@ -463,7 +493,12 @@ class ReformBox {
 			// Build a placeholder trigger that shows a play icon overlay.
 			// The actual video is only inside the lightbox overlay.
 			$trigger_content = $this->build_video_trigger( $block_content, $id, $block['attrs'] );
-			$lightbox_html   = $this->get_lightbox_overlay( $block_content, $id, $block['attrs'], 'media' );
+			$lightbox_html   = $this->get_lightbox_overlay(
+				$this->prepare_video_lightbox_content( $block_content ),
+				$id,
+				$block['attrs'],
+				'media'
+			);
 
 			return $trigger_content . $lightbox_html;
 		}

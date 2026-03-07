@@ -57,7 +57,7 @@ ReformBox adds a **"ReformBox" panel** to the Block Editor sidebar for supported
 2. **Create a trigger** - Add a Button (or any trigger block), and set its **Lightbox Target ID** to match the container's ReformBox ID.
 3. **Done** - Visitors click the trigger and the container content appears in a modal overlay.
 
-For **Video** blocks, simply toggle "Enable Lightbox on Click" in the ReformBox panel.
+For **Video** blocks, simply toggle "Enable Lightbox on Click" in the ReformBox panel and optionally choose the animation / overlay-click behavior.
 For **Image** blocks, ReformBox delegates to the WordPress core lightbox via "Enable Core Image Lightbox".
 
 ### Settings
@@ -68,8 +68,8 @@ For **Image** blocks, ReformBox delegates to the WordPress core lightbox via "En
 | Enable Core Image Lightbox | Image | On / Off |
 | ReformBox ID | Container, Video (Self-Lightbox) | Auto-generated or custom |
 | Lightbox Target ID | Trigger | ID of the target lightbox |
-| Animation | Container | Fade, Zoom, Slide |
-| Close on Overlay Click | Container | On / Off |
+| Animation | Container, Video (Self-Lightbox) | Fade, Zoom, Slide |
+| Close on Overlay Click | Container, Video (Self-Lightbox) | On / Off |
 
 ## Requirements
 
@@ -134,9 +134,11 @@ reformbox/
 
 - **No custom blocks** - Extends core blocks via `blocks.registerBlockType`, `editor.BlockEdit`, and `editor.BlockListBlock` WordPress JS filters
 - **Core-first image lightbox** - `core/image` self-lightbox behavior is delegated to WordPress core lightbox
+- **Core-aligned custom overlays** - ReformBox reuses core lightbox class conventions where practical (`wp-lightbox-overlay`, `close-button`, `wp-lightbox-container`)
 - **Server-side rendering** - PHP `render_block_core/{name}` filters inject lightbox markup on the frontend
 - **Non-destructive** - No `save()` modifications, so blocks remain valid with or without the plugin active
 - **Lazy loading** - CSS/JS only enqueued when a page contains lightbox-enabled blocks
+- **Deferred video loading** - Self-lightbox videos avoid eager preload/autoplay until the overlay is opened
 - **Lightweight frontend** - Vanilla JS with no WordPress dependencies (~2.3 KB minified)
 
 ### HTML Output
@@ -154,15 +156,17 @@ reformbox/
 </button>
 
 <!-- Lightbox Overlay -->
-<div class="reformbox-overlay reformbox-animation-fade"
+<div class="reformbox-overlay wp-lightbox-overlay reformbox-animation-fade"
      id="rb-abc123"
+     data-reformbox-dialog-type="content"
      data-reformbox-overlay-close="true"
      aria-hidden="true"
      role="dialog"
      aria-modal="true"
+     aria-label="Lightbox dialog"
      tabindex="-1">
   <div class="reformbox-container">
-    <button class="reformbox-close" type="button" aria-label="Close">&times;</button>
+    <button class="reformbox-close close-button" type="button" aria-label="Close">&times;</button>
     <div class="reformbox-content">
       <!-- Block content here -->
     </div>

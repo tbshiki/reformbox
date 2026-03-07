@@ -33,12 +33,18 @@ const ANIMATION_OPTIONS = [
 	{ label: __( 'Slide', 'reformbox' ), value: 'slide' },
 ];
 
-function generateId() {
-	return `rb-${ Math.random().toString( 36 ).slice( 2, 10 ) }`;
-}
-
 function sanitizeReformBoxId( value ) {
 	return String( value || '' ).replace( /[^a-zA-Z0-9_-]/g, '' );
+}
+
+function generateId( seed = '' ) {
+	const normalizedSeed = sanitizeReformBoxId( seed ).replace( /-/g, '' );
+
+	if ( normalizedSeed ) {
+		return `rb-${ normalizedSeed.slice( 0, 8 ) }`;
+	}
+
+	return `rb-${ Math.random().toString( 36 ).slice( 2, 10 ) }`;
 }
 
 function getImageLightboxAttributes( lightbox = {}, enabled ) {
@@ -62,9 +68,6 @@ function addReformBoxAttributes( settings, name ) {
 	if ( isContainer || isSelfLightbox ) {
 		attrs.reformboxEnabled = { type: 'boolean', default: false };
 		attrs.reformboxId = { type: 'string', default: '' };
-	}
-
-	if ( isContainer ) {
 		attrs.reformboxAnimation = { type: 'string', default: 'fade' };
 		attrs.reformboxOverlayClose = { type: 'boolean', default: true };
 	}
@@ -90,7 +93,7 @@ addFilter(
 
 const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 	return function ReformBoxControls( props ) {
-		const { name, attributes, setAttributes } = props;
+		const { clientId, name, attributes, setAttributes } = props;
 		const isContainer = CONTAINER_BLOCKS.includes( name );
 		const isSelfLightbox = SELF_LIGHTBOX_BLOCKS.includes( name );
 		const isTrigger = TRIGGER_BLOCKS.includes( name );
@@ -108,8 +111,9 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 				return;
 			}
 
-			setAttributes( { reformboxId: generateId() } );
+			setAttributes( { reformboxId: generateId( clientId ) } );
 		}, [
+			clientId,
 			attributes.reformboxEnabled,
 			attributes.reformboxId,
 			isContainer,
@@ -137,7 +141,7 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 			const next = { reformboxEnabled: value };
 
 			if ( value && ! attributes.reformboxId ) {
-				next.reformboxId = generateId();
+				next.reformboxId = generateId( clientId );
 			}
 
 			if ( value && isTrigger ) {
@@ -219,34 +223,37 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 								/>
 							) }
 
-						{ attributes.reformboxEnabled && isContainer && (
-							<>
-								<SelectControl
-									__nextHasNoMarginBottom
-									label={ __( 'Animation', 'reformbox' ) }
-									value={ attributes.reformboxAnimation }
-									options={ ANIMATION_OPTIONS }
-									onChange={ ( value ) =>
-										setAttributes( {
-											reformboxAnimation: value,
-										} )
-									}
-								/>
-								<ToggleControl
-									__nextHasNoMarginBottom
-									label={ __(
-										'Close on Overlay Click',
-										'reformbox'
-									) }
-									checked={ attributes.reformboxOverlayClose }
-									onChange={ ( value ) =>
-										setAttributes( {
-											reformboxOverlayClose: value,
-										} )
-									}
-								/>
-							</>
-						) }
+						{ attributes.reformboxEnabled &&
+							( isContainer || isSelfLightbox ) && (
+								<>
+									<SelectControl
+										__nextHasNoMarginBottom
+										label={ __( 'Animation', 'reformbox' ) }
+										value={ attributes.reformboxAnimation }
+										options={ ANIMATION_OPTIONS }
+										onChange={ ( value ) =>
+											setAttributes( {
+												reformboxAnimation: value,
+											} )
+										}
+									/>
+									<ToggleControl
+										__nextHasNoMarginBottom
+										label={ __(
+											'Close on Overlay Click',
+											'reformbox'
+										) }
+										checked={
+											attributes.reformboxOverlayClose
+										}
+										onChange={ ( value ) =>
+											setAttributes( {
+												reformboxOverlayClose: value,
+											} )
+										}
+									/>
+								</>
+							) }
 
 						{ showTriggerField && (
 							<TextControl
