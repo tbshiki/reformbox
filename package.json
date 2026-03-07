@@ -4,6 +4,17 @@
   "description": "ReformBox – Universal Lightbox for WordPress",
   "author": "tbshiki",
   "license": "GPL-2.0-or-later",
+  "files": [
+    "build",
+    "includes",
+    "src",
+    "README.md",
+    "README.ja.md",
+    "readme.txt",
+    "reformbox.php",
+    "package.json",
+    "webpack.config.js"
+  ],
   "scripts": {
     "build": "node node_modules/@wordpress/scripts/bin/wp-scripts.js build",
     "start": "node node_modules/@wordpress/scripts/bin/wp-scripts.js start",

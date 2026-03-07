@@ -112,6 +112,27 @@ npm run release:zip
 
 プロジェクトルートに `reformbox.zip` が生成され、**WP 管理画面 -> プラグイン -> プラグインを追加 -> プラグインのアップロード** からそのままインストールできます。
 
+この ZIP にはコンパイル済みアセットだけでなく、生成元を確認できる `src/`, `package.json`, `webpack.config.js` も含めています。WordPress.org 審査でソースを追える状態を維持するためです。
+
+### WordPress.org リリース
+
+公式ディレクトリ向けにリリースする場合は、次を実行します。
+
+```bash
+npm install
+npm run lint:js
+npm run lint:css
+npm run build
+npm run release:zip
+```
+
+その後に以下を確認します。
+
+1. **Plugin Check** プラグインの `Plugin Repo` ルールセットを通す
+2. `Tested up to` を更新する前に、最新の安定版 WordPress で動作確認する
+3. ビルド済み `build/` を含めて WordPress.org SVN の `trunk/` へ配置する
+4. 同じ内容を `tags/<version>/` にも配置し、`readme.txt` の `Stable tag` と同期する
+
 ### プロジェクト構成
 
 ```text

@@ -2,7 +2,7 @@
 Contributors: tbshiki
 Tags: lightbox, modal, gutenberg, blocks, popup
 Requires at least: 6.4
-Tested up to: 6.7
+Tested up to: 6.9
 Requires PHP: 7.4
 Stable tag: 0.1.0
 License: GPLv2 or later
@@ -13,6 +13,8 @@ Universal Lightbox for WordPress – display any block content in a lightbox mod
 == Description ==
 
 ReformBox extends WordPress Lightbox functionality beyond images. Display any block content – images, videos, text, groups, and more – in a beautiful lightbox modal.
+
+Development source: https://github.com/tbshiki/reformbox
 
 **Supported Blocks:**
 
@@ -43,6 +45,20 @@ ReformBox extends WordPress Lightbox functionality beyond images. Display any bl
 3. Open the block editor and select any supported block
 4. Enable ReformBox in the block's settings panel
 
+== Frequently Asked Questions ==
+
+= Does ReformBox replace the core image lightbox? =
+
+No. `core/image` self-lightbox behavior is delegated to the WordPress core lightbox. ReformBox extends the surrounding workflow so images, videos, and container content can share a common modal workflow.
+
+= Where is the development source? =
+
+The canonical development repository is:
+
+https://github.com/tbshiki/reformbox
+
+The distributable ZIP also includes the original `src/`, `package.json`, and `webpack.config.js` files so build steps remain auditable.
+
 == Development ==
 
 To build and create a distributable ZIP:
@@ -53,6 +69,13 @@ To build and create a distributable ZIP:
 4. `npm run release:zip`
 
 This creates `reformbox.zip` in the project root.
+
+Before submitting a new plugin to WordPress.org, also:
+
+1. Enable WordPress.org account 2FA
+2. Run the Plugin Check plugin with the `Plugin Repo` ruleset
+3. Verify the plugin on the latest stable WordPress release
+4. Commit the build assets to your WordPress.org SVN `trunk/` and copy the release to `tags/0.1.0/`
 
 == Changelog ==
 

@@ -112,6 +112,27 @@ npm run release:zip
 
 This generates `reformbox.zip` at the project root, ready to upload in **WP Admin -> Plugins -> Add New Plugin -> Upload Plugin**.
 
+The ZIP intentionally includes both compiled assets and the original `src/`, `package.json`, and `webpack.config.js` files so WordPress.org reviewers can inspect the human-readable source that produced the build output.
+
+### WordPress.org Release
+
+For a plugin-directory release:
+
+```bash
+npm install
+npm run lint:js
+npm run lint:css
+npm run build
+npm run release:zip
+```
+
+Then:
+
+1. Run the **Plugin Check** plugin with the `Plugin Repo` ruleset.
+2. Verify the plugin on the latest stable WordPress release before updating `Tested up to`.
+3. Copy the plugin to WordPress.org SVN `trunk/`, including the built `build/` assets.
+4. Copy the same release to `tags/<version>/` and keep `readme.txt` `Stable tag` aligned with the released version.
+
 ### Project Structure
 
 ```text
