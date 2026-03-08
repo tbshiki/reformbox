@@ -4,7 +4,7 @@
 
 A WordPress plugin that extends the Lightbox concept beyond images. Display **any block content** - images, videos, text, groups, and more - in a lightbox modal, all configured through the native Block Editor UI.
 
-> **Status:** v0.1.0 - Initial implementation
+> **Status:** v0.2.0 - Initial implementation completed
 
 ## What is ReformBox?
 
