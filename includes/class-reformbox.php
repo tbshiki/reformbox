@@ -202,11 +202,13 @@ class ReformBox {
 		}
 
 		return sprintf(
-			'<div class="%s" id="%s" data-reformbox-dialog-type="%s" data-reformbox-overlay-close="%s" aria-hidden="true" role="dialog" aria-modal="true" aria-label="%s" tabindex="-1">'
-			. '<div class="reformbox-container">'
-			. '<button class="reformbox-close close-button" type="button" aria-label="%s">&times;</button>'
-			. '<div class="reformbox-content">%s</div>'
-			. '</div></div>',
+			'<div class="%1$s" id="%2$s" data-reformbox-dialog-type="%3$s" data-reformbox-overlay-close="%4$s" aria-hidden="true" role="dialog" aria-modal="true" aria-label="%5$s" tabindex="-1">'
+			. '<button class="reformbox-close close-button" type="button" aria-label="%6$s" style="fill: var(--wp--preset--color--contrast, currentColor)">'
+			. '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg>'
+			. '</button>'
+			. '<div class="reformbox-lightbox-container lightbox-image-container"><div class="reformbox-content">%7$s</div></div>'
+			. '<div class="scrim" aria-hidden="true"></div>'
+			. '</div>',
 			esc_attr( $overlay_class ),
 			esc_attr( $id ),
 			esc_attr( $type ),

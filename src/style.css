@@ -1,89 +1,58 @@
 /**
  * ReformBox - Frontend styles.
+ *
+ * Core-aligned lightbox styles adapted for ReformBox overlays.
  */
+
+/* ------------------------------------------------------------------
+ * Trigger baseline
+ * ----------------------------------------------------------------*/
+
+.wp-lightbox-container {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+}
+
+.wp-lightbox-container img {
+	cursor: zoom-in;
+}
 
 /* ------------------------------------------------------------------
  * Overlay
  * ----------------------------------------------------------------*/
 
-.reformbox-overlay {
+.reformbox-overlay.wp-lightbox-overlay {
 	box-sizing: border-box;
 	cursor: zoom-out;
-	overflow: hidden;
-	position: fixed;
-	inset: 0;
-	visibility: hidden;
-	z-index: 100000;
-	padding: 16px;
-	opacity: 0;
-	pointer-events: none;
-}
-
-.reformbox-overlay.wp-lightbox-overlay {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.reformbox-overlay::before {
-	background-color: #fff;
-	content: "";
-	height: 100%;
+	height: 100vh;
 	left: 0;
-	opacity: 0.9;
-	position: absolute;
+	overflow: hidden;
+	pointer-events: none;
+	position: fixed;
 	top: 0;
+	visibility: hidden;
 	width: 100%;
-	z-index: 0;
+	z-index: 100000;
 }
 
-@media not (prefers-reduced-motion) {
-
-	.reformbox-overlay {
-		transition: opacity 0.25s ease, visibility 0.25s ease;
-	}
+.reformbox-overlay.wp-lightbox-overlay:focus {
+	outline: none;
 }
 
 .reformbox-overlay.reformbox-active,
 .reformbox-overlay.active {
-	opacity: 1;
-	visibility: visible;
 	pointer-events: auto;
+	visibility: visible;
 }
 
-.reformbox-overlay:focus {
-	outline: none;
-}
-
-/* ------------------------------------------------------------------
- * Container
- * ----------------------------------------------------------------*/
-
-.reformbox-container {
-	position: relative;
-	z-index: 1;
-	width: fit-content;
-	max-width: 90vw;
-	max-height: 90vh;
-	overflow: auto;
-	background: #fff;
-	border-radius: 8px;
-	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-	opacity: 0;
-	--reformbox-transform: scale(0.97);
-	--reformbox-transform-transition: transform 0.3s ease;
-	transform: var(--reformbox-transform);
-	transition: opacity 0.25s ease, var(--reformbox-transform-transition);
-}
-
-.reformbox-content {
-	padding: 2rem;
-}
-
-.reformbox-content img {
-	display: block;
-	max-width: 100%;
-	height: auto;
+.reformbox-overlay .scrim {
+	background-color: #fff;
+	height: 100%;
+	opacity: 0.9;
+	position: absolute;
+	width: 100%;
+	z-index: 2000000;
 }
 
 /* ------------------------------------------------------------------
@@ -92,30 +61,20 @@
 
 .wp-lightbox-overlay .close-button,
 .reformbox-close {
-	position: absolute;
-	display: flex;
 	align-items: center;
+	background: none;
+	border: none;
+	color: #111;
+	cursor: pointer;
+	display: flex;
 	justify-content: center;
 	min-height: 40px;
 	min-width: 40px;
 	padding: 0;
+	position: absolute;
 	right: calc(env(safe-area-inset-right) + 16px);
 	top: calc(env(safe-area-inset-top) + 16px);
-	font-size: 2rem;
-	line-height: 1;
-	color: #111;
-	background: none;
-	border: none;
-	cursor: pointer;
 	z-index: 5000000;
-}
-
-.wp-lightbox-overlay .close-button:focus,
-.wp-lightbox-overlay .close-button:hover,
-.reformbox-close:focus,
-.reformbox-close:hover {
-	background: none;
-	border: none;
 }
 
 .wp-lightbox-overlay .close-button:focus-visible,
@@ -125,51 +84,254 @@
 	outline-offset: 3px;
 }
 
+.wp-lightbox-overlay .close-button:focus,
+.wp-lightbox-overlay .close-button:hover,
+.wp-lightbox-overlay .close-button:not(:hover):not(:active):not(.has-background),
+.reformbox-close:focus,
+.reformbox-close:hover,
+.reformbox-close:not(:hover):not(:active):not(.has-background) {
+	background: none;
+	border: none;
+}
+
 /* ------------------------------------------------------------------
- * Media variant (images / video)
+ * Lightbox layout container
  * ----------------------------------------------------------------*/
 
-.reformbox-overlay--media .reformbox-container {
-	background: transparent;
-	box-shadow: none;
+.reformbox-lightbox-container.lightbox-image-container {
+	height: var(--wp--lightbox-container-height);
+	left: 50%;
+	max-height: calc(100vh - 80px);
+	max-width: calc(100vw - 32px);
+	overflow: auto;
+	position: absolute;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	transform-origin: top left;
+	width: var(--wp--lightbox-container-width);
+	z-index: 3000000;
+}
+
+.reformbox-content {
+	background: #fff;
+	border-radius: 8px;
+	box-sizing: border-box;
+	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+	height: 100%;
+	max-height: 100%;
+	max-width: 100%;
+	overflow: auto;
+	padding: 2rem;
+	width: 100%;
+}
+
+.reformbox-content .wp-block-image,
+.reformbox-content .wp-block-video {
+	margin: 0;
+}
+
+.reformbox-content img,
+.reformbox-content video {
+	display: block;
+	height: auto;
+	max-width: 100%;
+}
+
+/* ------------------------------------------------------------------
+ * Media variant
+ * ----------------------------------------------------------------*/
+
+.reformbox-overlay--media .reformbox-lightbox-container.lightbox-image-container {
+	max-height: calc(100vh - 80px);
+	max-width: calc(100vw - 32px);
+	overflow: hidden;
 }
 
 .reformbox-overlay--media .reformbox-content {
+	background: transparent;
+	border-radius: 0;
+	box-shadow: none;
 	padding: 0;
+}
+
+.reformbox-overlay--media .reformbox-content video,
+.reformbox-overlay--media .reformbox-content .wp-block-video video,
+.reformbox-overlay--media .reformbox-content .wp-block-image img {
+	height: var(--wp--lightbox-image-height);
+	max-height: calc(100vh - 80px);
+	max-width: calc(100vw - 32px);
+	min-height: var(--wp--lightbox-image-height);
+	min-width: var(--wp--lightbox-image-width);
+	width: var(--wp--lightbox-image-width);
 }
 
 /* ------------------------------------------------------------------
  * Animations
  * ----------------------------------------------------------------*/
 
-/* Fade (default) */
-.reformbox-animation-fade .reformbox-container {
-	--reformbox-transform: scale(0.97);
+@media not (prefers-reduced-motion) {
+
+	.reformbox-overlay.reformbox-active:where(:not(.reformbox-animation-zoom)):where(:not(.reformbox-animation-slide)) {
+		animation: turn-on-visibility 0.25s both;
+	}
+
+	.reformbox-overlay.reformbox-active:where(:not(.reformbox-animation-zoom)):where(:not(.reformbox-animation-slide)) .reformbox-lightbox-container {
+		animation: turn-on-visibility 0.35s both;
+	}
+
+	.reformbox-overlay.show-closing-animation:not(.reformbox-active):where(:not(.reformbox-animation-zoom)):where(:not(.reformbox-animation-slide)) {
+		animation: turn-off-visibility 0.35s both;
+	}
+
+	.reformbox-overlay.show-closing-animation:not(.reformbox-active):where(:not(.reformbox-animation-zoom)):where(:not(.reformbox-animation-slide)) .reformbox-lightbox-container {
+		animation: turn-off-visibility 0.25s both;
+	}
+
+	.reformbox-overlay.reformbox-animation-zoom.reformbox-active {
+		animation: none;
+		opacity: 1;
+		visibility: visible;
+	}
+
+	.reformbox-overlay.reformbox-animation-zoom.reformbox-active .reformbox-lightbox-container {
+		animation: lightbox-zoom-in 0.4s;
+	}
+
+	.reformbox-overlay.reformbox-animation-zoom.reformbox-active .scrim {
+		animation: turn-on-visibility 0.4s forwards;
+	}
+
+	.reformbox-overlay.reformbox-animation-slide.reformbox-active {
+		animation: turn-on-visibility 0.25s both;
+	}
+
+	.reformbox-overlay.reformbox-animation-slide.reformbox-active .reformbox-lightbox-container {
+		animation: lightbox-slide-in 0.35s both;
+	}
+
+	.reformbox-overlay.reformbox-animation-slide.reformbox-active .scrim {
+		animation: turn-on-visibility 0.25s both;
+	}
+
+	.reformbox-overlay.reformbox-animation-slide.show-closing-animation:not(.reformbox-active) {
+		animation: turn-off-visibility 0.3s both;
+	}
+
+	.reformbox-overlay.reformbox-animation-slide.show-closing-animation:not(.reformbox-active) .reformbox-lightbox-container {
+		animation: lightbox-slide-out 0.3s both;
+	}
+
+	.reformbox-overlay.reformbox-animation-slide.show-closing-animation:not(.reformbox-active) .scrim {
+		animation: turn-off-visibility 0.25s both;
+	}
+
+	.reformbox-overlay.reformbox-animation-zoom.show-closing-animation:not(.reformbox-active) {
+		animation: none;
+	}
+
+	.reformbox-overlay.reformbox-animation-zoom.show-closing-animation:not(.reformbox-active) .reformbox-lightbox-container {
+		animation: lightbox-zoom-out 0.4s;
+	}
+
+	.reformbox-overlay.reformbox-animation-zoom.show-closing-animation:not(.reformbox-active) .scrim {
+		animation: turn-off-visibility 0.4s forwards;
+	}
 }
 
-/* Zoom */
-.reformbox-animation-zoom .reformbox-container {
-	--reformbox-transform: scale(0.5);
-	--reformbox-transform-transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+@keyframes turn-on-visibility {
+
+	0% {
+		opacity: 0;
+	}
+
+	100% {
+		opacity: 1;
+	}
 }
 
-/* Slide */
-.reformbox-animation-slide .reformbox-container {
-	--reformbox-transform: translateY(40px);
+@keyframes turn-off-visibility {
+
+	0% {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	99% {
+		opacity: 0;
+		visibility: visible;
+	}
+
+	100% {
+		opacity: 0;
+		visibility: hidden;
+	}
 }
 
-.reformbox-overlay.reformbox-active .reformbox-container,
-.reformbox-overlay.active .reformbox-container {
-	opacity: 1;
-	transform: none;
+@keyframes lightbox-zoom-in {
+
+	0% {
+		transform:
+			translate(calc((-100vw + var(--wp--lightbox-scrollbar-width, 0px)) / 2 + var(--wp--lightbox-initial-left-position, 0px)), calc(-50vh + var(--wp--lightbox-initial-top-position, 0px)))
+			scale(var(--wp--lightbox-scale, 1));
+	}
+
+	100% {
+		transform: translate(-50%, -50%) scale(1);
+	}
+}
+
+@keyframes lightbox-zoom-out {
+
+	0% {
+		transform: translate(-50%, -50%) scale(1);
+		visibility: visible;
+	}
+
+	99% {
+		visibility: visible;
+	}
+
+	100% {
+		transform:
+			translate(calc((-100vw + var(--wp--lightbox-scrollbar-width, 0px)) / 2 + var(--wp--lightbox-initial-left-position, 0px)), calc(-50vh + var(--wp--lightbox-initial-top-position, 0px)))
+			scale(var(--wp--lightbox-scale, 1));
+		visibility: hidden;
+	}
+}
+
+@keyframes lightbox-slide-in {
+
+	0% {
+		opacity: 0;
+		transform: translate(-50%, calc(-50% + 40px));
+	}
+
+	100% {
+		opacity: 1;
+		transform: translate(-50%, -50%);
+	}
+}
+
+@keyframes lightbox-slide-out {
+
+	0% {
+		opacity: 1;
+		transform: translate(-50%, -50%);
+	}
+
+	100% {
+		opacity: 0;
+		transform: translate(-50%, calc(-50% + 40px));
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {
 
 	.reformbox-overlay,
-	.reformbox-container,
+	.reformbox-lightbox-container,
 	.reformbox-video-trigger__play {
-		transition: none;
+		animation: none !important;
+		transition: none !important;
 	}
 }
 
@@ -186,39 +348,31 @@ body.reformbox-open {
  * ----------------------------------------------------------------*/
 
 .reformbox-video-trigger {
-	position: relative;
 	cursor: zoom-in;
-}
-
-.wp-lightbox-container {
 	position: relative;
-}
-
-.wp-lightbox-container img {
-	cursor: zoom-in;
 }
 
 .reformbox-video-trigger__frame {
-	position: relative;
 	display: block;
 	line-height: 0;
+	position: relative;
 }
 
 .reformbox-video-trigger__poster {
 	display: block;
-	max-width: 100%;
 	height: auto;
+	max-width: 100%;
 }
 
 .reformbox-video-trigger__play {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	font-size: 3rem;
 	color: #fff;
-	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+	font-size: 3rem;
+	left: 50%;
 	pointer-events: none;
+	position: absolute;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+	top: 50%;
+	transform: translate(-50%, -50%);
 	transition: transform 0.2s ease;
 }
 

@@ -2,7 +2,8 @@
  * ReformBox - Frontend lightbox behaviour.
  *
  * Vanilla JS (no WP dependencies) for minimal bundle size.
- * Handles trigger clicks, overlay close, ESC key, and focus management.
+ * Handles trigger clicks, overlay close, ESC key, focus trap, and
+ * core-style lightbox positioning variables.
  */
 
 import './style.css';
@@ -13,6 +14,11 @@ import './style.css';
 	let activeOverlay = null;
 	let activeTrigger = null;
 	let previousFocus = null;
+	let resizeFrame = null;
+	const closeTimers = new WeakMap();
+	const reducedMotionQuery = window.matchMedia(
+		'(prefers-reduced-motion: reduce)'
+	);
 
 	function getElementTarget( target ) {
 		return target && target.nodeType === 1 ? target : null;
@@ -21,6 +27,16 @@ import './style.css';
 	function getTriggerFromTarget( target ) {
 		const element = getElementTarget( target );
 		return element ? element.closest( '[data-reformbox-trigger]' ) : null;
+	}
+
+	function getOverlayFromTrigger( trigger ) {
+		const targetId = trigger
+			? trigger.getAttribute( 'data-reformbox-trigger' )
+			: null;
+		const overlay = targetId ? document.getElementById( targetId ) : null;
+		return overlay?.classList.contains( 'reformbox-overlay' )
+			? overlay
+			: null;
 	}
 
 	function setTriggerExpanded( trigger, isExpanded ) {
@@ -56,13 +72,194 @@ import './style.css';
 			} );
 	}
 
+	function clearCloseTimer( overlay ) {
+		const timer = closeTimers.get( overlay );
+		if ( timer ) {
+			window.clearTimeout( timer );
+			closeTimers.delete( overlay );
+		}
+	}
+
+	function clamp( value, min, max ) {
+		return Math.min( Math.max( value, min ), max );
+	}
+
+	function getViewportPadding() {
+		if ( window.innerWidth <= 480 ) {
+			return 32;
+		}
+
+		if ( window.innerWidth > 1920 ) {
+			return 160;
+		}
+
+		return 80;
+	}
+
+	function getPrimaryMedia( overlay ) {
+		return overlay.querySelector(
+			'.reformbox-content img, .reformbox-content video'
+		);
+	}
+
+	function getIntrinsicMediaSize( media ) {
+		if ( ! media ) {
+			return null;
+		}
+
+		if ( media.tagName === 'IMG' ) {
+			if ( media.naturalWidth > 0 && media.naturalHeight > 0 ) {
+				return {
+					width: media.naturalWidth,
+					height: media.naturalHeight,
+				};
+			}
+			return null;
+		}
+
+		if (
+			media.tagName === 'VIDEO' &&
+			media.videoWidth > 0 &&
+			media.videoHeight > 0
+		) {
+			return {
+				width: media.videoWidth,
+				height: media.videoHeight,
+			};
+		}
+
+		return null;
+	}
+
+	function getLightboxTargetSize( overlay, triggerRect ) {
+		const content = overlay.querySelector( '.reformbox-content' );
+		const intrinsicMedia = getIntrinsicMediaSize(
+			getPrimaryMedia( overlay )
+		);
+		const maxWidth = Math.max(
+			1,
+			window.innerWidth - getViewportPadding()
+		);
+		const maxHeight = Math.max( 1, window.innerHeight - 80 );
+		let width =
+			intrinsicMedia?.width ||
+			content?.scrollWidth ||
+			content?.offsetWidth;
+		let height =
+			intrinsicMedia?.height ||
+			content?.scrollHeight ||
+			content?.offsetHeight;
+
+		if ( ! width || ! height ) {
+			if ( triggerRect?.width && triggerRect?.height ) {
+				width = triggerRect.width;
+				height = triggerRect.height;
+			} else {
+				width = maxWidth;
+				height = maxHeight;
+			}
+		}
+
+		const ratio = width / height || 1;
+		const maxRatio = maxWidth / maxHeight;
+
+		if ( ratio > maxRatio ) {
+			width = maxWidth;
+			height = width / ratio;
+		} else {
+			height = maxHeight;
+			width = height * ratio;
+		}
+
+		return {
+			width: clamp( width, 1, maxWidth ),
+			height: clamp( height, 1, maxHeight ),
+		};
+	}
+
+	function setOverlayStyles( overlay, trigger = null ) {
+		const triggerRect =
+			trigger && typeof trigger.getBoundingClientRect === 'function'
+				? trigger.getBoundingClientRect()
+				: null;
+		const target = getLightboxTargetSize( overlay, triggerRect );
+		const initialTop = triggerRect
+			? triggerRect.y
+			: ( window.innerHeight - target.height ) / 2;
+		const initialLeft = triggerRect
+			? triggerRect.x
+			: ( window.innerWidth - target.width ) / 2;
+		const initialWidth = triggerRect?.width || target.width;
+		const initialHeight = triggerRect?.height || target.height;
+		const scale = Math.min(
+			initialWidth / target.width,
+			initialHeight / target.height,
+			1
+		);
+		const safeScale = Number.isFinite( scale ) && scale > 0 ? scale : 1;
+
+		overlay.style.setProperty(
+			'--wp--lightbox-initial-top-position',
+			`${ initialTop }px`
+		);
+		overlay.style.setProperty(
+			'--wp--lightbox-initial-left-position',
+			`${ initialLeft }px`
+		);
+		overlay.style.setProperty(
+			'--wp--lightbox-container-width',
+			`${ target.width + 1 }px`
+		);
+		overlay.style.setProperty(
+			'--wp--lightbox-container-height',
+			`${ target.height + 1 }px`
+		);
+		overlay.style.setProperty(
+			'--wp--lightbox-image-width',
+			`${ target.width }px`
+		);
+		overlay.style.setProperty(
+			'--wp--lightbox-image-height',
+			`${ target.height }px`
+		);
+		overlay.style.setProperty( '--wp--lightbox-scale', `${ safeScale }` );
+		overlay.style.setProperty(
+			'--wp--lightbox-scrollbar-width',
+			`${ window.innerWidth - document.documentElement.clientWidth }px`
+		);
+	}
+
+	function refreshOverlayStylesOnMediaReady( overlay, trigger ) {
+		const media = getPrimaryMedia( overlay );
+		if ( ! media ) {
+			return;
+		}
+
+		const refreshStyles = () => {
+			if ( activeOverlay === overlay ) {
+				setOverlayStyles( overlay, trigger );
+			}
+		};
+
+		if ( media.tagName === 'IMG' && ! media.complete ) {
+			media.addEventListener( 'load', refreshStyles, { once: true } );
+			return;
+		}
+
+		if ( media.tagName === 'VIDEO' && media.readyState < 1 ) {
+			media.addEventListener( 'loadedmetadata', refreshStyles, {
+				once: true,
+			} );
+		}
+	}
+
 	function openLightbox( overlay, trigger = null ) {
 		if ( ! overlay || activeOverlay === overlay ) {
 			return;
 		}
 
 		if ( activeOverlay ) {
-			closeLightbox( activeOverlay, false );
+			closeLightbox( activeOverlay, false, true );
 		}
 
 		const ownerDocument = overlay.ownerDocument || document;
@@ -72,13 +269,17 @@ import './style.css';
 				: ownerDocument.activeElement;
 		activeOverlay = overlay;
 		activeTrigger = trigger;
+		clearCloseTimer( overlay );
 
+		setOverlayStyles( overlay, trigger );
 		setTriggerExpanded( activeTrigger, true );
 		overlay.setAttribute( 'aria-hidden', 'false' );
+		overlay.classList.remove( 'show-closing-animation' );
 		overlay.classList.add( 'reformbox-active' );
 		overlay.classList.add( 'active' );
 		ownerDocument.body?.classList.add( 'reformbox-open' );
 		prepareOverlayMedia( overlay );
+		refreshOverlayStylesOnMediaReady( overlay, trigger );
 
 		const focusTarget =
 			overlay.querySelector( '.reformbox-close' ) || overlay;
@@ -87,12 +288,16 @@ import './style.css';
 		}
 	}
 
-	function closeLightbox( overlay, restoreFocus = true ) {
+	function closeLightbox( overlay, restoreFocus = true, immediate = false ) {
 		if ( ! overlay ) {
 			return;
 		}
 
 		const ownerDocument = overlay.ownerDocument || document;
+		const closingTrigger = activeTrigger;
+		const shouldAnimateClose = ! immediate && ! reducedMotionQuery.matches;
+
+		clearCloseTimer( overlay );
 
 		overlay.querySelectorAll( 'video, audio' ).forEach( ( media ) => {
 			if ( typeof media.pause === 'function' && ! media.paused ) {
@@ -103,17 +308,32 @@ import './style.css';
 		overlay.classList.remove( 'reformbox-active' );
 		overlay.classList.remove( 'active' );
 		overlay.setAttribute( 'aria-hidden', 'true' );
-		ownerDocument.body?.classList.remove( 'reformbox-open' );
-		setTriggerExpanded( activeTrigger, false );
 
-		activeOverlay = null;
-		activeTrigger = null;
+		if ( shouldAnimateClose ) {
+			overlay.classList.add( 'show-closing-animation' );
+			const timer = window.setTimeout( () => {
+				overlay.classList.remove( 'show-closing-animation' );
+				closeTimers.delete( overlay );
+			}, 420 );
+			closeTimers.set( overlay, timer );
+		} else {
+			overlay.classList.remove( 'show-closing-animation' );
+		}
 
-		if (
-			restoreFocus &&
-			previousFocus &&
-			typeof previousFocus.focus === 'function'
-		) {
+		setTriggerExpanded( closingTrigger, false );
+
+		if ( activeOverlay === overlay ) {
+			activeOverlay = null;
+			activeTrigger = null;
+			ownerDocument.body?.classList.remove( 'reformbox-open' );
+		}
+
+		if ( ! restoreFocus ) {
+			previousFocus = null;
+			return;
+		}
+
+		if ( previousFocus && typeof previousFocus.focus === 'function' ) {
 			try {
 				previousFocus.focus();
 			} catch ( error ) {
@@ -176,12 +396,8 @@ import './style.css';
 		const trigger = getTriggerFromTarget( event.target );
 		if ( trigger ) {
 			event.preventDefault();
-			const targetId = trigger.getAttribute( 'data-reformbox-trigger' );
-			const overlay = targetId
-				? document.getElementById( targetId )
-				: null;
-
-			if ( overlay?.classList.contains( 'reformbox-overlay' ) ) {
+			const overlay = getOverlayFromTrigger( trigger );
+			if ( overlay ) {
 				openLightbox( overlay, trigger );
 			}
 			return;
@@ -200,11 +416,13 @@ import './style.css';
 			return;
 		}
 
+		const overlay = target.closest( '.reformbox-overlay' );
 		if (
-			target.classList.contains( 'reformbox-overlay' ) &&
-			target.dataset.reformboxOverlayClose !== 'false'
+			overlay &&
+			overlay.dataset.reformboxOverlayClose !== 'false' &&
+			! target.closest( '.reformbox-lightbox-container' )
 		) {
-			closeLightbox( target );
+			closeLightbox( overlay );
 		}
 	} );
 
@@ -213,7 +431,10 @@ import './style.css';
 
 		if ( trigger && ( event.key === 'Enter' || event.key === ' ' ) ) {
 			event.preventDefault();
-			trigger.click();
+			const overlay = getOverlayFromTrigger( trigger );
+			if ( overlay ) {
+				openLightbox( overlay, trigger );
+			}
 			return;
 		}
 
@@ -223,5 +444,20 @@ import './style.css';
 		}
 
 		handleTabKey( event );
+	} );
+
+	window.addEventListener( 'resize', () => {
+		if ( ! activeOverlay ) {
+			return;
+		}
+
+		if ( resizeFrame ) {
+			window.cancelAnimationFrame( resizeFrame );
+		}
+
+		resizeFrame = window.requestAnimationFrame( () => {
+			resizeFrame = null;
+			setOverlayStyles( activeOverlay, activeTrigger );
+		} );
 	} );
 } )();
