@@ -454,7 +454,10 @@ class ReformBox {
 
 		$this->enqueue_frontend();
 
-		return $this->get_lightbox_overlay( $block_content, $id, $block['attrs'] );
+		$trigger_content = $this->add_trigger_attribute( $block_content, $id );
+		$overlay_content = $this->get_lightbox_overlay( $block_content, $id, $block['attrs'] );
+
+		return $trigger_content . $overlay_content;
 	}
 
 	/**
