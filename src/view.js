@@ -145,16 +145,54 @@ import './style.css';
 		return null;
 	}
 
-	function getLightboxTargetSize( overlay, triggerRect ) {
+	function getTriggerRect( trigger, sourceElement = null ) {
+		const source = getElementTarget( sourceElement );
+		const candidates = [];
+
+		if ( source && trigger?.contains?.( source ) ) {
+			candidates.push( source );
+		}
+
+		if ( trigger ) {
+			const mediaInTrigger = trigger.matches( 'img, video' )
+				? trigger
+				: trigger.querySelector( 'img, video' );
+			if ( mediaInTrigger ) {
+				candidates.push( mediaInTrigger );
+			}
+			candidates.push( trigger );
+		}
+
+		for ( const candidate of candidates ) {
+			if (
+				candidate &&
+				typeof candidate.getBoundingClientRect === 'function'
+			) {
+				const rect = candidate.getBoundingClientRect();
+				if ( rect.width > 0 && rect.height > 0 ) {
+					return rect;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	function getLightboxTargetSize( overlay, triggerRect, mediaOverlay ) {
 		const content = overlay.querySelector( '.reformbox-content' );
 		const intrinsicMedia = getIntrinsicMediaSize(
 			getPrimaryMedia( overlay )
 		);
-		const maxWidth = Math.max(
-			1,
-			window.innerWidth - getViewportPadding()
-		);
-		const maxHeight = Math.max( 1, window.innerHeight - 80 );
+		let maxWidth = Math.max( 1, window.innerWidth - getViewportPadding() );
+		let maxHeight = Math.max( 1, window.innerHeight - 80 );
+
+		if ( ! mediaOverlay ) {
+			maxWidth = Math.min( maxWidth, 960 );
+			maxHeight = Math.min(
+				maxHeight,
+				Math.max( 1, window.innerHeight * 0.9 )
+			);
+		}
 		let width =
 			intrinsicMedia?.width ||
 			content?.scrollWidth ||
@@ -191,11 +229,15 @@ import './style.css';
 		};
 	}
 
-	function setOverlayStyles( overlay, trigger = null ) {
+	function setOverlayStyles( overlay, trigger = null, sourceElement = null ) {
 		const lightboxContainer = overlay.querySelector(
 			'.reformbox-lightbox-container'
 		);
 		const mediaOverlay = isMediaOverlay( overlay );
+		const zoomAnimation = overlay.classList.contains(
+			'reformbox-animation-zoom'
+		);
+		const shouldUseCoreStartPosition = mediaOverlay || zoomAnimation;
 
 		if ( lightboxContainer ) {
 			lightboxContainer.style.setProperty(
@@ -207,17 +249,15 @@ import './style.css';
 			lightboxContainer.style.setProperty( 'top', '50%', 'important' );
 			lightboxContainer.style.setProperty(
 				'transform',
-				'translate(-50%, -50%)',
-				'important'
+				'translate(-50%, -50%)'
 			);
 			lightboxContainer.style.setProperty(
 				'transform-origin',
-				'top left',
-				'important'
+				'top left'
 			);
 		}
 
-		if ( ! mediaOverlay ) {
+		if ( ! shouldUseCoreStartPosition ) {
 			overlay.style.removeProperty(
 				'--wp--lightbox-initial-top-position'
 			);
@@ -257,11 +297,12 @@ import './style.css';
 			return;
 		}
 
-		const triggerRect =
-			trigger && typeof trigger.getBoundingClientRect === 'function'
-				? trigger.getBoundingClientRect()
-				: null;
-		const target = getLightboxTargetSize( overlay, triggerRect );
+		const triggerRect = getTriggerRect( trigger, sourceElement );
+		const target = getLightboxTargetSize(
+			overlay,
+			triggerRect,
+			mediaOverlay
+		);
 		const initialTop = triggerRect
 			? triggerRect.y
 			: ( window.innerHeight - target.height ) / 2;
@@ -307,7 +348,7 @@ import './style.css';
 			`${ window.innerWidth - document.documentElement.clientWidth }px`
 		);
 
-		// Keep media overlays centered/sized even when theme CSS overrides layout.
+		// Keep overlays centered/sized even when theme CSS overrides layout.
 		if ( lightboxContainer ) {
 			lightboxContainer.style.setProperty(
 				'width',
@@ -321,12 +362,12 @@ import './style.css';
 			);
 			lightboxContainer.style.setProperty(
 				'max-width',
-				'calc(100vw - 32px)',
+				mediaOverlay ? 'calc(100vw - 32px)' : 'min(90vw, 960px)',
 				'important'
 			);
 			lightboxContainer.style.setProperty(
 				'max-height',
-				'calc(100vh - 80px)',
+				mediaOverlay ? 'calc(100vh - 80px)' : '90vh',
 				'important'
 			);
 		}
@@ -360,7 +401,7 @@ import './style.css';
 		}
 	}
 
-	function openLightbox( overlay, trigger = null ) {
+	function openLightbox( overlay, trigger = null, sourceElement = null ) {
 		if ( ! overlay || activeOverlay === overlay ) {
 			return;
 		}
@@ -380,7 +421,7 @@ import './style.css';
 		activeTrigger = trigger;
 		clearCloseTimer( overlay );
 
-		setOverlayStyles( overlay, trigger );
+		setOverlayStyles( overlay, trigger, sourceElement );
 		setTriggerExpanded( activeTrigger, true );
 		overlay.setAttribute( 'aria-hidden', 'false' );
 		overlay.classList.remove( 'show-closing-animation' );
@@ -426,7 +467,7 @@ import './style.css';
 			const timer = window.setTimeout( () => {
 				overlay.classList.remove( 'show-closing-animation' );
 				closeTimers.delete( overlay );
-			}, 380 );
+			}, 450 );
 			closeTimers.set( overlay, timer );
 		} else {
 			overlay.classList.remove( 'show-closing-animation' );
@@ -510,7 +551,7 @@ import './style.css';
 			event.preventDefault();
 			const overlay = getOverlayFromTrigger( trigger );
 			if ( overlay ) {
-				openLightbox( overlay, trigger );
+				openLightbox( overlay, trigger, event.target );
 			}
 			return;
 		}
@@ -545,7 +586,7 @@ import './style.css';
 			event.preventDefault();
 			const overlay = getOverlayFromTrigger( trigger );
 			if ( overlay ) {
-				openLightbox( overlay, trigger );
+				openLightbox( overlay, trigger, trigger );
 			}
 			return;
 		}

@@ -193,7 +193,7 @@
  * Animations
  * ----------------------------------------------------------------*/
 
-@media not (prefers-reduced-motion) {
+@media (prefers-reduced-motion: no-preference) {
 
 	.reformbox-overlay.reformbox-active:where(:not(.reformbox-animation-zoom)):where(:not(.reformbox-animation-slide)) {
 		animation: turn-on-visibility 0.25s both;
@@ -230,23 +230,23 @@
 	}
 
 	.reformbox-overlay.reformbox-animation-slide.reformbox-active .reformbox-lightbox-container {
-		animation: lightbox-slide-in 0.35s both;
+		animation: lightbox-slide-in 0.5s both;
 	}
 
 	.reformbox-overlay.reformbox-animation-slide.reformbox-active .scrim {
-		animation: turn-on-visibility 0.25s both;
+		animation: turn-on-visibility 0.35s both;
 	}
 
 	.reformbox-overlay.reformbox-animation-slide.show-closing-animation:not(.reformbox-active) {
-		animation: turn-off-visibility 0.3s both;
+		animation: turn-off-visibility 0.45s both;
 	}
 
 	.reformbox-overlay.reformbox-animation-slide.show-closing-animation:not(.reformbox-active) .reformbox-lightbox-container {
-		animation: lightbox-slide-out 0.3s both;
+		animation: lightbox-slide-out 0.45s both;
 	}
 
 	.reformbox-overlay.reformbox-animation-slide.show-closing-animation:not(.reformbox-active) .scrim {
-		animation: turn-off-visibility 0.25s both;
+		animation: turn-off-visibility 0.35s both;
 	}
 
 	.reformbox-overlay.reformbox-animation-zoom.show-closing-animation:not(.reformbox-active) {
