@@ -20,7 +20,7 @@ Development source: https://github.com/tbshiki/reformbox
 
 * Image Block – Uses WordPress core lightbox behavior
 * Video Block – Click to open itself in a lightbox
-* Group Block – Shows normally and also opens its content in a lightbox
+* Group Block – Supports both `same` mode (same content in page + modal) and `split` mode (separate Preview/Modal child Group slots)
 * Paragraph Block – Click to open itself in a lightbox
 
 **Features:**
@@ -31,6 +31,8 @@ Development source: https://github.com/tbshiki/reformbox
 * Core-aligned zoom animation
 * ESC key and overlay click to close
 * Accessible (ARIA attributes, focus management, keyboard navigation)
+* Group split mode with Preview/Modal slot mapping
+* Safe split fallback: if no Modal slot is assigned, Preview content is used
 * Lazy-loaded assets (CSS/JS only loaded when needed)
 * Self-lightbox videos defer preload/autoplay until opened
 * Lightweight and performant
@@ -47,6 +49,12 @@ Development source: https://github.com/tbshiki/reformbox
 = Does ReformBox replace the core image lightbox? =
 
 No. `core/image` self-lightbox behavior is delegated to the WordPress core lightbox. ReformBox extends the surrounding workflow so images, videos, and container content can share a common modal workflow.
+
+= How does Group split mode work? =
+
+Enable ReformBox on a Group block, then switch `Display Mode` to `Split`. Inside that parent Group, set child Group blocks to `Preview` or `Modal` slots in the sidebar.
+
+`Preview` content is rendered in-page, `Modal` content is rendered inside the lightbox overlay. If no `Modal` slot is defined, ReformBox automatically falls back to `Preview` content for the modal.
 
 = Where is the development source? =
 
@@ -80,6 +88,7 @@ Before submitting a new plugin to WordPress.org, also:
 * Initial implementation completed
 * Core-aligned lightbox behavior refinements
 * Content and media overlay UX fixes (layout, animation, scroll lock)
+* Group split mode (Preview/Modal slots) for `core/group`
 
 = 0.1.0 =
 * Initial release

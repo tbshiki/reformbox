@@ -26,6 +26,7 @@ WordPress の Lightbox を画像以外にも拡張するプラグインです。
 | 画像ブロック -> ライトボックス（WordPress コア） | ✅ |
 | 動画ブロック -> ライトボックス | ✅ |
 | グループブロック -> ライトボックスコンテナ | ✅ |
+| グループ分割モード（表示用/モーダル用スロット） | ✅ |
 | 段落ブロック -> セルフライトボックス | ✅ |
 | Zoom アニメーション（コア準拠） | ✅ |
 | ESC キーで閉じる | ✅ |
@@ -46,7 +47,7 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 
 | 役割 | 対応ブロック | 説明 |
 |---|---|---|
-| **コンテナ** | グループ | 本文表示しつつ、クリックで同内容をライトボックス表示 |
+| **コンテナ** | グループ | `same`（本文とモーダルで同じ内容）と `split`（子 Group を表示用/モーダル用に分離）の両方に対応 |
 | **セルフライトボックス** | 画像（Core）, 動画, 段落 | クリックで自身をライトボックス表示 |
 
 ### 使い方
@@ -57,6 +58,8 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 
 動画ブロックの場合は ReformBox パネルの「クリックでライトボックス表示」を ON にし、必要に応じてオーバーレイクリック時の挙動を設定できます。
 画像ブロックの場合は ReformBox パネルから WordPress コア Lightbox（「Enable Core Image Lightbox」）を有効化します。
+グループブロックでは `表示モード` を選べます。`same` は従来どおり同内容表示、`split` は子 Group の `スロット種別` で表示用/モーダル用を分離します。
+`split` モードでモーダル用スロットが未設定の場合は、空モーダルを避けるため表示用コンテンツへフォールバックします。
 親のグループで ReformBox が有効な場合、内側ブロックの ReformBox 設定は親に継承され、子ブロック側の設定UIは無効化されます。
 
 ### 設定項目
@@ -65,6 +68,8 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 |---|---|---|
 | ReformBox を有効化 | グループ, 動画, 段落 | ON / OFF |
 | Core 画像 Lightbox を有効化 | 画像 | ON / OFF |
+| 表示モード | グループ（ReformBox 有効時） | Same / Split |
+| スロット種別 | split 親配下の子 Group | None / Preview / Modal |
 | オーバーレイクリックで閉じる | グループ, 動画, 段落 | ON / OFF |
 
 ## 動作要件
@@ -153,6 +158,7 @@ reformbox/
 - **画像ライトボックスは Core 優先** - `core/image` のセルフライトボックスは WordPress コア Lightbox に委譲
 - **カスタムオーバーレイも Core に寄せる** - `wp-lightbox-overlay`, `close-button`, `wp-lightbox-container` など、使える箇所ではコア Lightbox のクラス規約に合わせる
 - **サーバーサイドレンダリング** - PHP `render_block_core/{name}` フィルタでフロントエンドにライトボックス HTML を注入
+- **Group 分割レンダリング** - `split` 時は子 `core/group` を表示用/モーダル用に振り分け、モーダル未設定時は安全にフォールバック
 - **非破壊的設計** - `save()` を変更しないため、プラグインの有効/無効に関わらずブロックは常に有効
 - **遅延ロード** - ライトボックス対応ブロックがページに存在する場合のみ CSS/JS をエンキュー
 - **動画は開くまで先読みしない** - セルフライトボックスの動画は、オーバーレイを開くまで eager preload / autoplay を抑制
@@ -171,7 +177,7 @@ reformbox/
 
 ```css
 .reformbox-overlay { }          /* フルスクリーン背景 */
-.reformbox-container { }        /* モーダルボックス */
+.reformbox-lightbox-container { }/* モーダルボックス */
 .reformbox-content { }          /* 内部コンテンツラッパー */
 .reformbox-close { }            /* 閉じるボタン */
 .reformbox-overlay--media { }   /* 画像/動画バリアント */

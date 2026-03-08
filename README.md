@@ -26,6 +26,7 @@ Traditional lightbox plugins only enlarge images. ReformBox redefines the lightb
 | Image Block -> Lightbox (WordPress Core) | ✅ |
 | Video Block -> Lightbox | ✅ |
 | Group Block as Lightbox Container | ✅ |
+| Group Split Mode (Preview/Modal slots) | ✅ |
 | Paragraph Block as Self-Lightbox | ✅ |
 | Zoom animation (core-aligned) | ✅ |
 | ESC key close | ✅ |
@@ -46,7 +47,7 @@ ReformBox adds a **"ReformBox" panel** to the Block Editor sidebar for supported
 
 | Role | Blocks | Description |
 |---|---|---|
-| **Container** | Group | Displays normally and also opens its own content in lightbox |
+| **Container** | Group | Supports `same` mode (same content in page + modal) and `split` mode (separate Preview/Modal child groups) |
 | **Self-Lightbox** | Image (Core), Video, Paragraph | Clicks itself to open in a lightbox |
 
 ### Workflow
@@ -57,6 +58,8 @@ ReformBox adds a **"ReformBox" panel** to the Block Editor sidebar for supported
 
 For **Video** blocks, simply toggle "Enable Lightbox on Click" in the ReformBox panel and optionally configure overlay-click behavior.
 For **Image** blocks, ReformBox delegates to the WordPress core lightbox via "Enable Core Image Lightbox".
+For **Group** blocks, you can choose `Display Mode`: `Same` (legacy behavior) or `Split` (assign child Group blocks to `Preview` / `Modal` slots).
+In `Split` mode, if no child Group is assigned to `Modal`, ReformBox falls back to the Preview content to avoid an empty modal.
 When a parent Group already has ReformBox enabled, nested blocks inherit the parent behavior and their ReformBox controls are disabled.
 
 ### Settings
@@ -65,6 +68,8 @@ When a parent Group already has ReformBox enabled, nested blocks inherit the par
 |---|---|---|
 | Enable ReformBox | Group, Video, Paragraph | On / Off |
 | Enable Core Image Lightbox | Image | On / Off |
+| Display Mode | Group (when ReformBox enabled) | Same / Split |
+| Slot Type | Child Group inside Split parent | None / Preview / Modal |
 | Close on Overlay Click | Group, Video, Paragraph | On / Off |
 
 ## Requirements
@@ -153,6 +158,7 @@ reformbox/
 - **Core-first image lightbox** - `core/image` self-lightbox behavior is delegated to WordPress core lightbox
 - **Core-aligned custom overlays** - ReformBox reuses core lightbox class conventions where practical (`wp-lightbox-overlay`, `close-button`, `wp-lightbox-container`)
 - **Server-side rendering** - PHP `render_block_core/{name}` filters inject lightbox markup on the frontend
+- **Split group rendering** - In `split` mode, child `core/group` blocks are mapped into preview/modal output with safe modal fallback
 - **Non-destructive** - No `save()` modifications, so blocks remain valid with or without the plugin active
 - **Lazy loading** - CSS/JS only enqueued when a page contains lightbox-enabled blocks
 - **Deferred video loading** - Self-lightbox videos avoid eager preload/autoplay until the overlay is opened
@@ -189,12 +195,15 @@ For future core-layout follow-up work, see:
      aria-modal="true"
      aria-label="Lightbox dialog"
      tabindex="-1">
-  <div class="reformbox-container">
-    <button class="reformbox-close close-button" type="button" aria-label="Close">&times;</button>
+  <button class="reformbox-close close-button" type="button" aria-label="Close">
+    ...
+  </button>
+  <div class="reformbox-lightbox-container lightbox-image-container">
     <div class="reformbox-content">
       <!-- Block content here -->
     </div>
   </div>
+  <div class="scrim" aria-hidden="true"></div>
 </div>
 ```
 
@@ -204,7 +213,7 @@ Override these classes in your theme:
 
 ```css
 .reformbox-overlay { }          /* Full-screen backdrop */
-.reformbox-container { }        /* Modal box */
+.reformbox-lightbox-container { }/* Modal box */
 .reformbox-content { }          /* Inner content wrapper */
 .reformbox-close { }            /* Close button */
 .reformbox-overlay--media { }   /* Image/Video variant */
