@@ -114,9 +114,10 @@
 
 .reformbox-content {
 	background: #fff;
+	border: 1px solid rgba(17, 17, 17, 0.08);
 	border-radius: 8px;
 	box-sizing: border-box;
-	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
 	height: 100%;
 	max-height: 100%;
 	max-width: 100%;
@@ -149,9 +150,15 @@
 
 .reformbox-overlay--media .reformbox-content {
 	background: transparent;
+	border: none;
 	border-radius: 0;
 	box-shadow: none;
 	padding: 0;
+}
+
+.reformbox-overlay--media .scrim {
+	background-color: #fff;
+	opacity: 0.9;
 }
 
 .reformbox-overlay[data-reformbox-dialog-type="content"] .reformbox-lightbox-container.lightbox-image-container {
@@ -164,6 +171,11 @@
 .reformbox-overlay[data-reformbox-dialog-type="content"] .reformbox-content {
 	height: auto;
 	max-height: 90vh;
+}
+
+.reformbox-overlay[data-reformbox-dialog-type="content"] .scrim {
+	background-color: rgba(17, 17, 17, 0.28);
+	opacity: 1;
 }
 
 .reformbox-overlay--media .reformbox-content video,

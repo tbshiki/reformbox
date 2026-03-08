@@ -404,7 +404,10 @@ import './style.css';
 
 		const ownerDocument = overlay.ownerDocument || document;
 		const closingTrigger = activeTrigger;
-		const shouldAnimateClose = ! immediate && ! reducedMotionQuery.matches;
+		const shouldAnimateClose =
+			! immediate &&
+			! reducedMotionQuery.matches &&
+			isMediaOverlay( overlay );
 
 		clearCloseTimer( overlay );
 
@@ -423,7 +426,7 @@ import './style.css';
 			const timer = window.setTimeout( () => {
 				overlay.classList.remove( 'show-closing-animation' );
 				closeTimers.delete( overlay );
-			}, 420 );
+			}, 380 );
 			closeTimers.set( overlay, timer );
 		} else {
 			overlay.classList.remove( 'show-closing-animation' );
