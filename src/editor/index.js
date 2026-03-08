@@ -6,7 +6,13 @@
 
 import { InspectorControls } from '@wordpress/block-editor';
 import { createHigherOrderComponent } from '@wordpress/compose';
-import { PanelBody, SelectControl, ToggleControl } from '@wordpress/components';
+import {
+	Button,
+	PanelBody,
+	SelectControl,
+	ToggleControl,
+} from '@wordpress/components';
+import { useDispatch, useSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
 import { __ } from '@wordpress/i18n';
@@ -89,11 +95,44 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 		const isSupported = isContainer || isSelfLightbox || isCoreImage;
 		const imageLightboxEnabled = !! attributes?.lightbox?.enabled;
 		const isLightboxEnabledBlock = isContainer || isSelfLightbox;
+		const { selectBlock } = useDispatch( 'core/block-editor' );
+		const parentContainerInfo = useSelect(
+			( select ) => {
+				const { getBlock, getBlockParents } =
+					select( 'core/block-editor' );
+				const parentClientIds = getBlockParents( clientId );
+				const matchedParentClientId = parentClientIds.find(
+					( parentClientId ) => {
+						const parentBlock = getBlock( parentClientId );
+
+						return (
+							!! parentBlock &&
+							CONTAINER_BLOCKS.includes( parentBlock.name ) &&
+							!! parentBlock.attributes?.reformboxEnabled
+						);
+					}
+				);
+
+				if ( ! matchedParentClientId ) {
+					return null;
+				}
+
+				const parentBlock = getBlock( matchedParentClientId );
+
+				return {
+					clientId: matchedParentClientId,
+					name: parentBlock?.name,
+				};
+			},
+			[ clientId ]
+		);
+		const isInheritedFromParentContainer = !! parentContainerInfo;
 
 		useEffect( () => {
 			if (
 				! isSupported ||
 				! isLightboxEnabledBlock ||
+				isInheritedFromParentContainer ||
 				! attributes.reformboxEnabled ||
 				attributes.reformboxId
 			) {
@@ -105,7 +144,42 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 			clientId,
 			attributes.reformboxEnabled,
 			attributes.reformboxId,
+			isInheritedFromParentContainer,
 			isLightboxEnabledBlock,
+			isSupported,
+			setAttributes,
+		] );
+
+		useEffect( () => {
+			if ( ! isSupported || ! isInheritedFromParentContainer ) {
+				return;
+			}
+
+			const next = {};
+			let hasUpdate = false;
+
+			if ( attributes.reformboxEnabled ) {
+				next.reformboxEnabled = false;
+				hasUpdate = true;
+			}
+
+			if ( isCoreImage && imageLightboxEnabled ) {
+				next.lightbox = getImageLightboxAttributes(
+					attributes.lightbox,
+					false
+				);
+				hasUpdate = true;
+			}
+
+			if ( hasUpdate ) {
+				setAttributes( next );
+			}
+		}, [
+			attributes.lightbox,
+			attributes.reformboxEnabled,
+			imageLightboxEnabled,
+			isCoreImage,
+			isInheritedFromParentContainer,
 			isSupported,
 			setAttributes,
 		] );
@@ -117,7 +191,9 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 		const showEnableToggle = isLightboxEnabledBlock;
 		const showImageLightboxToggle = isCoreImage;
 		const initialOpen =
-			!! attributes.reformboxEnabled || imageLightboxEnabled;
+			isInheritedFromParentContainer ||
+			!! attributes.reformboxEnabled ||
+			imageLightboxEnabled;
 
 		const handleEnableToggle = ( value ) => {
 			const next = { reformboxEnabled: value };
@@ -137,6 +213,23 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 				),
 			} );
 		};
+		const handleSelectParentContainer = () => {
+			if ( parentContainerInfo?.clientId ) {
+				selectBlock( parentContainerInfo.clientId );
+			}
+		};
+		let inheritedNoticeText = '';
+		if ( parentContainerInfo?.name === 'core/cover' ) {
+			inheritedNoticeText = __(
+				'ReformBox is enabled on the parent Cover block. Settings here follow the parent.',
+				'reformbox'
+			);
+		} else if ( parentContainerInfo?.name === 'core/group' ) {
+			inheritedNoticeText = __(
+				'ReformBox is enabled on the parent Group block. Settings here follow the parent.',
+				'reformbox'
+			);
+		}
 
 		return (
 			<>
@@ -146,6 +239,18 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 						title={ __( 'ReformBox', 'reformbox' ) }
 						initialOpen={ initialOpen }
 					>
+						{ isInheritedFromParentContainer && (
+							<p>
+								{ inheritedNoticeText }{ ' ' }
+								<Button
+									variant="link"
+									onClick={ handleSelectParentContainer }
+								>
+									{ __( 'Select parent block', 'reformbox' ) }
+								</Button>
+							</p>
+						) }
+
 						{ showEnableToggle && (
 							<ToggleControl
 								__nextHasNoMarginBottom
@@ -161,6 +266,7 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 										  )
 								}
 								checked={ !! attributes.reformboxEnabled }
+								disabled={ isInheritedFromParentContainer }
 								onChange={ handleEnableToggle }
 							/>
 						) }
@@ -177,6 +283,7 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 									'reformbox'
 								) }
 								checked={ imageLightboxEnabled }
+								disabled={ isInheritedFromParentContainer }
 								onChange={ handleCoreImageLightboxToggle }
 							/>
 						) }
@@ -189,6 +296,9 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 										label={ __( 'Animation', 'reformbox' ) }
 										value={ attributes.reformboxAnimation }
 										options={ ANIMATION_OPTIONS }
+										disabled={
+											isInheritedFromParentContainer
+										}
 										onChange={ ( value ) =>
 											setAttributes( {
 												reformboxAnimation: value,
@@ -203,6 +313,9 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 										) }
 										checked={
 											attributes.reformboxOverlayClose
+										}
+										disabled={
+											isInheritedFromParentContainer
 										}
 										onChange={ ( value ) =>
 											setAttributes( {

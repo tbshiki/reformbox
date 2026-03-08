@@ -58,6 +58,7 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 
 動画ブロックの場合は ReformBox パネルの「クリックでライトボックス表示」を ON にし、必要に応じてアニメーションやオーバーレイクリック時の挙動も設定できます。
 画像ブロックの場合は ReformBox パネルから WordPress コア Lightbox（「Enable Core Image Lightbox」）を有効化します。
+親のグループ/カバーで ReformBox が有効な場合、内側ブロックの ReformBox 設定は親に継承され、子ブロック側の設定UIは無効化されます。
 
 ### 設定項目
 

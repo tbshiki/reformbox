@@ -58,6 +58,7 @@ ReformBox adds a **"ReformBox" panel** to the Block Editor sidebar for supported
 
 For **Video** blocks, simply toggle "Enable Lightbox on Click" in the ReformBox panel and optionally choose the animation / overlay-click behavior.
 For **Image** blocks, ReformBox delegates to the WordPress core lightbox via "Enable Core Image Lightbox".
+When a parent Group/Cover already has ReformBox enabled, nested blocks inherit the parent behavior and their ReformBox controls are disabled.
 
 ### Settings
 
