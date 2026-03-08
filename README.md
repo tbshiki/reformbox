@@ -4,7 +4,7 @@
 
 A WordPress plugin that extends the Lightbox concept beyond images. It adds lightbox support for **Group, Video, and Paragraph** blocks, while delegating **Image** behavior to WordPress core, all configured through the native Block Editor UI.
 
-> **Status:** v0.2.0 - Initial implementation completed
+> **Status:** v0.3.0 - Quality and release maintenance update
 
 ## What is ReformBox?
 
