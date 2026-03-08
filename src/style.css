@@ -7,20 +7,45 @@
  * ----------------------------------------------------------------*/
 
 .reformbox-overlay {
+	box-sizing: border-box;
+	cursor: zoom-out;
+	height: 100vh;
+	left: 0;
+	overflow: hidden;
 	position: fixed;
-	inset: 0;
-	z-index: 999999;
+	top: 0;
+	visibility: hidden;
+	width: 100%;
+	z-index: 100000;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: rgba(0, 0, 0, 0.8);
+	padding: 16px;
 	opacity: 0;
-	visibility: hidden;
 	pointer-events: none;
-	transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-.reformbox-overlay.reformbox-active {
+.reformbox-overlay::before {
+	background-color: #fff;
+	content: "";
+	height: 100%;
+	left: 0;
+	opacity: 0.9;
+	position: absolute;
+	top: 0;
+	width: 100%;
+	z-index: 0;
+}
+
+@media not (prefers-reduced-motion) {
+
+	.reformbox-overlay {
+		transition: opacity 0.25s ease, visibility 0.25s ease;
+	}
+}
+
+.reformbox-overlay.reformbox-active,
+.reformbox-overlay.active {
 	opacity: 1;
 	visibility: visible;
 	pointer-events: auto;
@@ -36,16 +61,18 @@
 
 .reformbox-container {
 	position: relative;
+	z-index: 1;
 	max-width: 90vw;
 	max-height: 90vh;
 	overflow: auto;
 	background: #fff;
 	border-radius: 8px;
 	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-	--reformbox-transform: none;
+	opacity: 0;
+	--reformbox-transform: scale(0.97);
 	--reformbox-transform-transition: transform 0.3s ease;
 	transform: var(--reformbox-transform);
-	transition: var(--reformbox-transform-transition);
+	transition: opacity 0.25s ease, var(--reformbox-transform-transition);
 }
 
 .reformbox-content {
@@ -62,34 +89,39 @@
  * Close button
  * ----------------------------------------------------------------*/
 
+.wp-lightbox-overlay .close-button,
 .reformbox-close {
 	position: absolute;
-	top: 0.5rem;
-	right: 0.5rem;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 2rem;
-	height: 2rem;
+	min-height: 40px;
+	min-width: 40px;
 	padding: 0;
-	margin: 0;
-	font-size: 1.5rem;
+	right: calc(env(safe-area-inset-right) + 16px);
+	top: calc(env(safe-area-inset-top) + 16px);
+	font-size: 2rem;
 	line-height: 1;
-	color: #666;
-	background: rgba(255, 255, 255, 0.9);
+	color: #111;
+	background: none;
 	border: none;
-	border-radius: 50%;
 	cursor: pointer;
-	z-index: 1;
-	transition: color 0.2s ease, background 0.2s ease;
+	z-index: 5000000;
 }
 
-.reformbox-close:hover,
+.wp-lightbox-overlay .close-button:focus,
+.wp-lightbox-overlay .close-button:hover,
+.reformbox-close:focus,
+.reformbox-close:hover {
+	background: none;
+	border: none;
+}
+
+.wp-lightbox-overlay .close-button:focus-visible,
 .reformbox-close:focus-visible {
-	color: #000;
-	background: #fff;
-	outline: 2px solid #007cba;
-	outline-offset: 2px;
+	outline: 3px auto #5a5a5a40;
+	outline: 3px auto -webkit-focus-ring-color;
+	outline-offset: 3px;
 }
 
 /* ------------------------------------------------------------------
@@ -103,19 +135,6 @@
 
 .reformbox-overlay--media .reformbox-content {
 	padding: 0;
-}
-
-.reformbox-overlay--media .reformbox-close {
-	top: -2.5rem;
-	right: 0;
-	color: #fff;
-	background: rgba(0, 0, 0, 0.5);
-}
-
-.reformbox-overlay--media .reformbox-close:hover,
-.reformbox-overlay--media .reformbox-close:focus-visible {
-	background: rgba(0, 0, 0, 0.8);
-	color: #fff;
 }
 
 /* ------------------------------------------------------------------
@@ -138,7 +157,9 @@
 	--reformbox-transform: translateY(40px);
 }
 
-.reformbox-overlay.reformbox-active .reformbox-container {
+.reformbox-overlay.reformbox-active .reformbox-container,
+.reformbox-overlay.active .reformbox-container {
+	opacity: 1;
 	transform: none;
 }
 
@@ -166,6 +187,14 @@ body.reformbox-open {
 .reformbox-video-trigger {
 	position: relative;
 	cursor: pointer;
+}
+
+.wp-lightbox-container {
+	position: relative;
+}
+
+.wp-lightbox-container img {
+	cursor: zoom-in;
 }
 
 .reformbox-video-trigger__frame {

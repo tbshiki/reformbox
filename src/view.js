@@ -76,6 +76,7 @@ import './style.css';
 		setTriggerExpanded( activeTrigger, true );
 		overlay.setAttribute( 'aria-hidden', 'false' );
 		overlay.classList.add( 'reformbox-active' );
+		overlay.classList.add( 'active' );
 		ownerDocument.body?.classList.add( 'reformbox-open' );
 		prepareOverlayMedia( overlay );
 
@@ -100,6 +101,7 @@ import './style.css';
 		} );
 
 		overlay.classList.remove( 'reformbox-active' );
+		overlay.classList.remove( 'active' );
 		overlay.setAttribute( 'aria-hidden', 'true' );
 		ownerDocument.body?.classList.remove( 'reformbox-open' );
 		setTriggerExpanded( activeTrigger, false );
