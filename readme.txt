@@ -8,18 +8,18 @@ Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Universal Lightbox for WordPress – lightbox support for Group, Video, Paragraph, and core Image workflows.
+Universal Lightbox for WordPress – lightbox support for Group, Paragraph, Video blocks with poster images, and core Image workflows.
 
 == Description ==
 
-ReformBox extends WordPress Lightbox functionality beyond images. It currently supports Group, Video, and Paragraph blocks directly, while delegating Image lightbox behavior to WordPress core.
+ReformBox extends WordPress Lightbox functionality beyond images. It currently supports Group, Paragraph, and Video blocks with poster images directly, while delegating Image lightbox behavior to WordPress core.
 
 Development source: https://github.com/tbshiki/reformbox
 
 **Supported Blocks:**
 
 * Image Block – Uses WordPress core lightbox behavior
-* Video Block – Click to open itself in a lightbox
+* Video Block – Opens in a lightbox when a poster image is set
 * Group Block – Supports both `same` mode (same content in page + modal) and `split` mode (separate Preview/Modal child Group slots)
 * Paragraph Block – Click to open itself in a lightbox
 
@@ -43,6 +43,8 @@ Development source: https://github.com/tbshiki/reformbox
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Open the block editor and select any supported block
 4. Enable ReformBox in the block's settings panel
+
+For Video blocks, add a poster image in the block settings before enabling ReformBox.
 
 == Frequently Asked Questions ==
 

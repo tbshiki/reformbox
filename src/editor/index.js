@@ -129,6 +129,16 @@ function getImageLightboxAttributes( lightbox = {}, enabled ) {
 	};
 }
 
+function getVideoPosterUrl( attributes = {} ) {
+	return typeof attributes?.poster === 'string'
+		? attributes.poster.trim()
+		: '';
+}
+
+function hasVideoPoster( attributes = {} ) {
+	return !! getVideoPosterUrl( attributes );
+}
+
 function addReformBoxAttributes( settings, name ) {
 	const isContainer = CONTAINER_BLOCKS.includes( name );
 	const isSelfLightbox = SELF_LIGHTBOX_BLOCKS.includes( name );
@@ -177,8 +187,11 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 		const isContainer = CONTAINER_BLOCKS.includes( name );
 		const isSelfLightbox = SELF_LIGHTBOX_BLOCKS.includes( name );
 		const isCoreImage = name === CORE_IMAGE_BLOCK;
+		const isVideoBlock = name === 'core/video';
 		const isSupported = isContainer || isSelfLightbox || isCoreImage;
 		const imageLightboxEnabled = !! attributes?.lightbox?.enabled;
+		const videoHasPoster = isVideoBlock && hasVideoPoster( attributes );
+		const videoRequiresPoster = isVideoBlock && ! videoHasPoster;
 		const isLightboxEnabledBlock = isContainer || isSelfLightbox;
 		const normalizedReformboxId = sanitizeReformBoxId(
 			attributes?.reformboxId
@@ -325,6 +338,23 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 			setAttributes,
 		] );
 
+		useEffect( () => {
+			if (
+				! isVideoBlock ||
+				! attributes.reformboxEnabled ||
+				videoHasPoster
+			) {
+				return;
+			}
+
+			setAttributes( { reformboxEnabled: false } );
+		}, [
+			attributes.reformboxEnabled,
+			isVideoBlock,
+			setAttributes,
+			videoHasPoster,
+		] );
+
 		if ( ! isSupported ) {
 			return <BlockEdit { ...props } />;
 		}
@@ -336,7 +366,8 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 			showModeControl ||
 			showSlotControl ||
 			!! attributes.reformboxEnabled ||
-			imageLightboxEnabled;
+			imageLightboxEnabled ||
+			videoRequiresPoster;
 
 		const handleEnableToggle = ( value ) => {
 			const next = { reformboxEnabled: value };
@@ -418,8 +449,19 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 												'reformbox'
 										  )
 								}
+								help={
+									videoRequiresPoster
+										? __(
+												'Video lightbox requires a poster image. Add a poster in the Video block settings first.',
+												'reformbox'
+										  )
+										: undefined
+								}
 								checked={ !! attributes.reformboxEnabled }
-								disabled={ isInheritedFromParentContainer }
+								disabled={
+									isInheritedFromParentContainer ||
+									videoRequiresPoster
+								}
 								onChange={ handleEnableToggle }
 							/>
 						) }

@@ -2,7 +2,7 @@
 
 # ReformBox – Universal Lightbox
 
-A WordPress plugin that extends the Lightbox concept beyond images. It adds lightbox support for **Group, Video, and Paragraph** blocks, while delegating **Image** behavior to WordPress core, all configured through the native Block Editor UI.
+A WordPress plugin that extends the Lightbox concept beyond images. It adds lightbox support for **Group, Paragraph, and Video blocks with poster images**, while delegating **Image** behavior to WordPress core, all configured through the native Block Editor UI.
 
 > **Status:** v0.3.0 - Quality and release maintenance update
 
@@ -24,7 +24,7 @@ Traditional lightbox plugins only enlarge images. ReformBox redefines the lightb
 | Feature | Status |
 |---|---|
 | Image Block -> Lightbox (WordPress Core) | ✅ |
-| Video Block -> Lightbox | ✅ |
+| Video Block -> Lightbox (poster required) | ✅ |
 | Group Block as Lightbox Container | ✅ |
 | Group Split Mode (Preview/Modal slots) | ✅ |
 | Paragraph Block as Self-Lightbox | ✅ |
@@ -48,15 +48,15 @@ ReformBox adds a **"ReformBox" panel** to the Block Editor sidebar for supported
 | Role | Blocks | Description |
 |---|---|---|
 | **Container** | Group | Supports `same` mode (same content in page + modal) and `split` mode (separate Preview/Modal child groups) |
-| **Self-Lightbox** | Image (Core), Video, Paragraph | Clicks itself to open in a lightbox |
+| **Self-Lightbox** | Image (Core), Paragraph, Video with poster image | Clicks itself to open in a lightbox |
 
 ### Workflow
 
-1. **Add a supported block** - Group/Video/Paragraph (or Image).
+1. **Add a supported block** - Group/Paragraph/Image, or a Video block with a poster image.
 2. **Enable lightbox** - Toggle ReformBox in the sidebar (for Image, enable Core Image Lightbox).
 3. **Done** - Visitors click the block and its content appears in a modal overlay.
 
-For **Video** blocks, simply toggle "Enable Lightbox on Click" in the ReformBox panel and optionally configure overlay-click behavior.
+For **Video** blocks, first set a poster image in the block settings, then toggle "Enable Lightbox on Click" in the ReformBox panel.
 For **Image** blocks, ReformBox delegates to the WordPress core lightbox via "Enable Core Image Lightbox".
 For **Group** blocks, you can choose `Display Mode`: `Same` (legacy behavior) or `Split` (assign child Group blocks to `Preview` / `Modal` slots).
 In `Split` mode, if no child Group is assigned to `Modal`, ReformBox falls back to the Preview content to avoid an empty modal.
@@ -66,11 +66,11 @@ When a parent Group already has ReformBox enabled, nested blocks inherit the par
 
 | Setting | Available On | Options |
 |---|---|---|
-| Enable ReformBox | Group, Video, Paragraph | On / Off |
+| Enable ReformBox | Group, Paragraph, Video with poster image | On / Off |
 | Enable Core Image Lightbox | Image | On / Off |
 | Display Mode | Group (when ReformBox enabled) | Same / Split |
 | Slot Type | Child Group inside Split parent | None / Preview / Modal |
-| Close on Overlay Click | Group, Video, Paragraph | On / Off |
+| Close on Overlay Click | Group, Paragraph, Video with poster image | On / Off |
 
 ## Requirements
 
