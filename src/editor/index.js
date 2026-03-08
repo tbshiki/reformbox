@@ -19,13 +19,8 @@ import { __ } from '@wordpress/i18n';
 
 import './editor.css';
 
-const CONTAINER_BLOCKS = [ 'core/group', 'core/cover' ];
-const SELF_LIGHTBOX_BLOCKS = [
-	'core/video',
-	'core/button',
-	'core/paragraph',
-	'core/heading',
-];
+const CONTAINER_BLOCKS = [ 'core/group' ];
+const SELF_LIGHTBOX_BLOCKS = [ 'core/video', 'core/paragraph' ];
 const CORE_IMAGE_BLOCK = 'core/image';
 const ANIMATION_OPTIONS = [
 	{ label: __( 'Fade', 'reformbox' ), value: 'fade' },
@@ -117,11 +112,8 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 					return null;
 				}
 
-				const parentBlock = getBlock( matchedParentClientId );
-
 				return {
 					clientId: matchedParentClientId,
-					name: parentBlock?.name,
 				};
 			},
 			[ clientId ]
@@ -218,18 +210,10 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 				selectBlock( parentContainerInfo.clientId );
 			}
 		};
-		let inheritedNoticeText = '';
-		if ( parentContainerInfo?.name === 'core/cover' ) {
-			inheritedNoticeText = __(
-				'ReformBox is enabled on the parent Cover block. Settings here follow the parent.',
-				'reformbox'
-			);
-		} else if ( parentContainerInfo?.name === 'core/group' ) {
-			inheritedNoticeText = __(
-				'ReformBox is enabled on the parent Group block. Settings here follow the parent.',
-				'reformbox'
-			);
-		}
+		const inheritedNoticeText = __(
+			'ReformBox is enabled on the parent Group block. Settings here follow the parent.',
+			'reformbox'
+		);
 
 		return (
 			<>

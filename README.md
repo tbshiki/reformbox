@@ -26,8 +26,7 @@ Traditional lightbox plugins only enlarge images. ReformBox redefines the lightb
 | Image Block -> Lightbox (WordPress Core) | ✅ |
 | Video Block -> Lightbox | ✅ |
 | Group Block as Lightbox Container | ✅ |
-| Cover Block as Lightbox Container | ✅ |
-| Button / Paragraph / Heading as Self-Lightbox | ✅ |
+| Paragraph Block as Self-Lightbox | ✅ |
 | Fade / Zoom / Slide animation | ✅ |
 | ESC key close | ✅ |
 | Overlay click close (optional) | ✅ |
@@ -47,27 +46,27 @@ ReformBox adds a **"ReformBox" panel** to the Block Editor sidebar for supported
 
 | Role | Blocks | Description |
 |---|---|---|
-| **Container** | Group, Cover | Displays normally and also opens its own content in lightbox |
-| **Self-Lightbox** | Image (Core), Video, Button, Paragraph, Heading | Clicks itself to open in a lightbox |
+| **Container** | Group | Displays normally and also opens its own content in lightbox |
+| **Self-Lightbox** | Image (Core), Video, Paragraph | Clicks itself to open in a lightbox |
 
 ### Workflow
 
-1. **Add a supported block** - Group/Cover/Video/Button/Paragraph/Heading (or Image).
+1. **Add a supported block** - Group/Video/Paragraph (or Image).
 2. **Enable lightbox** - Toggle ReformBox in the sidebar (for Image, enable Core Image Lightbox).
 3. **Done** - Visitors click the block and its content appears in a modal overlay.
 
 For **Video** blocks, simply toggle "Enable Lightbox on Click" in the ReformBox panel and optionally choose the animation / overlay-click behavior.
 For **Image** blocks, ReformBox delegates to the WordPress core lightbox via "Enable Core Image Lightbox".
-When a parent Group/Cover already has ReformBox enabled, nested blocks inherit the parent behavior and their ReformBox controls are disabled.
+When a parent Group already has ReformBox enabled, nested blocks inherit the parent behavior and their ReformBox controls are disabled.
 
 ### Settings
 
 | Setting | Available On | Options |
 |---|---|---|
-| Enable ReformBox | Group, Cover, Video, Button, Paragraph, Heading | On / Off |
+| Enable ReformBox | Group, Video, Paragraph | On / Off |
 | Enable Core Image Lightbox | Image | On / Off |
-| Animation | Group, Cover, Video, Button, Paragraph, Heading | Fade, Zoom, Slide |
-| Close on Overlay Click | Group, Cover, Video, Button, Paragraph, Heading | On / Off |
+| Animation | Group, Video, Paragraph | Fade, Zoom, Slide |
+| Close on Overlay Click | Group, Video, Paragraph | On / Off |
 
 ## Requirements
 
@@ -164,7 +163,7 @@ reformbox/
 
 ```html
 <!-- Trigger -->
-<button
+<div
   data-reformbox-trigger="rb-abc123"
   aria-controls="rb-abc123"
   aria-expanded="false"
@@ -172,7 +171,7 @@ reformbox/
   role="button"
   tabindex="0">
   Open Modal
-</button>
+</div>
 
 <!-- Lightbox Overlay -->
 <div class="reformbox-overlay wp-lightbox-overlay reformbox-animation-fade"

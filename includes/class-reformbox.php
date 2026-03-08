@@ -43,17 +43,14 @@ class ReformBox {
 		// Frontend assets (register early, enqueue lazily).
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_frontend_assets' ) );
 
-		// Container blocks (content displayed in lightbox).
+		// Container block (content displayed in lightbox).
 		add_filter( 'render_block_core/group', array( $this, 'render_container_block' ), 10, 2 );
-		add_filter( 'render_block_core/cover', array( $this, 'render_container_block' ), 10, 2 );
 
 		// Self-lightbox media block.
 		add_filter( 'render_block_core/video', array( $this, 'render_video_block' ), 10, 2 );
 
-		// Text/button blocks (self-lightbox).
-		add_filter( 'render_block_core/button', array( $this, 'render_trigger_block' ), 10, 2 );
+		// Paragraph block (self-lightbox).
 		add_filter( 'render_block_core/paragraph', array( $this, 'render_trigger_block' ), 10, 2 );
-		add_filter( 'render_block_core/heading', array( $this, 'render_trigger_block' ), 10, 2 );
 	}
 
 	/**
@@ -223,10 +220,6 @@ class ReformBox {
 	/**
 	 * Add a trigger data-attribute to the first tag in block HTML.
 	 *
-	 * For Button blocks the outer wrapper is a <div> but the clickable
-	 * element is the inner <a>. This method handles that case by
-	 * targeting the inner interactive element when appropriate.
-	 *
 	 * @param string $html      Block HTML.
 	 * @param string $target_id Target lightbox ID.
 	 * @return string Modified HTML.
@@ -238,33 +231,6 @@ class ReformBox {
 		}
 
 		$tag_name = strtolower( (string) $processor->get_tag() );
-		$classes  = (string) $processor->get_attribute( 'class' );
-
-		// Button block: outer <div class="wp-block-button"> wraps the
-		// clickable <a class="wp-block-button__link">. Put the trigger
-		// on the inner <a> so click delegation works correctly.
-		if ( 'div' === $tag_name && false !== strpos( $classes, 'wp-block-button' ) ) {
-			$link_processor = new WP_HTML_Tag_Processor( $html );
-			$link_processor->next_tag();
-
-			if ( $link_processor->next_tag( array( 'tag_name' => 'a' ) ) ) {
-				$processor = $link_processor;
-				$tag_name  = strtolower( (string) $processor->get_tag() );
-			} else {
-				$button_processor = new WP_HTML_Tag_Processor( $html );
-				$button_processor->next_tag();
-
-				if ( $button_processor->next_tag( array( 'tag_name' => 'button' ) ) ) {
-					$processor = $button_processor;
-					$tag_name  = strtolower( (string) $processor->get_tag() );
-				} else {
-					// Fallback: no inner interactive element found, use the wrapper.
-					$processor = new WP_HTML_Tag_Processor( $html );
-					$processor->next_tag();
-					$tag_name = strtolower( (string) $processor->get_tag() );
-				}
-			}
-		}
 
 		$processor->set_attribute( 'data-reformbox-trigger', $target_id );
 		$processor->set_attribute( 'aria-controls', $target_id );
@@ -439,7 +405,7 @@ class ReformBox {
 	 * ----------------------------------------------------------------*/
 
 	/**
-	 * Group / Cover → lightbox container.
+	 * Group → lightbox container.
 	 */
 	public function render_container_block( $block_content, $block ) {
 		if ( empty( $block['attrs']['reformboxEnabled'] ) ) {
@@ -488,7 +454,7 @@ class ReformBox {
 	}
 
 	/**
-	 * Button / Paragraph / Heading → self-lightbox.
+	 * Paragraph → self-lightbox.
 	 */
 	public function render_trigger_block( $block_content, $block ) {
 		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {

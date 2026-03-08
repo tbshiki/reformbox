@@ -21,10 +21,7 @@ Development source: https://github.com/tbshiki/reformbox
 * Image Block – Uses WordPress core lightbox behavior
 * Video Block – Click to open itself in a lightbox
 * Group Block – Shows normally and also opens its content in a lightbox
-* Cover Block – Shows normally and also opens its content in a lightbox
-* Button Block – Click to open itself in a lightbox
 * Paragraph Block – Click to open itself in a lightbox
-* Heading Block – Click to open itself in a lightbox
 
 **Features:**
 
@@ -81,8 +78,8 @@ Before submitting a new plugin to WordPress.org, also:
 
 = 0.1.0 =
 * Initial release
-* Group/Cover block as lightbox container
+* Group block as lightbox container
 * Image/Video block self-lightbox
-* Button/Paragraph/Heading block as self-lightbox
+* Paragraph block as self-lightbox
 * Fade, zoom, slide animations
 * Keyboard and accessibility support
