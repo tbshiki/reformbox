@@ -316,18 +316,45 @@ import './style.css';
 		// Content dialogs should rely on CSS auto sizing to avoid forced wraps
 		// and clipped corners caused by media-oriented JS sizing.
 		if ( ! mediaOverlay ) {
-			overlay.style.removeProperty(
-				'--wp--lightbox-initial-top-position'
+			const triggerRect = getTriggerRect( trigger, sourceElement );
+			const target = getLightboxTargetSize( overlay, triggerRect, false );
+			const initialTop = triggerRect
+				? triggerRect.top
+				: ( window.innerHeight - target.height ) / 2;
+			const initialLeft = triggerRect
+				? triggerRect.left
+				: ( window.innerWidth - target.width ) / 2;
+			const initialWidth = triggerRect?.width || target.width;
+			const initialHeight = triggerRect?.height || target.height;
+			const scale = Math.min(
+				initialWidth / target.width,
+				initialHeight / target.height,
+				1
 			);
-			overlay.style.removeProperty(
-				'--wp--lightbox-initial-left-position'
+			const safeScale = Number.isFinite( scale ) && scale > 0 ? scale : 1;
+
+			overlay.style.setProperty(
+				'--wp--lightbox-initial-top-position',
+				`${ initialTop }px`
+			);
+			overlay.style.setProperty(
+				'--wp--lightbox-initial-left-position',
+				`${ initialLeft }px`
+			);
+			overlay.style.setProperty(
+				'--wp--lightbox-scale',
+				`${ safeScale }`
+			);
+			overlay.style.setProperty(
+				'--wp--lightbox-scrollbar-width',
+				`${
+					window.innerWidth - document.documentElement.clientWidth
+				}px`
 			);
 			overlay.style.removeProperty( '--wp--lightbox-container-width' );
 			overlay.style.removeProperty( '--wp--lightbox-container-height' );
 			overlay.style.removeProperty( '--wp--lightbox-image-width' );
 			overlay.style.removeProperty( '--wp--lightbox-image-height' );
-			overlay.style.removeProperty( '--wp--lightbox-scale' );
-			overlay.style.removeProperty( '--wp--lightbox-scrollbar-width' );
 
 			if ( lightboxContainer ) {
 				lightboxContainer.style.setProperty(
