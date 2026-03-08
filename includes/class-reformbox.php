@@ -47,11 +47,10 @@ class ReformBox {
 		add_filter( 'render_block_core/group', array( $this, 'render_container_block' ), 10, 2 );
 		add_filter( 'render_block_core/cover', array( $this, 'render_container_block' ), 10, 2 );
 
-		// Image (core lightbox + optional ReformBox trigger) / self-lightbox blocks.
-		add_filter( 'render_block_core/image', array( $this, 'render_image_block' ), 10, 2 );
+		// Self-lightbox media block.
 		add_filter( 'render_block_core/video', array( $this, 'render_video_block' ), 10, 2 );
 
-		// Trigger-only blocks (click to open another lightbox).
+		// Text/button blocks (self-lightbox).
 		add_filter( 'render_block_core/button', array( $this, 'render_trigger_block' ), 10, 2 );
 		add_filter( 'render_block_core/paragraph', array( $this, 'render_trigger_block' ), 10, 2 );
 		add_filter( 'render_block_core/heading', array( $this, 'render_trigger_block' ), 10, 2 );
@@ -461,28 +460,7 @@ class ReformBox {
 	}
 
 	/**
-	 * Image → core lightbox (if enabled) or ReformBox trigger.
-	 */
-	public function render_image_block( $block_content, $block ) {
-		// WordPress core lightbox handles image display – pass through.
-		if ( ! empty( $block['attrs']['lightbox']['enabled'] ) ) {
-			return $block_content;
-		}
-
-		// Trigger for another lightbox.
-		if ( ! empty( $block['attrs']['reformboxTarget'] ) ) {
-			$target_id = $this->sanitize_reformbox_id( $block['attrs']['reformboxTarget'] );
-			if ( $target_id ) {
-				$this->enqueue_frontend();
-				return $this->add_trigger_attribute( $block_content, $target_id );
-			}
-		}
-
-		return $block_content;
-	}
-
-	/**
-	 * Video → self-lightbox or trigger.
+	 * Video → self-lightbox.
 	 */
 	public function render_video_block( $block_content, $block ) {
 		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {
@@ -506,31 +484,27 @@ class ReformBox {
 			return $trigger_content . $lightbox_html;
 		}
 
-		if ( ! empty( $block['attrs']['reformboxTarget'] ) ) {
-			$target_id = $this->sanitize_reformbox_id( $block['attrs']['reformboxTarget'] );
-			if ( $target_id ) {
-				$this->enqueue_frontend();
-				return $this->add_trigger_attribute( $block_content, $target_id );
-			}
-		}
-
 		return $block_content;
 	}
 
 	/**
-	 * Button / Paragraph / Heading → trigger.
+	 * Button / Paragraph / Heading → self-lightbox.
 	 */
 	public function render_trigger_block( $block_content, $block ) {
-		if ( empty( $block['attrs']['reformboxTarget'] ) ) {
-			return $block_content;
+		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {
+			$id = $this->get_reformbox_id( $block['attrs'] );
+			if ( '' === $id ) {
+				return $block_content;
+			}
+
+			$this->enqueue_frontend();
+
+			$trigger_content = $this->add_trigger_attribute( $block_content, $id );
+			$overlay_content = $this->get_lightbox_overlay( $block_content, $id, $block['attrs'] );
+
+			return $trigger_content . $overlay_content;
 		}
 
-		$target_id = $this->sanitize_reformbox_id( $block['attrs']['reformboxTarget'] );
-		if ( empty( $target_id ) ) {
-			return $block_content;
-		}
-
-		$this->enqueue_frontend();
-		return $this->add_trigger_attribute( $block_content, $target_id );
+		return $block_content;
 	}
 }

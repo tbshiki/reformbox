@@ -18,13 +18,13 @@ Development source: https://github.com/tbshiki/reformbox
 
 **Supported Blocks:**
 
-* Image Block – Uses WordPress core lightbox behavior or acts as a trigger for another ReformBox target
-* Video Block – Click to open video in lightbox or acts as a trigger for another ReformBox target
-* Group Block – Use as a lightbox container for any content
-* Cover Block – Use as a lightbox container
-* Button Block – Use as a lightbox trigger
-* Paragraph Block – Use as a lightbox trigger
-* Heading Block – Use as a lightbox trigger
+* Image Block – Uses WordPress core lightbox behavior
+* Video Block – Click to open itself in a lightbox
+* Group Block – Shows normally and also opens its content in a lightbox
+* Cover Block – Shows normally and also opens its content in a lightbox
+* Button Block – Click to open itself in a lightbox
+* Paragraph Block – Click to open itself in a lightbox
+* Heading Block – Click to open itself in a lightbox
 
 **Features:**
 
@@ -83,6 +83,6 @@ Before submitting a new plugin to WordPress.org, also:
 * Initial release
 * Group/Cover block as lightbox container
 * Image/Video block self-lightbox
-* Button/Paragraph/Heading/Image/Video block as trigger
+* Button/Paragraph/Heading block as self-lightbox
 * Fade, zoom, slide animations
 * Keyboard and accessibility support

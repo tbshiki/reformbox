@@ -27,7 +27,7 @@ Traditional lightbox plugins only enlarge images. ReformBox redefines the lightb
 | Video Block -> Lightbox | ✅ |
 | Group Block as Lightbox Container | ✅ |
 | Cover Block as Lightbox Container | ✅ |
-| Button / Paragraph / Heading / Image / Video as Trigger | ✅ |
+| Button / Paragraph / Heading as Self-Lightbox | ✅ |
 | Fade / Zoom / Slide animation | ✅ |
 | ESC key close | ✅ |
 | Overlay click close (optional) | ✅ |
@@ -47,15 +47,14 @@ ReformBox adds a **"ReformBox" panel** to the Block Editor sidebar for supported
 
 | Role | Blocks | Description |
 |---|---|---|
-| **Container** | Group, Cover | Content displayed inside the lightbox |
-| **Self-Lightbox** | Image (Core), Video (ReformBox) | Clicks itself to open in a lightbox |
-| **Trigger** | Button, Paragraph, Heading, Image, Video | Clicks to open a linked lightbox |
+| **Container** | Group, Cover | Displays normally and also opens its own content in lightbox |
+| **Self-Lightbox** | Image (Core), Video, Button, Paragraph, Heading | Clicks itself to open in a lightbox |
 
 ### Workflow
 
-1. **Create a container** - Add a Group block, enable "ReformBox" in the sidebar, and place any content inside it. A unique **ReformBox ID** is auto-generated.
-2. **Create a trigger** - Add a Button (or any trigger block), and set its **Lightbox Target ID** to match the container's ReformBox ID.
-3. **Done** - Visitors click the trigger and the container content appears in a modal overlay.
+1. **Add a supported block** - Group/Cover/Video/Button/Paragraph/Heading (or Image).
+2. **Enable lightbox** - Toggle ReformBox in the sidebar (for Image, enable Core Image Lightbox).
+3. **Done** - Visitors click the block and its content appears in a modal overlay.
 
 For **Video** blocks, simply toggle "Enable Lightbox on Click" in the ReformBox panel and optionally choose the animation / overlay-click behavior.
 For **Image** blocks, ReformBox delegates to the WordPress core lightbox via "Enable Core Image Lightbox".
@@ -64,12 +63,10 @@ For **Image** blocks, ReformBox delegates to the WordPress core lightbox via "En
 
 | Setting | Available On | Options |
 |---|---|---|
-| Enable ReformBox | Container, Video (Self-Lightbox) | On / Off |
+| Enable ReformBox | Group, Cover, Video, Button, Paragraph, Heading | On / Off |
 | Enable Core Image Lightbox | Image | On / Off |
-| ReformBox ID | Container, Video (Self-Lightbox) | Auto-generated or custom |
-| Lightbox Target ID | Trigger | ID of the target lightbox |
-| Animation | Container, Video (Self-Lightbox) | Fade, Zoom, Slide |
-| Close on Overlay Click | Container, Video (Self-Lightbox) | On / Off |
+| Animation | Group, Cover, Video, Button, Paragraph, Heading | Fade, Zoom, Slide |
+| Close on Overlay Click | Group, Cover, Video, Button, Paragraph, Heading | On / Off |
 
 ## Requirements
 
