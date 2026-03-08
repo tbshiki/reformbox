@@ -39,6 +39,20 @@ import './style.css';
 			: null;
 	}
 
+	function isMediaOverlay( overlay ) {
+		return overlay?.dataset.reformboxDialogType === 'media';
+	}
+
+	function moveOverlayToBody( overlay ) {
+		const ownerDocument = overlay.ownerDocument || document;
+		if (
+			ownerDocument.body &&
+			overlay.parentElement !== ownerDocument.body
+		) {
+			ownerDocument.body.appendChild( overlay );
+		}
+	}
+
 	function setTriggerExpanded( trigger, isExpanded ) {
 		if ( trigger ) {
 			trigger.setAttribute(
@@ -178,6 +192,71 @@ import './style.css';
 	}
 
 	function setOverlayStyles( overlay, trigger = null ) {
+		const lightboxContainer = overlay.querySelector(
+			'.reformbox-lightbox-container'
+		);
+		const mediaOverlay = isMediaOverlay( overlay );
+
+		if ( lightboxContainer ) {
+			lightboxContainer.style.setProperty(
+				'position',
+				'absolute',
+				'important'
+			);
+			lightboxContainer.style.setProperty( 'left', '50%', 'important' );
+			lightboxContainer.style.setProperty( 'top', '50%', 'important' );
+			lightboxContainer.style.setProperty(
+				'transform',
+				'translate(-50%, -50%)',
+				'important'
+			);
+			lightboxContainer.style.setProperty(
+				'transform-origin',
+				'top left',
+				'important'
+			);
+		}
+
+		if ( ! mediaOverlay ) {
+			overlay.style.removeProperty(
+				'--wp--lightbox-initial-top-position'
+			);
+			overlay.style.removeProperty(
+				'--wp--lightbox-initial-left-position'
+			);
+			overlay.style.removeProperty( '--wp--lightbox-container-width' );
+			overlay.style.removeProperty( '--wp--lightbox-container-height' );
+			overlay.style.removeProperty( '--wp--lightbox-image-width' );
+			overlay.style.removeProperty( '--wp--lightbox-image-height' );
+			overlay.style.removeProperty( '--wp--lightbox-scale' );
+			overlay.style.removeProperty( '--wp--lightbox-scrollbar-width' );
+
+			if ( lightboxContainer ) {
+				lightboxContainer.style.setProperty(
+					'width',
+					'auto',
+					'important'
+				);
+				lightboxContainer.style.setProperty(
+					'height',
+					'auto',
+					'important'
+				);
+				lightboxContainer.style.setProperty(
+					'max-width',
+					'min(90vw, 960px)',
+					'important'
+				);
+				lightboxContainer.style.setProperty(
+					'max-height',
+					'90vh',
+					'important'
+				);
+			}
+
+			return;
+		}
+
 		const triggerRect =
 			trigger && typeof trigger.getBoundingClientRect === 'function'
 				? trigger.getBoundingClientRect()
@@ -227,9 +306,37 @@ import './style.css';
 			'--wp--lightbox-scrollbar-width',
 			`${ window.innerWidth - document.documentElement.clientWidth }px`
 		);
+
+		// Keep media overlays centered/sized even when theme CSS overrides layout.
+		if ( lightboxContainer ) {
+			lightboxContainer.style.setProperty(
+				'width',
+				`${ target.width + 1 }px`,
+				'important'
+			);
+			lightboxContainer.style.setProperty(
+				'height',
+				`${ target.height + 1 }px`,
+				'important'
+			);
+			lightboxContainer.style.setProperty(
+				'max-width',
+				'calc(100vw - 32px)',
+				'important'
+			);
+			lightboxContainer.style.setProperty(
+				'max-height',
+				'calc(100vh - 80px)',
+				'important'
+			);
+		}
 	}
 
 	function refreshOverlayStylesOnMediaReady( overlay, trigger ) {
+		if ( ! isMediaOverlay( overlay ) ) {
+			return;
+		}
+
 		const media = getPrimaryMedia( overlay );
 		if ( ! media ) {
 			return;
@@ -257,6 +364,8 @@ import './style.css';
 		if ( ! overlay || activeOverlay === overlay ) {
 			return;
 		}
+
+		moveOverlayToBody( overlay );
 
 		if ( activeOverlay ) {
 			closeLightbox( activeOverlay, false, true );

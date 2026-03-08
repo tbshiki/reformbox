@@ -154,6 +154,18 @@
 	padding: 0;
 }
 
+.reformbox-overlay[data-reformbox-dialog-type="content"] .reformbox-lightbox-container.lightbox-image-container {
+	height: auto;
+	max-height: 90vh;
+	max-width: min(90vw, 960px);
+	width: auto;
+}
+
+.reformbox-overlay[data-reformbox-dialog-type="content"] .reformbox-content {
+	height: auto;
+	max-height: 90vh;
+}
+
 .reformbox-overlay--media .reformbox-content video,
 .reformbox-overlay--media .reformbox-content .wp-block-video video,
 .reformbox-overlay--media .reformbox-content .wp-block-image img {
