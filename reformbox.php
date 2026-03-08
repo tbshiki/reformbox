@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ReformBox – Universal Lightbox
  * Plugin URI:  https://github.com/tbshiki/reformbox
- * Description: Universal Lightbox for WordPress – display any block content in a lightbox modal.
+ * Description: Universal Lightbox for WordPress – lightbox support for Group, Video, Paragraph, and core Image workflows.
  * Version:     0.2.0
  * Requires at least: 6.4
  * Requires PHP: 7.4

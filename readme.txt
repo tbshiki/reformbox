@@ -8,11 +8,11 @@ Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Universal Lightbox for WordPress – display any block content in a lightbox modal.
+Universal Lightbox for WordPress – lightbox support for Group, Video, Paragraph, and core Image workflows.
 
 == Description ==
 
-ReformBox extends WordPress Lightbox functionality beyond images. Display any block content – images, videos, text, groups, and more – in a beautiful lightbox modal.
+ReformBox extends WordPress Lightbox functionality beyond images. It currently supports Group, Video, and Paragraph blocks directly, while delegating Image lightbox behavior to WordPress core.
 
 Development source: https://github.com/tbshiki/reformbox
 
@@ -80,7 +80,8 @@ Before submitting a new plugin to WordPress.org, also:
 1. Enable WordPress.org account 2FA
 2. Run the Plugin Check plugin with the `Plugin Repo` ruleset
 3. Verify the plugin on the latest stable WordPress release
-4. Commit the build assets to your WordPress.org SVN `trunk/` and copy the release to `tags/0.2.0/`
+4. Confirm the assigned plugin-directory slug is `reformbox` so it stays aligned with the plugin Text Domain
+5. Commit the build assets to your WordPress.org SVN `trunk/` and copy the release to `tags/0.2.0/`
 
 == Changelog ==
 

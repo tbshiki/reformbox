@@ -2,13 +2,13 @@
 
 # ReformBox – Universal Lightbox
 
-A WordPress plugin that extends the Lightbox concept beyond images. Display **any block content** - images, videos, text, groups, and more - in a lightbox modal, all configured through the native Block Editor UI.
+A WordPress plugin that extends the Lightbox concept beyond images. It adds lightbox support for **Group, Video, and Paragraph** blocks, while delegating **Image** behavior to WordPress core, all configured through the native Block Editor UI.
 
 > **Status:** v0.2.0 - Initial implementation completed
 
 ## What is ReformBox?
 
-Traditional lightbox plugins only enlarge images. ReformBox redefines the lightbox as a **Universal Content Container** - a modal overlay that can display any Gutenberg block content.
+Traditional lightbox plugins only enlarge images. ReformBox redefines the lightbox as a **Universal Content Container** for the blocks it currently supports, letting you reuse Gutenberg content in a modal overlay.
 
 ### Use Cases
 
@@ -132,7 +132,8 @@ Then:
 1. Run the **Plugin Check** plugin with the `Plugin Repo` ruleset.
 2. Verify the plugin on the latest stable WordPress release before updating `Tested up to`.
 3. Copy the plugin to WordPress.org SVN `trunk/`, including the built `build/` assets.
-4. Copy the same release to `tags/<version>/` and keep `readme.txt` `Stable tag` aligned with the released version.
+4. Confirm the assigned plugin-directory slug is `reformbox` so it matches the plugin Text Domain before the first SVN import.
+5. Copy the same release to `tags/<version>/` and keep `readme.txt` `Stable tag` aligned with the released version.
 
 ### Project Structure
 
