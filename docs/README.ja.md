@@ -1,14 +1,14 @@
-[English](README.md) | [日本語](README.ja.md)
+[English](../README.md) | [日本語](README.ja.md)
 
 # ReformBox – Universal Lightbox（日本語）
 
-WordPress の Lightbox を画像以外にも拡張するプラグインです。画像・動画・テキスト・グループなど、**あらゆるブロックコンテンツ**をライトボックス（モーダル）で表示できます。ブロックエディタの標準 UI から設定するだけで、コード不要です。
+WordPress の Lightbox を画像以外にも拡張するプラグインです。現在は **グループ・動画・段落** ブロックを直接ライトボックス化でき、**画像** は WordPress コア Lightbox に委譲します。ブロックエディタの標準 UI から設定するだけで、コード不要です。
 
 > **ステータス:** v0.2.0 - 初期実装完了
 
 ## ReformBox とは？
 
-従来の Lightbox プラグインは「画像を拡大表示」するだけでした。ReformBox は Lightbox を **汎用コンテンツコンテナ**として再定義し、Gutenberg ブロックの内容をそのままモーダル表示できるようにします。
+従来の Lightbox プラグインは「画像を拡大表示」するだけでした。ReformBox は Lightbox を **対応ブロック向けの汎用コンテンツコンテナ**として再定義し、Gutenberg ブロックの内容をモーダル表示できるようにします。
 
 ### 使用例
 
@@ -26,6 +26,7 @@ WordPress の Lightbox を画像以外にも拡張するプラグインです。
 | 画像ブロック -> ライトボックス（WordPress コア） | ✅ |
 | 動画ブロック -> ライトボックス | ✅ |
 | グループブロック -> ライトボックスコンテナ | ✅ |
+| グループ分割モード（表示用/モーダル用スロット） | ✅ |
 | 段落ブロック -> セルフライトボックス | ✅ |
 | Zoom アニメーション（コア準拠） | ✅ |
 | ESC キーで閉じる | ✅ |
@@ -46,7 +47,7 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 
 | 役割 | 対応ブロック | 説明 |
 |---|---|---|
-| **コンテナ** | グループ | 本文表示しつつ、クリックで同内容をライトボックス表示 |
+| **コンテナ** | グループ | `same`（本文とモーダルで同じ内容）と `split`（子 Group を表示用/モーダル用に分離）の両方に対応 |
 | **セルフライトボックス** | 画像（Core）, 動画, 段落 | クリックで自身をライトボックス表示 |
 
 ### 使い方
@@ -57,6 +58,8 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 
 動画ブロックの場合は ReformBox パネルの「クリックでライトボックス表示」を ON にし、必要に応じてオーバーレイクリック時の挙動を設定できます。
 画像ブロックの場合は ReformBox パネルから WordPress コア Lightbox（「Enable Core Image Lightbox」）を有効化します。
+グループブロックでは `表示モード` を選べます。`same` は従来どおり同内容表示、`split` は子 Group の `スロット種別` で表示用/モーダル用を分離します。
+`split` モードでモーダル用スロットが未設定の場合は、空モーダルを避けるため表示用コンテンツへフォールバックします。
 親のグループで ReformBox が有効な場合、内側ブロックの ReformBox 設定は親に継承され、子ブロック側の設定UIは無効化されます。
 
 ### 設定項目
@@ -65,6 +68,8 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 |---|---|---|
 | ReformBox を有効化 | グループ, 動画, 段落 | ON / OFF |
 | Core 画像 Lightbox を有効化 | 画像 | ON / OFF |
+| 表示モード | グループ（ReformBox 有効時） | Same / Split |
+| スロット種別 | split 親配下の子 Group | None / Preview / Modal |
 | オーバーレイクリックで閉じる | グループ, 動画, 段落 | ON / OFF |
 
 ## 動作要件
@@ -127,7 +132,8 @@ npm run release:zip
 1. **Plugin Check** プラグインの `Plugin Repo` ルールセットを通す
 2. `Tested up to` を更新する前に、最新の安定版 WordPress で動作確認する
 3. ビルド済み `build/` を含めて WordPress.org SVN の `trunk/` へ配置する
-4. 同じ内容を `tags/<version>/` にも配置し、`readme.txt` の `Stable tag` と同期する
+4. 初回 SVN 反映前に、割り当てられたプラグインディレクトリの slug が `reformbox` であり、Text Domain と一致していることを確認する
+5. 同じ内容を `tags/<version>/` にも配置し、`readme.txt` の `Stable tag` と同期する
 
 ### プロジェクト構成
 
@@ -153,6 +159,7 @@ reformbox/
 - **画像ライトボックスは Core 優先** - `core/image` のセルフライトボックスは WordPress コア Lightbox に委譲
 - **カスタムオーバーレイも Core に寄せる** - `wp-lightbox-overlay`, `close-button`, `wp-lightbox-container` など、使える箇所ではコア Lightbox のクラス規約に合わせる
 - **サーバーサイドレンダリング** - PHP `render_block_core/{name}` フィルタでフロントエンドにライトボックス HTML を注入
+- **Group 分割レンダリング** - `split` 時は子 `core/group` を表示用/モーダル用に振り分け、モーダル未設定時は安全にフォールバック
 - **非破壊的設計** - `save()` を変更しないため、プラグインの有効/無効に関わらずブロックは常に有効
 - **遅延ロード** - ライトボックス対応ブロックがページに存在する場合のみ CSS/JS をエンキュー
 - **動画は開くまで先読みしない** - セルフライトボックスの動画は、オーバーレイを開くまで eager preload / autoplay を抑制
@@ -162,7 +169,8 @@ reformbox/
 
 今後、WordPress コアの Lightbox レイアウトに追従する際の参照先は以下です。
 
-- `docs/CORE_LIGHTBOX_LAYOUT_REFERENCE.md`
+- `CORE_LIGHTBOX_LAYOUT_REFERENCE.md`
+- `GROUP_SPLIT_LIGHTBOX_DESIGN.ja.md`（表示用/モーダル用の分離設計）
 
 ### CSS カスタマイズ
 
@@ -170,7 +178,7 @@ reformbox/
 
 ```css
 .reformbox-overlay { }          /* フルスクリーン背景 */
-.reformbox-container { }        /* モーダルボックス */
+.reformbox-lightbox-container { }/* モーダルボックス */
 .reformbox-content { }          /* 内部コンテンツラッパー */
 .reformbox-close { }            /* 閉じるボタン */
 .reformbox-overlay--media { }   /* 画像/動画バリアント */

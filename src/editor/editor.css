@@ -4,21 +4,116 @@
 
 /* Visual indicator for Group/Cover blocks enabled as lightbox containers. */
 .is-reformbox-container {
-	border: 2px dashed var(--wp-admin-theme-color, #007cba) !important;
+	border: none !important;
+	outline: 1px dashed var(--wp-admin-theme-color, #007cba);
+	outline-offset: 6px;
+	margin-top: 24px !important;
+	margin-inline: 8px !important;
 	position: relative;
+	overflow: visible !important;
+	box-shadow: none;
 }
 
 .is-reformbox-container::after {
 	content: "ReformBox";
 	position: absolute;
-	top: -14px;
-	left: 12px;
+	top: 0;
+	left: 8px;
+	transform: translateY(calc(-100% - 4px));
 	background: var(--wp-admin-theme-color, #007cba);
 	color: #fff;
 	font-size: 11px;
 	line-height: 1;
+	white-space: nowrap;
 	padding: 3px 8px;
 	border-radius: 3px;
 	pointer-events: none;
-	z-index: 1;
+	z-index: 5;
+}
+
+.is-reformbox-container.reformbox-mode-split {
+	outline-style: solid;
+}
+
+.is-reformbox-container.reformbox-mode-split::before {
+	content: "Split Mode";
+	position: absolute;
+	top: 0;
+	right: 8px;
+	transform: translateY(calc(-100% - 4px));
+	background: #4b6b94;
+	color: #fff;
+	font-size: 11px;
+	line-height: 1;
+	white-space: nowrap;
+	padding: 3px 8px;
+	border-radius: 3px;
+	pointer-events: none;
+	z-index: 5;
+}
+
+.reformbox-slot-preview,
+.reformbox-slot-modal,
+.reformbox-slot-none {
+	position: relative;
+	overflow: visible !important;
+}
+
+.reformbox-slot-preview {
+	border: 1px solid #2b6cb0 !important;
+	background: rgba(43, 108, 176, 0.05);
+	box-shadow: none;
+}
+
+.reformbox-slot-modal {
+	border: 1px solid #dd6b20 !important;
+	background: rgba(221, 107, 32, 0.06);
+	box-shadow: none;
+}
+
+.reformbox-slot-preview::before,
+.reformbox-slot-modal::before,
+.reformbox-slot-none::before {
+	position: absolute;
+	top: 6px;
+	right: 8px;
+	left: auto;
+	transform: none;
+	color: #fff;
+	font-size: 11px;
+	line-height: 1;
+	white-space: nowrap;
+	padding: 3px 8px;
+	border-radius: 3px;
+	pointer-events: none;
+	z-index: 5;
+}
+
+.reformbox-slot-preview::before {
+	content: "Preview";
+	background: #2b6cb0;
+}
+
+.reformbox-slot-modal::before {
+	content: "Modal";
+	background: #dd6b20;
+}
+
+.reformbox-slot-none {
+	border: 1px solid #5f6b7a !important;
+	background: rgba(95, 107, 122, 0.08);
+	box-shadow: none;
+}
+
+.reformbox-slot-none::before {
+	content: "Both (None)";
+	background: #5f6b7a;
+}
+
+.reformbox-editor-warning {
+	margin: 10px 0 0;
+	padding: 8px 10px;
+	border-left: 4px solid #dd6b20;
+	background: rgba(221, 107, 32, 0.12);
+	font-size: 12px;
 }

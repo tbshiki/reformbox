@@ -4,22 +4,46 @@
  *
  * Registers editor extensions and modifies block output
  * to add lightbox functionality.
+ *
+ * @package ReformBox
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * ReformBox plugin runtime.
+ */
 class ReformBox {
 
-	/** @var self|null */
+	/**
+	 * Singleton instance.
+	 *
+	 * @var self|null
+	 */
 	private static $instance = null;
 
-	/** @var bool Whether the current page has lightbox content. */
+	/**
+	 * Whether the current page has lightbox content.
+	 *
+	 * @var bool
+	 */
 	private $has_lightbox = false;
 
-	/** @var bool Whether frontend assets have been registered for the request. */
+	/**
+	 * Whether frontend assets have been registered for the request.
+	 *
+	 * @var bool
+	 */
 	private $frontend_assets_registered = false;
+
+	/**
+	 * ReformBox IDs reserved during the current request.
+	 *
+	 * @var array<string,bool>
+	 */
+	private $reserved_reformbox_ids = array();
 
 	/**
 	 * Initialize the singleton instance.
@@ -35,10 +59,9 @@ class ReformBox {
 	 * Constructor – registers all hooks.
 	 */
 	private function __construct() {
-		add_action( 'init', array( $this, 'load_textdomain' ) );
-
 		// Editor assets.
 		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
+		add_action( 'enqueue_block_assets', array( $this, 'enqueue_editor_canvas_assets' ) );
 
 		// Frontend assets (register early, enqueue lazily).
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_frontend_assets' ) );
@@ -53,20 +76,7 @@ class ReformBox {
 		add_filter( 'render_block_core/paragraph', array( $this, 'render_trigger_block' ), 10, 2 );
 	}
 
-	/**
-	 * Load plugin translations.
-	 */
-	public function load_textdomain() {
-		load_plugin_textdomain(
-			'reformbox',
-			false,
-			dirname( REFORMBOX_PLUGIN_BASENAME ) . '/languages'
-		);
-	}
-
-	/* ------------------------------------------------------------------
-	 * Asset loading
-	 * ----------------------------------------------------------------*/
+	// Asset loading.
 
 	/**
 	 * Enqueue editor script and style.
@@ -82,7 +92,8 @@ class ReformBox {
 			'reformbox-editor',
 			REFORMBOX_PLUGIN_URL . 'build/editor.js',
 			$asset['dependencies'],
-			$asset['version']
+			$asset['version'],
+			array( 'in_footer' => true )
 		);
 
 		wp_set_script_translations( 'reformbox-editor', 'reformbox' );
@@ -96,6 +107,38 @@ class ReformBox {
 			);
 			wp_style_add_data( 'reformbox-editor', 'rtl', 'replace' );
 		}
+	}
+
+	/**
+	 * Enqueue editor canvas stylesheet for iframe-based block editors.
+	 *
+	 * In modern WordPress, post content is often rendered inside an iframe.
+	 * Styles enqueued only via enqueue_block_editor_assets may not reach that canvas.
+	 */
+	public function enqueue_editor_canvas_assets() {
+		if ( ! is_admin() ) {
+			return;
+		}
+
+		$css_file = REFORMBOX_PLUGIN_DIR . 'build/editor.css';
+		if ( ! file_exists( $css_file ) ) {
+			return;
+		}
+
+		$asset_file = REFORMBOX_PLUGIN_DIR . 'build/editor.asset.php';
+		$asset      = file_exists( $asset_file )
+			? require $asset_file
+			: array(
+				'version' => REFORMBOX_VERSION,
+			);
+
+		wp_enqueue_style(
+			'reformbox-editor-canvas',
+			REFORMBOX_PLUGIN_URL . 'build/editor.css',
+			array(),
+			$asset['version']
+		);
+		wp_style_add_data( 'reformbox-editor-canvas', 'rtl', 'replace' );
 	}
 
 	/**
@@ -120,7 +163,10 @@ class ReformBox {
 			REFORMBOX_PLUGIN_URL . 'build/view.js',
 			$asset['dependencies'],
 			$asset['version'],
-			array( 'in_footer' => true, 'strategy' => 'defer' )
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
 		);
 
 		if ( file_exists( REFORMBOX_PLUGIN_DIR . 'build/style-view.css' ) ) {
@@ -159,24 +205,171 @@ class ReformBox {
 		}
 	}
 
-	/* ------------------------------------------------------------------
-	 * Helpers
-	 * ----------------------------------------------------------------*/
+	// Helpers.
 
 	/**
 	 * Sanitize a ReformBox ID to safe HTML id characters.
+	 *
+	 * @param string $id ReformBox ID candidate.
+	 * @return string
 	 */
 	private function sanitize_reformbox_id( $id ) {
 		return preg_replace( '/[^a-zA-Z0-9_-]/', '', (string) $id );
 	}
 
 	/**
-	 * Get or generate a ReformBox ID from block attributes.
+	 * Reserve a unique ReformBox ID for the current request.
+	 *
+	 * @param string $preferred_id Sanitized preferred ID.
+	 * @return string
+	 */
+	private function reserve_reformbox_id( $preferred_id ) {
+		$base_id   = '' !== $preferred_id ? $preferred_id : wp_unique_id( 'rb-' );
+		$candidate = $base_id;
+		$suffix    = 2;
+
+		while ( isset( $this->reserved_reformbox_ids[ $candidate ] ) ) {
+			$candidate = sprintf( '%1$s-%2$d', $base_id, $suffix );
+			++$suffix;
+		}
+
+		$this->reserved_reformbox_ids[ $candidate ] = true;
+
+		return $candidate;
+	}
+
+	/**
+	 * Resolve a unique ReformBox ID from block attributes.
+	 *
+	 * @param array $attrs Block attributes.
+	 * @return string
 	 */
 	private function get_reformbox_id( $attrs ) {
-		return isset( $attrs['reformboxId'] )
+		$preferred_id = isset( $attrs['reformboxId'] )
 			? $this->sanitize_reformbox_id( $attrs['reformboxId'] )
 			: '';
+
+		return $this->reserve_reformbox_id( $preferred_id );
+	}
+
+	/**
+	 * Get Group lightbox mode.
+	 *
+	 * @param array $attrs Block attributes.
+	 * @return string 'same' or 'split'.
+	 */
+	private function get_reformbox_mode( $attrs ) {
+		return ( isset( $attrs['reformboxMode'] ) && 'split' === $attrs['reformboxMode'] )
+			? 'split'
+			: 'same';
+	}
+
+	/**
+	 * Get slot type for Group blocks used in split mode.
+	 *
+	 * @param array $attrs Block attributes.
+	 * @return string 'none'|'preview'|'modal'.
+	 */
+	private function get_reformbox_slot( $attrs ) {
+		if ( ! isset( $attrs['reformboxSlot'] ) ) {
+			return 'none';
+		}
+
+		$slot = (string) $attrs['reformboxSlot'];
+		if ( 'preview' === $slot || 'modal' === $slot ) {
+			return $slot;
+		}
+
+		return 'none';
+	}
+
+	/**
+	 * Render a list of parsed blocks into HTML.
+	 *
+	 * @param array $blocks Parsed block array list.
+	 * @return string
+	 */
+	private function render_blocks_html( $blocks ) {
+		if ( ! is_array( $blocks ) || empty( $blocks ) ) {
+			return '';
+		}
+
+		$html = '';
+		foreach ( $blocks as $parsed_block ) {
+			if ( ! is_array( $parsed_block ) ) {
+				continue;
+			}
+
+			$html .= render_block( $parsed_block );
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Replace the root Group wrapper inner HTML while keeping wrapper attributes.
+	 *
+	 * @param string $group_html Original rendered Group block HTML.
+	 * @param string $inner_html New inner HTML.
+	 * @return string
+	 */
+	private function replace_group_inner_html( $group_html, $inner_html ) {
+		if (
+			preg_match(
+				'/^\s*(<([a-z][a-z0-9:-]*)\b[^>]*>).*(<\/\2>)\s*$/is',
+				$group_html,
+				$matches
+			)
+		) {
+			return $matches[1] . $inner_html . $matches[3];
+		}
+
+		return $inner_html;
+	}
+
+	/**
+	 * Build preview/modal HTML for split Group mode.
+	 *
+	 * @param string $block_content Original rendered Group HTML.
+	 * @param array  $block         Parsed Group block.
+	 * @return array{preview:string,modal:string}
+	 */
+	private function build_split_group_content( $block_content, $block ) {
+		$inner_blocks   = isset( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] )
+			? $block['innerBlocks']
+			: array();
+		$preview_blocks = array();
+		$modal_blocks   = array();
+
+		foreach ( $inner_blocks as $inner_block ) {
+			if ( ! is_array( $inner_block ) ) {
+				continue;
+			}
+
+			$is_group = isset( $inner_block['blockName'] ) && 'core/group' === $inner_block['blockName'];
+			if ( $is_group && 'modal' === $this->get_reformbox_slot( $inner_block['attrs'] ?? array() ) ) {
+				$modal_blocks[] = $inner_block;
+				continue;
+			}
+
+			// Non-group blocks and "none" slot groups are treated as preview.
+			$preview_blocks[] = $inner_block;
+		}
+
+		$preview_inner = $this->render_blocks_html( $preview_blocks );
+		$modal_inner   = $this->render_blocks_html( $modal_blocks );
+
+		$preview_source = '' !== trim( $preview_inner )
+			? $preview_inner
+			: $block_content;
+		$modal_source   = '' !== trim( $modal_inner )
+			? $modal_inner
+			: $preview_source;
+
+		return array(
+			'preview' => $this->replace_group_inner_html( $block_content, $preview_source ),
+			'modal'   => $this->replace_group_inner_html( $block_content, $modal_source ),
+		);
 	}
 
 	/**
@@ -365,20 +558,20 @@ class ReformBox {
 		}
 
 		if ( $poster ) {
-			$wrapper          = $this->get_video_trigger_wrapper( $block_content );
-			$wrapper_tag      = $wrapper['tag'];
-			$wrapper_classes  = trim( $wrapper['class'] . ' reformbox-video-trigger wp-lightbox-container' );
-			$wrapper_style    = $wrapper['style'];
-			$caption_html     = $this->get_figcaption_html( $block_content );
-			$wrapper_attrs    = array(
-				'class'                 => $wrapper_classes,
+			$wrapper         = $this->get_video_trigger_wrapper( $block_content );
+			$wrapper_tag     = $wrapper['tag'];
+			$wrapper_classes = trim( $wrapper['class'] . ' reformbox-video-trigger wp-lightbox-container' );
+			$wrapper_style   = $wrapper['style'];
+			$caption_html    = $this->get_figcaption_html( $block_content );
+			$wrapper_attrs   = array(
+				'class'                  => $wrapper_classes,
 				'data-reformbox-trigger' => $id,
-				'aria-controls'         => $id,
-				'aria-expanded'         => 'false',
-				'aria-haspopup'         => 'dialog',
-				'aria-label'            => __( 'Play video', 'reformbox' ),
-				'role'                  => 'button',
-				'tabindex'              => '0',
+				'aria-controls'          => $id,
+				'aria-expanded'          => 'false',
+				'aria-haspopup'          => 'dialog',
+				'aria-label'             => __( 'Play video', 'reformbox' ),
+				'role'                   => 'button',
+				'tabindex'               => '0',
 			);
 
 			if ( $wrapper_style ) {
@@ -400,12 +593,14 @@ class ReformBox {
 		return $trigger_html;
 	}
 
-	/* ------------------------------------------------------------------
-	 * render_block callbacks
-	 * ----------------------------------------------------------------*/
+	// render_block callbacks.
 
 	/**
 	 * Group → lightbox container.
+	 *
+	 * @param string $block_content Rendered block content.
+	 * @param array  $block         Parsed block data.
+	 * @return string
 	 */
 	public function render_container_block( $block_content, $block ) {
 		if ( empty( $block['attrs']['reformboxEnabled'] ) ) {
@@ -419,14 +614,28 @@ class ReformBox {
 
 		$this->enqueue_frontend();
 
-		$trigger_content = $this->add_trigger_attribute( $block_content, $id );
-		$overlay_content = $this->get_lightbox_overlay( $block_content, $id, $block['attrs'] );
+		$mode           = $this->get_reformbox_mode( $block['attrs'] );
+		$trigger_source = $block_content;
+		$overlay_source = $block_content;
+
+		if ( 'split' === $mode ) {
+			$split_content  = $this->build_split_group_content( $block_content, $block );
+			$trigger_source = $split_content['preview'];
+			$overlay_source = $split_content['modal'];
+		}
+
+		$trigger_content = $this->add_trigger_attribute( $trigger_source, $id );
+		$overlay_content = $this->get_lightbox_overlay( $overlay_source, $id, $block['attrs'] );
 
 		return $trigger_content . $overlay_content;
 	}
 
 	/**
 	 * Video → self-lightbox.
+	 *
+	 * @param string $block_content Rendered block content.
+	 * @param array  $block         Parsed block data.
+	 * @return string
 	 */
 	public function render_video_block( $block_content, $block ) {
 		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {
@@ -455,6 +664,10 @@ class ReformBox {
 
 	/**
 	 * Paragraph → self-lightbox.
+	 *
+	 * @param string $block_content Rendered block content.
+	 * @param array  $block         Parsed block data.
+	 * @return string
 	 */
 	public function render_trigger_block( $block_content, $block ) {
 		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {

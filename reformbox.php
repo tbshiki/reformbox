@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ReformBox – Universal Lightbox
  * Plugin URI:  https://github.com/tbshiki/reformbox
- * Description: Universal Lightbox for WordPress – display any block content in a lightbox modal.
+ * Description: Universal Lightbox for WordPress – lightbox support for Group, Video, Paragraph, and core Image workflows.
  * Version:     0.2.0
  * Requires at least: 6.4
  * Requires PHP: 7.4
@@ -11,6 +11,8 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: reformbox
  * Domain Path: /languages
+ *
+ * @package ReformBox
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +22,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'REFORMBOX_VERSION', '0.2.0' );
 define( 'REFORMBOX_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'REFORMBOX_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'REFORMBOX_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 require_once REFORMBOX_PLUGIN_DIR . 'includes/class-reformbox.php';
 
