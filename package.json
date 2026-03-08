@@ -6,10 +6,10 @@
   "license": "GPL-2.0-or-later",
   "files": [
     "build",
+    "docs",
     "includes",
     "src",
     "README.md",
-    "README.ja.md",
     "readme.txt",
     "reformbox.php",
     "package.json",

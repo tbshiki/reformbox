@@ -38,8 +38,6 @@ class ReformBox {
 	 * Constructor – registers all hooks.
 	 */
 	private function __construct() {
-		add_action( 'init', array( $this, 'load_textdomain' ) );
-
 		// Editor assets.
 		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
 		add_action( 'enqueue_block_assets', array( $this, 'enqueue_editor_canvas_assets' ) );
@@ -55,17 +53,6 @@ class ReformBox {
 
 		// Paragraph block (self-lightbox).
 		add_filter( 'render_block_core/paragraph', array( $this, 'render_trigger_block' ), 10, 2 );
-	}
-
-	/**
-	 * Load plugin translations.
-	 */
-	public function load_textdomain() {
-		load_plugin_textdomain(
-			'reformbox',
-			false,
-			dirname( REFORMBOX_PLUGIN_BASENAME ) . '/languages'
-		);
 	}
 
 	/* ------------------------------------------------------------------
@@ -86,7 +73,8 @@ class ReformBox {
 			'reformbox-editor',
 			REFORMBOX_PLUGIN_URL . 'build/editor.js',
 			$asset['dependencies'],
-			$asset['version']
+			$asset['version'],
+			array( 'in_footer' => true )
 		);
 
 		wp_set_script_translations( 'reformbox-editor', 'reformbox' );

@@ -20,7 +20,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'REFORMBOX_VERSION', '0.2.0' );
 define( 'REFORMBOX_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'REFORMBOX_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'REFORMBOX_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 require_once REFORMBOX_PLUGIN_DIR . 'includes/class-reformbox.php';
 
