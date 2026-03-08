@@ -159,6 +159,12 @@ reformbox/
 - **動画は開くまで先読みしない** - セルフライトボックスの動画は、オーバーレイを開くまで eager preload / autoplay を抑制
 - **軽量フロントエンド** - WordPress 依存なしのバニラ JS（ミニファイ後 約2.3 KB）
 
+### Core レイアウト追従リファレンス
+
+今後、WordPress コアの Lightbox レイアウトに追従する際の参照先は以下です。
+
+- `docs/CORE_LIGHTBOX_LAYOUT_REFERENCE.md`
+
 ### CSS カスタマイズ
 
 テーマで以下のクラスをオーバーライドできます。

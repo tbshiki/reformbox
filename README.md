@@ -159,6 +159,12 @@ reformbox/
 - **Deferred video loading** - Self-lightbox videos avoid eager preload/autoplay until the overlay is opened
 - **Lightweight frontend** - Vanilla JS with no WordPress dependencies (~2.3 KB minified)
 
+### Core Layout Reference
+
+For future core-layout follow-up work, see:
+
+- `docs/CORE_LIGHTBOX_LAYOUT_REFERENCE.md`
+
 ### HTML Output
 
 ```html
