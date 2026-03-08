@@ -409,7 +409,7 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 								value={ containerSlot }
 								options={ [
 									{
-										label: __( 'None', 'reformbox' ),
+										label: __( 'Both (None)', 'reformbox' ),
 										value: REFORMBOX_SLOT_NONE,
 									},
 									{
@@ -501,6 +501,10 @@ const withReformBoxEditorClass = createHigherOrderComponent(
 
 				if ( blockSlot === REFORMBOX_SLOT_MODAL ) {
 					classNames.push( 'reformbox-slot-modal' );
+				}
+
+				if ( blockSlot === REFORMBOX_SLOT_NONE ) {
+					classNames.push( 'reformbox-slot-none' );
 				}
 			}
 

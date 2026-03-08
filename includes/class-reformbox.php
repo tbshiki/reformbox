@@ -39,6 +39,7 @@ class ReformBox {
 
 		// Editor assets.
 		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
+		add_action( 'enqueue_block_assets', array( $this, 'enqueue_editor_canvas_assets' ) );
 
 		// Frontend assets (register early, enqueue lazily).
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_frontend_assets' ) );
@@ -96,6 +97,38 @@ class ReformBox {
 			);
 			wp_style_add_data( 'reformbox-editor', 'rtl', 'replace' );
 		}
+	}
+
+	/**
+	 * Enqueue editor canvas stylesheet for iframe-based block editors.
+	 *
+	 * In modern WordPress, post content is often rendered inside an iframe.
+	 * Styles enqueued only via enqueue_block_editor_assets may not reach that canvas.
+	 */
+	public function enqueue_editor_canvas_assets() {
+		if ( ! is_admin() ) {
+			return;
+		}
+
+		$css_file = REFORMBOX_PLUGIN_DIR . 'build/editor.css';
+		if ( ! file_exists( $css_file ) ) {
+			return;
+		}
+
+		$asset_file = REFORMBOX_PLUGIN_DIR . 'build/editor.asset.php';
+		$asset      = file_exists( $asset_file )
+			? require $asset_file
+			: array(
+				'version' => REFORMBOX_VERSION,
+			);
+
+		wp_enqueue_style(
+			'reformbox-editor-canvas',
+			REFORMBOX_PLUGIN_URL . 'build/editor.css',
+			array(),
+			$asset['version']
+		);
+		wp_style_add_data( 'reformbox-editor-canvas', 'rtl', 'replace' );
 	}
 
 	/**
