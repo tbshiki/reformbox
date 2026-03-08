@@ -18,6 +18,9 @@ class ReformBox {
 	/** @var bool Whether the current page has lightbox content. */
 	private $has_lightbox = false;
 
+	/** @var bool Whether frontend assets have been registered for the request. */
+	private $frontend_assets_registered = false;
+
 	/**
 	 * Initialize the singleton instance.
 	 */
@@ -32,24 +35,33 @@ class ReformBox {
 	 * Constructor – registers all hooks.
 	 */
 	private function __construct() {
+		add_action( 'init', array( $this, 'load_textdomain' ) );
+
 		// Editor assets.
 		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
 
 		// Frontend assets (register early, enqueue lazily).
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_frontend_assets' ) );
 
-		// Container blocks (content displayed in lightbox).
+		// Container block (content displayed in lightbox).
 		add_filter( 'render_block_core/group', array( $this, 'render_container_block' ), 10, 2 );
-		add_filter( 'render_block_core/cover', array( $this, 'render_container_block' ), 10, 2 );
 
-		// Self-lightbox blocks (click to open self in lightbox).
-		add_filter( 'render_block_core/image', array( $this, 'render_image_block' ), 10, 2 );
+		// Self-lightbox media block.
 		add_filter( 'render_block_core/video', array( $this, 'render_video_block' ), 10, 2 );
 
-		// Trigger-only blocks (click to open another lightbox).
-		add_filter( 'render_block_core/button', array( $this, 'render_trigger_block' ), 10, 2 );
+		// Paragraph block (self-lightbox).
 		add_filter( 'render_block_core/paragraph', array( $this, 'render_trigger_block' ), 10, 2 );
-		add_filter( 'render_block_core/heading', array( $this, 'render_trigger_block' ), 10, 2 );
+	}
+
+	/**
+	 * Load plugin translations.
+	 */
+	public function load_textdomain() {
+		load_plugin_textdomain(
+			'reformbox',
+			false,
+			dirname( REFORMBOX_PLUGIN_BASENAME ) . '/languages'
+		);
 	}
 
 	/* ------------------------------------------------------------------
@@ -73,6 +85,8 @@ class ReformBox {
 			$asset['version']
 		);
 
+		wp_set_script_translations( 'reformbox-editor', 'reformbox' );
+
 		if ( file_exists( REFORMBOX_PLUGIN_DIR . 'build/editor.css' ) ) {
 			wp_enqueue_style(
 				'reformbox-editor',
@@ -89,6 +103,10 @@ class ReformBox {
 	 * They will be enqueued lazily when a lightbox block is rendered.
 	 */
 	public function register_frontend_assets() {
+		if ( $this->frontend_assets_registered ) {
+			return;
+		}
+
 		$asset_file = REFORMBOX_PLUGIN_DIR . 'build/view.asset.php';
 		$asset      = file_exists( $asset_file )
 			? require $asset_file
@@ -105,20 +123,17 @@ class ReformBox {
 			array( 'in_footer' => true, 'strategy' => 'defer' )
 		);
 
-		$css_file = file_exists( REFORMBOX_PLUGIN_DIR . 'build/style-view.css' )
-			? 'build/style-view.css'
-			: 'build/view.css';
-
-		if ( file_exists( REFORMBOX_PLUGIN_DIR . $css_file ) ) {
+		if ( file_exists( REFORMBOX_PLUGIN_DIR . 'build/style-view.css' ) ) {
 			wp_register_style(
 				'reformbox-view',
-				REFORMBOX_PLUGIN_URL . $css_file,
+				REFORMBOX_PLUGIN_URL . 'build/style-view.css',
 				array(),
 				$asset['version']
 			);
 			wp_style_add_data( 'reformbox-view', 'rtl', 'replace' );
-			wp_style_add_data( 'reformbox-view', 'suffix', '.css' );
 		}
+
+		$this->frontend_assets_registered = true;
 	}
 
 	/**
@@ -128,9 +143,20 @@ class ReformBox {
 		if ( $this->has_lightbox ) {
 			return;
 		}
+
+		// Defensive registration for render contexts where wp_enqueue_scripts may not have fired yet.
+		if ( ! $this->frontend_assets_registered || ! wp_script_is( 'reformbox-view', 'registered' ) ) {
+			$this->register_frontend_assets();
+		}
+
 		$this->has_lightbox = true;
-		wp_enqueue_style( 'reformbox-view' );
-		wp_enqueue_script( 'reformbox-view' );
+
+		if ( wp_style_is( 'reformbox-view', 'registered' ) ) {
+			wp_enqueue_style( 'reformbox-view' );
+		}
+		if ( wp_script_is( 'reformbox-view', 'registered' ) ) {
+			wp_enqueue_script( 'reformbox-view' );
+		}
 	}
 
 	/* ------------------------------------------------------------------
@@ -148,13 +174,9 @@ class ReformBox {
 	 * Get or generate a ReformBox ID from block attributes.
 	 */
 	private function get_reformbox_id( $attrs ) {
-		$id = isset( $attrs['reformboxId'] )
+		return isset( $attrs['reformboxId'] )
 			? $this->sanitize_reformbox_id( $attrs['reformboxId'] )
 			: '';
-		if ( '' === $id ) {
-			$id = wp_unique_id( 'rb-' );
-		}
-		return $id;
 	}
 
 	/**
@@ -167,24 +189,29 @@ class ReformBox {
 	 * @return string
 	 */
 	private function get_lightbox_overlay( $content, $id, $attrs, $type = 'content' ) {
-		$animation     = isset( $attrs['reformboxAnimation'] ) ? sanitize_key( $attrs['reformboxAnimation'] ) : 'fade';
 		$overlay_close = isset( $attrs['reformboxOverlayClose'] ) ? (bool) $attrs['reformboxOverlayClose'] : true;
+		$dialog_label  = 'media' === $type
+			? __( 'Video lightbox dialog', 'reformbox' )
+			: __( 'Lightbox dialog', 'reformbox' );
 
-		$overlay_class = 'reformbox-overlay reformbox-animation-' . $animation;
+		$overlay_class = 'reformbox-overlay wp-lightbox-overlay reformbox-animation-zoom';
 		if ( 'media' === $type ) {
 			$overlay_class .= ' reformbox-overlay--media';
 		}
 
 		return sprintf(
-			'<div class="%s" id="%s" data-reformbox-overlay-close="%s" aria-hidden="true" role="dialog" aria-modal="true" aria-label="%s">'
-			. '<div class="reformbox-container">'
-			. '<button class="reformbox-close" type="button" aria-label="%s">&times;</button>'
-			. '<div class="reformbox-content">%s</div>'
-			. '</div></div>',
+			'<div class="%1$s" id="%2$s" data-reformbox-dialog-type="%3$s" data-reformbox-overlay-close="%4$s" aria-hidden="true" role="dialog" aria-modal="true" aria-label="%5$s" tabindex="-1">'
+			. '<button class="reformbox-close close-button" type="button" aria-label="%6$s" style="fill: var(--wp--preset--color--contrast, currentColor)">'
+			. '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg>'
+			. '</button>'
+			. '<div class="reformbox-lightbox-container lightbox-image-container"><div class="reformbox-content">%7$s</div></div>'
+			. '<div class="scrim" aria-hidden="true"></div>'
+			. '</div>',
 			esc_attr( $overlay_class ),
 			esc_attr( $id ),
+			esc_attr( $type ),
 			esc_attr( $overlay_close ? 'true' : 'false' ),
-			esc_attr__( 'Content', 'reformbox' ),
+			esc_attr( $dialog_label ),
 			esc_attr__( 'Close', 'reformbox' ),
 			$content // Already rendered block HTML – escaped by core.
 		);
@@ -199,12 +226,178 @@ class ReformBox {
 	 */
 	private function add_trigger_attribute( $html, $target_id ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
-		if ( $processor->next_tag() ) {
-			$processor->set_attribute( 'data-reformbox-trigger', $target_id );
-			$processor->set_attribute( 'role', 'button' );
-			$processor->set_attribute( 'tabindex', '0' );
+		if ( ! $processor->next_tag() ) {
+			return $html;
 		}
+
+		$tag_name = strtolower( (string) $processor->get_tag() );
+
+		$processor->set_attribute( 'data-reformbox-trigger', $target_id );
+		$processor->set_attribute( 'aria-controls', $target_id );
+		$processor->set_attribute( 'aria-expanded', 'false' );
+		$processor->set_attribute( 'aria-haspopup', 'dialog' );
+
+		$interactive_tags = array( 'a', 'button', 'input', 'select', 'textarea', 'summary' );
+		if ( ! in_array( $tag_name, $interactive_tags, true ) ) {
+			if ( null === $processor->get_attribute( 'role' ) ) {
+				$processor->set_attribute( 'role', 'button' );
+			}
+			if ( null === $processor->get_attribute( 'tabindex' ) ) {
+				$processor->set_attribute( 'tabindex', '0' );
+			}
+		}
+
 		return $processor->get_updated_html();
+	}
+
+	/**
+	 * Extract wrapper tag attributes used for the lightweight video trigger.
+	 *
+	 * @param string $block_content Original video block HTML.
+	 * @return array{tag:string,class:string,style:string}
+	 */
+	private function get_video_trigger_wrapper( $block_content ) {
+		$processor = new WP_HTML_Tag_Processor( $block_content );
+		if ( ! $processor->next_tag() ) {
+			return array(
+				'tag'   => 'div',
+				'class' => '',
+				'style' => '',
+			);
+		}
+
+		$tag_name = strtolower( (string) $processor->get_tag() );
+		if ( ! in_array( $tag_name, array( 'figure', 'div' ), true ) ) {
+			$tag_name = 'div';
+		}
+
+		return array(
+			'tag'   => $tag_name,
+			'class' => (string) $processor->get_attribute( 'class' ),
+			'style' => (string) $processor->get_attribute( 'style' ),
+		);
+	}
+
+	/**
+	 * Extract the figcaption HTML from a block, when present.
+	 *
+	 * @param string $block_content Original block HTML.
+	 * @return string
+	 */
+	private function get_figcaption_html( $block_content ) {
+		if ( preg_match( '/<figcaption\b[^>]*>.*?<\/figcaption>/is', $block_content, $matches ) ) {
+			return $matches[0];
+		}
+
+		return '';
+	}
+
+	/**
+	 * Convert an associative array into escaped HTML attributes.
+	 *
+	 * @param array<string,string> $attributes Attribute map.
+	 * @return string
+	 */
+	private function build_html_attributes( $attributes ) {
+		$parts = array();
+
+		foreach ( $attributes as $name => $value ) {
+			if ( '' === $value ) {
+				continue;
+			}
+
+			$parts[] = sprintf(
+				' %s="%s"',
+				esc_attr( $name ),
+				esc_attr( $value )
+			);
+		}
+
+		return implode( '', $parts );
+	}
+
+	/**
+	 * Prepare video markup for lazy loading inside the lightbox overlay.
+	 *
+	 * The overlay stays hidden until opened, so prevent eager preload/autoplay
+	 * and restore playback in the frontend script only when needed.
+	 *
+	 * @param string $block_content Original video block HTML.
+	 * @return string
+	 */
+	private function prepare_video_lightbox_content( $block_content ) {
+		$processor = new WP_HTML_Tag_Processor( $block_content );
+		if ( ! $processor->next_tag( 'video' ) ) {
+			return $block_content;
+		}
+
+		$processor->set_attribute( 'preload', 'none' );
+		$processor->set_attribute( 'data-reformbox-video', 'true' );
+
+		if ( null !== $processor->get_attribute( 'autoplay' ) ) {
+			$processor->remove_attribute( 'autoplay' );
+			$processor->set_attribute( 'data-reformbox-autoplay', 'true' );
+		}
+
+		return $processor->get_updated_html();
+	}
+
+	/**
+	 * Build a video trigger element: shows the video poster as a
+	 * thumbnail with a play icon, rather than duplicating the
+	 * full <video> element in the page.
+	 *
+	 * @param string $block_content Original video block HTML.
+	 * @param string $id            Target lightbox ID.
+	 * @param array  $attrs         Block attributes.
+	 * @return string Trigger HTML.
+	 */
+	private function build_video_trigger( $block_content, $id, $attrs ) {
+		$poster = '';
+		if ( ! empty( $attrs['poster'] ) ) {
+			$poster = $attrs['poster'];
+		} else {
+			// Try to extract poster from <video> tag.
+			$processor = new WP_HTML_Tag_Processor( $block_content );
+			if ( $processor->next_tag( 'video' ) ) {
+				$poster = (string) $processor->get_attribute( 'poster' );
+			}
+		}
+
+		if ( $poster ) {
+			$wrapper          = $this->get_video_trigger_wrapper( $block_content );
+			$wrapper_tag      = $wrapper['tag'];
+			$wrapper_classes  = trim( $wrapper['class'] . ' reformbox-video-trigger wp-lightbox-container' );
+			$wrapper_style    = $wrapper['style'];
+			$caption_html     = $this->get_figcaption_html( $block_content );
+			$wrapper_attrs    = array(
+				'class'                 => $wrapper_classes,
+				'data-reformbox-trigger' => $id,
+				'aria-controls'         => $id,
+				'aria-expanded'         => 'false',
+				'aria-haspopup'         => 'dialog',
+				'aria-label'            => __( 'Play video', 'reformbox' ),
+				'role'                  => 'button',
+				'tabindex'              => '0',
+			);
+
+			if ( $wrapper_style ) {
+				$wrapper_attrs['style'] = $wrapper_style;
+			}
+
+			$trigger_html = sprintf(
+				'<%1$s%2$s><span class="reformbox-video-trigger__frame"><img src="%3$s" alt="" class="reformbox-video-trigger__poster" loading="lazy" decoding="async" /><span class="reformbox-video-trigger__play" aria-hidden="true">&#9654;</span></span>%4$s</%1$s>',
+				tag_escape( $wrapper_tag ),
+				$this->build_html_attributes( $wrapper_attrs ),
+				esc_url( $poster ),
+				$caption_html
+			);
+		} else {
+			// No poster available — fall back to adding trigger on original block.
+			$trigger_html = $this->add_trigger_attribute( $block_content, $id );
+		}
+
+		return $trigger_html;
 	}
 
 	/* ------------------------------------------------------------------
@@ -212,104 +405,72 @@ class ReformBox {
 	 * ----------------------------------------------------------------*/
 
 	/**
-	 * Group / Cover → lightbox container.
+	 * Group → lightbox container.
 	 */
 	public function render_container_block( $block_content, $block ) {
 		if ( empty( $block['attrs']['reformboxEnabled'] ) ) {
 			return $block_content;
 		}
 
-		$this->enqueue_frontend();
 		$id = $this->get_reformbox_id( $block['attrs'] );
+		if ( '' === $id ) {
+			return $block_content;
+		}
 
-		return $this->get_lightbox_overlay( $block_content, $id, $block['attrs'] );
+		$this->enqueue_frontend();
+
+		$trigger_content = $this->add_trigger_attribute( $block_content, $id );
+		$overlay_content = $this->get_lightbox_overlay( $block_content, $id, $block['attrs'] );
+
+		return $trigger_content . $overlay_content;
 	}
 
 	/**
-	 * Image → self-lightbox or trigger.
-	 */
-	public function render_image_block( $block_content, $block ) {
-		// Self-lightbox.
-		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {
-			$this->enqueue_frontend();
-			$id = $this->get_reformbox_id( $block['attrs'] );
-
-			// Resolve full-size URL.
-			$image_url = '';
-			if ( ! empty( $block['attrs']['id'] ) ) {
-				$full_src  = wp_get_attachment_image_src( (int) $block['attrs']['id'], 'full' );
-				$image_url = $full_src ? $full_src[0] : '';
-			}
-			if ( empty( $image_url ) && ! empty( $block['attrs']['url'] ) ) {
-				$image_url = $block['attrs']['url'];
-			}
-			if ( empty( $image_url ) ) {
-				return $block_content;
-			}
-
-			$alt             = ! empty( $block['attrs']['alt'] ) ? $block['attrs']['alt'] : '';
-			$lightbox_html   = sprintf(
-				'<img src="%s" alt="%s" />',
-				esc_url( $image_url ),
-				esc_attr( $alt )
-			);
-			$trigger_content = $this->add_trigger_attribute( $block_content, $id );
-
-			return $trigger_content . $this->get_lightbox_overlay( $lightbox_html, $id, $block['attrs'], 'media' );
-		}
-
-		// Trigger for another lightbox.
-		if ( ! empty( $block['attrs']['reformboxTarget'] ) ) {
-			$target_id = $this->sanitize_reformbox_id( $block['attrs']['reformboxTarget'] );
-			if ( $target_id ) {
-				$this->enqueue_frontend();
-				return $this->add_trigger_attribute( $block_content, $target_id );
-			}
-		}
-
-		return $block_content;
-	}
-
-	/**
-	 * Video → self-lightbox or trigger.
+	 * Video → self-lightbox.
 	 */
 	public function render_video_block( $block_content, $block ) {
 		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {
-			$this->enqueue_frontend();
 			$id = $this->get_reformbox_id( $block['attrs'] );
+			if ( '' === $id ) {
+				return $block_content;
+			}
 
-			// Use original video markup in the overlay.
-			$lightbox_html   = $this->get_lightbox_overlay( $block_content, $id, $block['attrs'], 'media' );
-			$trigger_content = $this->add_trigger_attribute( $block_content, $id );
+			$this->enqueue_frontend();
+
+			// Build a placeholder trigger that shows a play icon overlay.
+			// The actual video is only inside the lightbox overlay.
+			$trigger_content = $this->build_video_trigger( $block_content, $id, $block['attrs'] );
+			$lightbox_html   = $this->get_lightbox_overlay(
+				$this->prepare_video_lightbox_content( $block_content ),
+				$id,
+				$block['attrs'],
+				'media'
+			);
 
 			return $trigger_content . $lightbox_html;
 		}
 
-		if ( ! empty( $block['attrs']['reformboxTarget'] ) ) {
-			$target_id = $this->sanitize_reformbox_id( $block['attrs']['reformboxTarget'] );
-			if ( $target_id ) {
-				$this->enqueue_frontend();
-				return $this->add_trigger_attribute( $block_content, $target_id );
-			}
-		}
-
 		return $block_content;
 	}
 
 	/**
-	 * Button / Paragraph / Heading → trigger.
+	 * Paragraph → self-lightbox.
 	 */
 	public function render_trigger_block( $block_content, $block ) {
-		if ( empty( $block['attrs']['reformboxTarget'] ) ) {
-			return $block_content;
+		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {
+			$id = $this->get_reformbox_id( $block['attrs'] );
+			if ( '' === $id ) {
+				return $block_content;
+			}
+
+			$this->enqueue_frontend();
+
+			$trigger_content = $this->add_trigger_attribute( $block_content, $id );
+			$overlay_content = $this->get_lightbox_overlay( $block_content, $id, $block['attrs'] );
+
+			return $trigger_content . $overlay_content;
 		}
 
-		$target_id = $this->sanitize_reformbox_id( $block['attrs']['reformboxTarget'] );
-		if ( empty( $target_id ) ) {
-			return $block_content;
-		}
-
-		$this->enqueue_frontend();
-		return $this->add_trigger_attribute( $block_content, $target_id );
+		return $block_content;
 	}
 }

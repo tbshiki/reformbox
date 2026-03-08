@@ -4,11 +4,25 @@
   "description": "ReformBox – Universal Lightbox for WordPress",
   "author": "tbshiki",
   "license": "GPL-2.0-or-later",
+  "files": [
+    "build",
+    "includes",
+    "src",
+    "README.md",
+    "README.ja.md",
+    "readme.txt",
+    "reformbox.php",
+    "package.json",
+    "webpack.config.js"
+  ],
   "scripts": {
     "build": "node node_modules/@wordpress/scripts/bin/wp-scripts.js build",
     "start": "node node_modules/@wordpress/scripts/bin/wp-scripts.js start",
     "lint:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js src/",
-    "lint:css": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-style src/"
+    "format:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js src/ --fix",
+    "lint:css": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-style src/**/*.css",
+    "package:zip": "node node_modules/@wordpress/scripts/bin/wp-scripts.js plugin-zip",
+    "release:zip": "npm run build && npm run package:zip"
   },
   "devDependencies": {
     "@wordpress/scripts": "^30.0.0"

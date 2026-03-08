@@ -1,268 +1,325 @@
 /**
- * ReformBox – Editor extensions.
+ * ReformBox - Editor extensions.
  *
  * Adds ReformBox attributes and InspectorControls to supported core blocks.
  */
 
-import { addFilter } from '@wordpress/hooks';
-import { createHigherOrderComponent } from '@wordpress/compose';
 import { InspectorControls } from '@wordpress/block-editor';
-import {
-  PanelBody,
-  ToggleControl,
-  SelectControl,
-  TextControl,
-} from '@wordpress/components';
+import { createHigherOrderComponent } from '@wordpress/compose';
+import { Button, PanelBody, ToggleControl } from '@wordpress/components';
+import { useDispatch, useSelect } from '@wordpress/data';
+import { useEffect } from '@wordpress/element';
+import { addFilter } from '@wordpress/hooks';
 import { __ } from '@wordpress/i18n';
-import { Fragment } from '@wordpress/element';
 
-import './editor.scss';
+import './editor.css';
 
-/* ------------------------------------------------------------------
- * Constants
- * ----------------------------------------------------------------*/
+const CONTAINER_BLOCKS = [ 'core/group' ];
+const SELF_LIGHTBOX_BLOCKS = [ 'core/video', 'core/paragraph' ];
+const CORE_IMAGE_BLOCK = 'core/image';
 
-/** Blocks that can act as lightbox containers (content shown inside lightbox). */
-const CONTAINER_BLOCKS = ['core/group', 'core/cover'];
-
-/** Blocks that open themselves in a lightbox on click. */
-const SELF_LIGHTBOX_BLOCKS = ['core/image', 'core/video'];
-
-/** Blocks that can trigger another lightbox. */
-const TRIGGER_BLOCKS = [
-  'core/button',
-  'core/paragraph',
-  'core/heading',
-  'core/image',
-  'core/video',
-];
-
-const ALL_BLOCKS = [
-  ...new Set([
-    ...CONTAINER_BLOCKS,
-    ...SELF_LIGHTBOX_BLOCKS,
-    ...TRIGGER_BLOCKS,
-  ]),
-];
-
-/* ------------------------------------------------------------------
- * Helpers
- * ----------------------------------------------------------------*/
-
-function generateId() {
-  return 'rb-' + Math.random().toString(36).substring(2, 10);
+function sanitizeReformBoxId( value ) {
+	return String( value || '' ).replace( /[^a-zA-Z0-9_-]/g, '' );
 }
 
-/* ------------------------------------------------------------------
- * 1. Register custom attributes on target blocks
- * ----------------------------------------------------------------*/
+function generateId( seed = '' ) {
+	const normalizedSeed = sanitizeReformBoxId( seed ).replace( /-/g, '' );
 
-function addReformBoxAttributes(settings, name) {
-  if (!ALL_BLOCKS.includes(name)) {
-    return settings;
-  }
+	if ( normalizedSeed ) {
+		return `rb-${ normalizedSeed.slice( 0, 8 ) }`;
+	}
 
-  return {
-    ...settings,
-    attributes: {
-      ...settings.attributes,
-      reformboxEnabled: { type: 'boolean', default: false },
-      reformboxId: { type: 'string', default: '' },
-      reformboxTarget: { type: 'string', default: '' },
-      reformboxAnimation: { type: 'string', default: 'fade' },
-      reformboxOverlayClose: { type: 'boolean', default: true },
-    },
-  };
+	return `rb-${ Math.random().toString( 36 ).slice( 2, 10 ) }`;
+}
+
+function getImageLightboxAttributes( lightbox = {}, enabled ) {
+	return {
+		...lightbox,
+		enabled,
+	};
+}
+
+function addReformBoxAttributes( settings, name ) {
+	const isContainer = CONTAINER_BLOCKS.includes( name );
+	const isSelfLightbox = SELF_LIGHTBOX_BLOCKS.includes( name );
+
+	if ( ! isContainer && ! isSelfLightbox ) {
+		return settings;
+	}
+
+	const attrs = {};
+
+	if ( isContainer || isSelfLightbox ) {
+		attrs.reformboxEnabled = { type: 'boolean', default: false };
+		attrs.reformboxId = { type: 'string', default: '' };
+		attrs.reformboxOverlayClose = { type: 'boolean', default: true };
+	}
+
+	return {
+		...settings,
+		attributes: {
+			...settings.attributes,
+			...attrs,
+		},
+	};
 }
 
 addFilter(
-  'blocks.registerBlockType',
-  'reformbox/attributes',
-  addReformBoxAttributes
+	'blocks.registerBlockType',
+	'reformbox/attributes',
+	addReformBoxAttributes
 );
 
-/* ------------------------------------------------------------------
- * 2. Add InspectorControls panel
- * ----------------------------------------------------------------*/
+const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
+	return function ReformBoxControls( props ) {
+		const { clientId, name, attributes, setAttributes } = props;
+		const isContainer = CONTAINER_BLOCKS.includes( name );
+		const isSelfLightbox = SELF_LIGHTBOX_BLOCKS.includes( name );
+		const isCoreImage = name === CORE_IMAGE_BLOCK;
+		const isSupported = isContainer || isSelfLightbox || isCoreImage;
+		const imageLightboxEnabled = !! attributes?.lightbox?.enabled;
+		const isLightboxEnabledBlock = isContainer || isSelfLightbox;
+		const { selectBlock } = useDispatch( 'core/block-editor' );
+		const parentContainerInfo = useSelect(
+			( select ) => {
+				const { getBlock, getBlockParents } =
+					select( 'core/block-editor' );
+				const parentClientIds = getBlockParents( clientId );
+				const matchedParentClientId = parentClientIds.find(
+					( parentClientId ) => {
+						const parentBlock = getBlock( parentClientId );
 
-const withReformBoxControls = createHigherOrderComponent((BlockEdit) => {
-  return (props) => {
-    const { name, attributes, setAttributes } = props;
+						return (
+							!! parentBlock &&
+							CONTAINER_BLOCKS.includes( parentBlock.name ) &&
+							!! parentBlock.attributes?.reformboxEnabled
+						);
+					}
+				);
 
-    if (!ALL_BLOCKS.includes(name)) {
-      return <BlockEdit {...props} />;
-    }
+				if ( ! matchedParentClientId ) {
+					return null;
+				}
 
-    const isContainer = CONTAINER_BLOCKS.includes(name);
-    const isSelfLightbox = SELF_LIGHTBOX_BLOCKS.includes(name);
-    const isTrigger = TRIGGER_BLOCKS.includes(name);
+				return {
+					clientId: matchedParentClientId,
+				};
+			},
+			[ clientId ]
+		);
+		const isInheritedFromParentContainer = !! parentContainerInfo;
 
-    const handleEnableToggle = (value) => {
-      const next = { reformboxEnabled: value };
-      if (value && !attributes.reformboxId) {
-        next.reformboxId = generateId();
-      }
-      setAttributes(next);
-    };
+		useEffect( () => {
+			if (
+				! isSupported ||
+				! isLightboxEnabledBlock ||
+				isInheritedFromParentContainer ||
+				! attributes.reformboxEnabled ||
+				attributes.reformboxId
+			) {
+				return;
+			}
 
-    return (
-      <Fragment>
-        <BlockEdit {...props} />
-        <InspectorControls>
-          <PanelBody
-            title={__('ReformBox', 'reformbox')}
-            initialOpen={
-              attributes.reformboxEnabled ||
-              !!attributes.reformboxTarget
-            }
-          >
-            { /* --- Container / Self-lightbox toggle --- */}
-            {(isContainer || isSelfLightbox) && (
-              <ToggleControl
-                label={
-                  isContainer
-                    ? __(
-                      'Enable as Lightbox Container',
-                      'reformbox'
-                    )
-                    : __(
-                      'Enable Lightbox on Click',
-                      'reformbox'
-                    )
-                }
-                checked={attributes.reformboxEnabled}
-                onChange={handleEnableToggle}
-              />
-            )}
+			setAttributes( { reformboxId: generateId( clientId ) } );
+		}, [
+			clientId,
+			attributes.reformboxEnabled,
+			attributes.reformboxId,
+			isInheritedFromParentContainer,
+			isLightboxEnabledBlock,
+			isSupported,
+			setAttributes,
+		] );
 
-            { /* --- ID field (shown when enabled) --- */}
-            {attributes.reformboxEnabled && (
-              <TextControl
-                label={__('ReformBox ID', 'reformbox')}
-                value={attributes.reformboxId}
-                onChange={(value) =>
-                  setAttributes({ reformboxId: value })
-                }
-                help={__(
-                  'Unique ID for this lightbox. Use this ID as the target in trigger blocks.',
-                  'reformbox'
-                )}
-              />
-            )}
+		useEffect( () => {
+			if ( ! isSupported || ! isInheritedFromParentContainer ) {
+				return;
+			}
 
-            { /* --- Container-specific settings --- */}
-            {attributes.reformboxEnabled && isContainer && (
-              <>
-                <SelectControl
-                  label={__(
-                    'Animation',
-                    'reformbox'
-                  )}
-                  value={attributes.reformboxAnimation}
-                  options={[
-                    {
-                      label: __(
-                        'Fade',
-                        'reformbox'
-                      ),
-                      value: 'fade',
-                    },
-                    {
-                      label: __(
-                        'Zoom',
-                        'reformbox'
-                      ),
-                      value: 'zoom',
-                    },
-                    {
-                      label: __(
-                        'Slide',
-                        'reformbox'
-                      ),
-                      value: 'slide',
-                    },
-                  ]}
-                  onChange={(value) =>
-                    setAttributes({
-                      reformboxAnimation: value,
-                    })
-                  }
-                />
-                <ToggleControl
-                  label={__(
-                    'Close on Overlay Click',
-                    'reformbox'
-                  )}
-                  checked={
-                    attributes.reformboxOverlayClose
-                  }
-                  onChange={(value) =>
-                    setAttributes({
-                      reformboxOverlayClose: value,
-                    })
-                  }
-                />
-              </>
-            )}
+			const next = {};
+			let hasUpdate = false;
 
-            { /* --- Trigger target --- */}
-            {isTrigger && !attributes.reformboxEnabled && (
-              <TextControl
-                label={__(
-                  'Lightbox Target ID',
-                  'reformbox'
-                )}
-                value={attributes.reformboxTarget}
-                onChange={(value) =>
-                  setAttributes({
-                    reformboxTarget: value,
-                  })
-                }
-                help={__(
-                  'Enter the ReformBox ID of the lightbox to open on click.',
-                  'reformbox'
-                )}
-              />
-            )}
-          </PanelBody>
-        </InspectorControls>
-      </Fragment>
-    );
-  };
-}, 'withReformBoxControls');
+			if ( attributes.reformboxEnabled ) {
+				next.reformboxEnabled = false;
+				hasUpdate = true;
+			}
+
+			if ( isCoreImage && imageLightboxEnabled ) {
+				next.lightbox = getImageLightboxAttributes(
+					attributes.lightbox,
+					false
+				);
+				hasUpdate = true;
+			}
+
+			if ( hasUpdate ) {
+				setAttributes( next );
+			}
+		}, [
+			attributes.lightbox,
+			attributes.reformboxEnabled,
+			imageLightboxEnabled,
+			isCoreImage,
+			isInheritedFromParentContainer,
+			isSupported,
+			setAttributes,
+		] );
+
+		if ( ! isSupported ) {
+			return <BlockEdit { ...props } />;
+		}
+
+		const showEnableToggle = isLightboxEnabledBlock;
+		const showImageLightboxToggle = isCoreImage;
+		const initialOpen =
+			isInheritedFromParentContainer ||
+			!! attributes.reformboxEnabled ||
+			imageLightboxEnabled;
+
+		const handleEnableToggle = ( value ) => {
+			const next = { reformboxEnabled: value };
+
+			if ( value && ! attributes.reformboxId ) {
+				next.reformboxId = generateId( clientId );
+			}
+
+			setAttributes( next );
+		};
+
+		const handleCoreImageLightboxToggle = ( value ) => {
+			setAttributes( {
+				lightbox: getImageLightboxAttributes(
+					attributes.lightbox,
+					value
+				),
+			} );
+		};
+		const handleSelectParentContainer = () => {
+			if ( parentContainerInfo?.clientId ) {
+				selectBlock( parentContainerInfo.clientId );
+			}
+		};
+		const inheritedNoticeText = __(
+			'ReformBox is enabled on the parent Group block. Settings here follow the parent.',
+			'reformbox'
+		);
+
+		return (
+			<>
+				<BlockEdit { ...props } />
+				<InspectorControls>
+					<PanelBody
+						title={ __( 'ReformBox', 'reformbox' ) }
+						initialOpen={ initialOpen }
+					>
+						{ isInheritedFromParentContainer && (
+							<p>
+								{ inheritedNoticeText }{ ' ' }
+								<Button
+									variant="link"
+									onClick={ handleSelectParentContainer }
+								>
+									{ __( 'Select parent block', 'reformbox' ) }
+								</Button>
+							</p>
+						) }
+
+						{ showEnableToggle && (
+							<ToggleControl
+								__nextHasNoMarginBottom
+								label={
+									isContainer
+										? __(
+												'Enable as Lightbox Container',
+												'reformbox'
+										  )
+										: __(
+												'Enable Lightbox on Click',
+												'reformbox'
+										  )
+								}
+								checked={ !! attributes.reformboxEnabled }
+								disabled={ isInheritedFromParentContainer }
+								onChange={ handleEnableToggle }
+							/>
+						) }
+
+						{ showImageLightboxToggle && (
+							<ToggleControl
+								__nextHasNoMarginBottom
+								label={ __(
+									'Enable Core Image Lightbox',
+									'reformbox'
+								) }
+								help={ __(
+									'Uses the WordPress core lightbox output and behavior.',
+									'reformbox'
+								) }
+								checked={ imageLightboxEnabled }
+								disabled={ isInheritedFromParentContainer }
+								onChange={ handleCoreImageLightboxToggle }
+							/>
+						) }
+
+						{ attributes.reformboxEnabled &&
+							( isContainer || isSelfLightbox ) && (
+								<>
+									<ToggleControl
+										__nextHasNoMarginBottom
+										label={ __(
+											'Close on Overlay Click',
+											'reformbox'
+										) }
+										checked={
+											attributes.reformboxOverlayClose
+										}
+										disabled={
+											isInheritedFromParentContainer
+										}
+										onChange={ ( value ) =>
+											setAttributes( {
+												reformboxOverlayClose: value,
+											} )
+										}
+									/>
+								</>
+							) }
+					</PanelBody>
+				</InspectorControls>
+			</>
+		);
+	};
+}, 'withReformBoxControls' );
 
 addFilter(
-  'editor.BlockEdit',
-  'reformbox/inspector-controls',
-  withReformBoxControls
+	'editor.BlockEdit',
+	'reformbox/inspector-controls',
+	withReformBoxControls
 );
-
-/* ------------------------------------------------------------------
- * 3. Visual indicator in editor for lightbox containers
- * ----------------------------------------------------------------*/
 
 const withReformBoxEditorClass = createHigherOrderComponent(
-  (BlockListBlock) => {
-    return (props) => {
-      if (
-        CONTAINER_BLOCKS.includes(props.name) &&
-        props.attributes?.reformboxEnabled
-      ) {
-        return (
-          <BlockListBlock
-            {...props}
-            className="is-reformbox-container"
-          />
-        );
-      }
-      return <BlockListBlock {...props} />;
-    };
-  },
-  'withReformBoxEditorClass'
+	( BlockListBlock ) => {
+		return function ReformBoxEditorClass( props ) {
+			if (
+				CONTAINER_BLOCKS.includes( props.name ) &&
+				props.attributes?.reformboxEnabled
+			) {
+				return (
+					<BlockListBlock
+						{ ...props }
+						className="is-reformbox-container"
+					/>
+				);
+			}
+
+			return <BlockListBlock { ...props } />;
+		};
+	},
+	'withReformBoxEditorClass'
 );
 
 addFilter(
-  'editor.BlockListBlock',
-  'reformbox/editor-class',
-  withReformBoxEditorClass
+	'editor.BlockListBlock',
+	'reformbox/editor-class',
+	withReformBoxEditorClass
 );

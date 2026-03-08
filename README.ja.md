@@ -23,12 +23,11 @@ WordPress の Lightbox を画像以外にも拡張するプラグインです。
 
 | 機能 | 状態 |
 |---|---|
-| 画像ブロック -> ライトボックス | ✅ |
+| 画像ブロック -> ライトボックス（WordPress コア） | ✅ |
 | 動画ブロック -> ライトボックス | ✅ |
 | グループブロック -> ライトボックスコンテナ | ✅ |
-| カバーブロック -> ライトボックスコンテナ | ✅ |
-| ボタン / 段落 / 見出し -> トリガー | ✅ |
-| Fade / Zoom / Slide アニメーション | ✅ |
+| 段落ブロック -> セルフライトボックス | ✅ |
+| Zoom アニメーション（コア準拠） | ✅ |
 | ESC キーで閉じる | ✅ |
 | オーバーレイクリックで閉じる（任意） | ✅ |
 | フォーカストラップ & キーボード操作 | ✅ |
@@ -47,27 +46,26 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 
 | 役割 | 対応ブロック | 説明 |
 |---|---|---|
-| **コンテナ** | グループ, カバー | ライトボックス内に表示されるコンテンツ |
-| **セルフライトボックス** | 画像, 動画 | クリックで自身をライトボックス表示 |
-| **トリガー** | ボタン, 段落, 見出し, 画像, 動画 | クリックで紐付けたライトボックスを開く |
+| **コンテナ** | グループ | 本文表示しつつ、クリックで同内容をライトボックス表示 |
+| **セルフライトボックス** | 画像（Core）, 動画, 段落 | クリックで自身をライトボックス表示 |
 
 ### 使い方
 
-1. **コンテナを作成** - グループブロックを追加し、サイドバーで「ReformBox」を有効化します。内部に任意のコンテンツを配置すると、**ReformBox ID** が自動生成されます。
-2. **トリガーを作成** - ボタンなどのトリガーブロックを追加し、**ライトボックスターゲット ID** にコンテナの ReformBox ID を入力します。
-3. **完了** - 訪問者がトリガーをクリックすると、コンテナ内容がモーダルオーバーレイで表示されます。
+1. **対象ブロックを配置** - グループ/動画/段落（または画像）を追加します。
+2. **ReformBox を有効化** - サイドバーの ReformBox パネルで有効化します（画像は Core Lightbox を有効化）。
+3. **完了** - 訪問者がブロックをクリックすると、同内容がモーダルオーバーレイで表示されます。
 
-画像・動画ブロックの場合は「クリックでライトボックス表示」を ON にするだけです。別途コンテナは不要です。
+動画ブロックの場合は ReformBox パネルの「クリックでライトボックス表示」を ON にし、必要に応じてオーバーレイクリック時の挙動を設定できます。
+画像ブロックの場合は ReformBox パネルから WordPress コア Lightbox（「Enable Core Image Lightbox」）を有効化します。
+親のグループで ReformBox が有効な場合、内側ブロックの ReformBox 設定は親に継承され、子ブロック側の設定UIは無効化されます。
 
 ### 設定項目
 
 | 設定 | 対象 | オプション |
 |---|---|---|
-| ReformBox を有効化 | コンテナ, セルフライトボックス | ON / OFF |
-| ReformBox ID | コンテナ, セルフライトボックス | 自動生成またはカスタム |
-| ライトボックスターゲット ID | トリガー | 対象ライトボックスの ID |
-| アニメーション | コンテナ | Fade, Zoom, Slide |
-| オーバーレイクリックで閉じる | コンテナ | ON / OFF |
+| ReformBox を有効化 | グループ, 動画, 段落 | ON / OFF |
+| Core 画像 Lightbox を有効化 | 画像 | ON / OFF |
+| オーバーレイクリックで閉じる | グループ, 動画, 段落 | ON / OFF |
 
 ## 動作要件
 
@@ -92,7 +90,44 @@ npm run start
 
 # プロダクションビルド
 npm run build
+
+# 配布用プラグイン ZIP を作成（reformbox.zip）
+npm run release:zip
 ```
+
+### 配布用 ZIP の作成
+
+リリース前は次の手順を実行します。
+
+```bash
+npm install
+npm run lint:js
+npm run lint:css
+npm run release:zip
+```
+
+プロジェクトルートに `reformbox.zip` が生成され、**WP 管理画面 -> プラグイン -> プラグインを追加 -> プラグインのアップロード** からそのままインストールできます。
+
+この ZIP にはコンパイル済みアセットだけでなく、生成元を確認できる `src/`, `package.json`, `webpack.config.js` も含めています。WordPress.org 審査でソースを追える状態を維持するためです。
+
+### WordPress.org リリース
+
+公式ディレクトリ向けにリリースする場合は、次を実行します。
+
+```bash
+npm install
+npm run lint:js
+npm run lint:css
+npm run build
+npm run release:zip
+```
+
+その後に以下を確認します。
+
+1. **Plugin Check** プラグインの `Plugin Repo` ルールセットを通す
+2. `Tested up to` を更新する前に、最新の安定版 WordPress で動作確認する
+3. ビルド済み `build/` を含めて WordPress.org SVN の `trunk/` へ配置する
+4. 同じ内容を `tags/<version>/` にも配置し、`readme.txt` の `Stable tag` と同期する
 
 ### プロジェクト構成
 
@@ -104,9 +139,9 @@ reformbox/
 ├── src/
 │   ├── editor/
 │   │   ├── index.js           # ブロックエディタ拡張（フィルタ + UI）
-│   │   └── editor.scss        # エディタ専用スタイル
+│   │   └── editor.css         # エディタ専用スタイル
 │   ├── view.js                # フロントエンドライトボックス（バニラ JS）
-│   └── style.scss             # フロントエンドスタイル
+│   └── style.css              # フロントエンドスタイル
 ├── build/                     # コンパイル済みアセット（git-ignored）
 ├── package.json
 └── webpack.config.js
@@ -115,10 +150,19 @@ reformbox/
 ### アーキテクチャ
 
 - **カスタムブロック不使用** - WordPress JS フィルタ（`blocks.registerBlockType`, `editor.BlockEdit`, `editor.BlockListBlock`）でコアブロックを拡張
+- **画像ライトボックスは Core 優先** - `core/image` のセルフライトボックスは WordPress コア Lightbox に委譲
+- **カスタムオーバーレイも Core に寄せる** - `wp-lightbox-overlay`, `close-button`, `wp-lightbox-container` など、使える箇所ではコア Lightbox のクラス規約に合わせる
 - **サーバーサイドレンダリング** - PHP `render_block_core/{name}` フィルタでフロントエンドにライトボックス HTML を注入
 - **非破壊的設計** - `save()` を変更しないため、プラグインの有効/無効に関わらずブロックは常に有効
 - **遅延ロード** - ライトボックス対応ブロックがページに存在する場合のみ CSS/JS をエンキュー
+- **動画は開くまで先読みしない** - セルフライトボックスの動画は、オーバーレイを開くまで eager preload / autoplay を抑制
 - **軽量フロントエンド** - WordPress 依存なしのバニラ JS（ミニファイ後 約2.3 KB）
+
+### Core レイアウト追従リファレンス
+
+今後、WordPress コアの Lightbox レイアウトに追従する際の参照先は以下です。
+
+- `docs/CORE_LIGHTBOX_LAYOUT_REFERENCE.md`
 
 ### CSS カスタマイズ
 
