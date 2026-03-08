@@ -180,6 +180,126 @@ class ReformBox {
 	}
 
 	/**
+	 * Get Group lightbox mode.
+	 *
+	 * @param array $attrs Block attributes.
+	 * @return string 'same' or 'split'.
+	 */
+	private function get_reformbox_mode( $attrs ) {
+		return ( isset( $attrs['reformboxMode'] ) && 'split' === $attrs['reformboxMode'] )
+			? 'split'
+			: 'same';
+	}
+
+	/**
+	 * Get slot type for Group blocks used in split mode.
+	 *
+	 * @param array $attrs Block attributes.
+	 * @return string 'none'|'preview'|'modal'.
+	 */
+	private function get_reformbox_slot( $attrs ) {
+		if ( ! isset( $attrs['reformboxSlot'] ) ) {
+			return 'none';
+		}
+
+		$slot = (string) $attrs['reformboxSlot'];
+		if ( 'preview' === $slot || 'modal' === $slot ) {
+			return $slot;
+		}
+
+		return 'none';
+	}
+
+	/**
+	 * Render a list of parsed blocks into HTML.
+	 *
+	 * @param array $blocks Parsed block array list.
+	 * @return string
+	 */
+	private function render_blocks_html( $blocks ) {
+		if ( ! is_array( $blocks ) || empty( $blocks ) ) {
+			return '';
+		}
+
+		$html = '';
+		foreach ( $blocks as $parsed_block ) {
+			if ( ! is_array( $parsed_block ) ) {
+				continue;
+			}
+
+			$html .= render_block( $parsed_block );
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Replace the root Group wrapper inner HTML while keeping wrapper attributes.
+	 *
+	 * @param string $group_html Original rendered Group block HTML.
+	 * @param string $inner_html New inner HTML.
+	 * @return string
+	 */
+	private function replace_group_inner_html( $group_html, $inner_html ) {
+		if (
+			preg_match(
+				'/^\s*(<([a-z][a-z0-9:-]*)\b[^>]*>).*(<\/\2>)\s*$/is',
+				$group_html,
+				$matches
+			)
+		) {
+			return $matches[1] . $inner_html . $matches[3];
+		}
+
+		return $inner_html;
+	}
+
+	/**
+	 * Build preview/modal HTML for split Group mode.
+	 *
+	 * @param string $block_content Original rendered Group HTML.
+	 * @param array  $block         Parsed Group block.
+	 * @return array{preview:string,modal:string}
+	 */
+	private function build_split_group_content( $block_content, $block ) {
+		$inner_blocks   = isset( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] )
+			? $block['innerBlocks']
+			: array();
+		$preview_blocks = array();
+		$modal_blocks   = array();
+
+		foreach ( $inner_blocks as $inner_block ) {
+			if ( ! is_array( $inner_block ) ) {
+				continue;
+			}
+
+			$is_group = isset( $inner_block['blockName'] ) && 'core/group' === $inner_block['blockName'];
+			if ( $is_group && 'modal' === $this->get_reformbox_slot( $inner_block['attrs'] ?? array() ) ) {
+				$modal_blocks[] = $inner_block;
+				continue;
+			}
+
+			// Non-group blocks and "none" slot groups are treated as preview.
+			$preview_blocks[] = $inner_block;
+		}
+
+		$preview_inner = $this->render_blocks_html( $preview_blocks );
+		$modal_inner   = $this->render_blocks_html( $modal_blocks );
+
+		$preview_source = '' !== trim( $preview_inner )
+			? $preview_inner
+			: $block_content;
+		$modal_source   = '' !== trim( $modal_inner )
+			? $modal_inner
+			: $preview_source;
+
+		return array(
+			'preview' => $this->replace_group_inner_html( $block_content, $preview_source ),
+			'modal'   => $this->replace_group_inner_html( $block_content, $modal_source ),
+		);
+	}
+
+	/**
 	 * Build the lightbox overlay HTML that wraps content.
 	 *
 	 * @param string $content   Inner HTML.
@@ -419,8 +539,18 @@ class ReformBox {
 
 		$this->enqueue_frontend();
 
-		$trigger_content = $this->add_trigger_attribute( $block_content, $id );
-		$overlay_content = $this->get_lightbox_overlay( $block_content, $id, $block['attrs'] );
+		$mode            = $this->get_reformbox_mode( $block['attrs'] );
+		$trigger_source  = $block_content;
+		$overlay_source  = $block_content;
+
+		if ( 'split' === $mode ) {
+			$split_content  = $this->build_split_group_content( $block_content, $block );
+			$trigger_source = $split_content['preview'];
+			$overlay_source = $split_content['modal'];
+		}
+
+		$trigger_content = $this->add_trigger_attribute( $trigger_source, $id );
+		$overlay_content = $this->get_lightbox_overlay( $overlay_source, $id, $block['attrs'] );
 
 		return $trigger_content . $overlay_content;
 	}
