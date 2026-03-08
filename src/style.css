@@ -169,6 +169,7 @@
 }
 
 .reformbox-overlay[data-reformbox-dialog-type="content"] .reformbox-content {
+	box-shadow: none;
 	height: auto;
 	max-height: 90vh;
 }
@@ -298,7 +299,7 @@
  * ----------------------------------------------------------------*/
 
 body.reformbox-open {
-	overflow: hidden;
+	overflow-y: scroll;
 }
 
 /* ------------------------------------------------------------------

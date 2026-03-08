@@ -15,6 +15,9 @@ import './style.css';
 	let activeTrigger = null;
 	let previousFocus = null;
 	let resizeFrame = null;
+	let lockedScrollX = 0;
+	let lockedScrollY = 0;
+	let isRestoringScroll = false;
 	const closeTimers = new WeakMap();
 	const reducedMotionQuery = window.matchMedia(
 		'(prefers-reduced-motion: reduce)'
@@ -51,6 +54,44 @@ import './style.css';
 		) {
 			ownerDocument.body.appendChild( overlay );
 		}
+	}
+
+	function getOwnerWindow( ownerDocument ) {
+		return ownerDocument?.defaultView || window;
+	}
+
+	function lockDocumentScroll( ownerDocument ) {
+		const ownerWindow = getOwnerWindow( ownerDocument );
+		lockedScrollX = ownerWindow.scrollX;
+		lockedScrollY = ownerWindow.scrollY;
+		ownerDocument.body?.classList.add( 'reformbox-open' );
+	}
+
+	function unlockDocumentScroll( ownerDocument ) {
+		const ownerWindow = getOwnerWindow( ownerDocument );
+		ownerDocument.body?.classList.remove( 'reformbox-open' );
+		isRestoringScroll = true;
+		ownerWindow.scrollTo( lockedScrollX, lockedScrollY );
+		isRestoringScroll = false;
+	}
+
+	function keepDocumentScrollLocked() {
+		if ( ! activeOverlay || isRestoringScroll ) {
+			return;
+		}
+
+		const ownerDocument = activeOverlay.ownerDocument || document;
+		const ownerWindow = getOwnerWindow( ownerDocument );
+		if (
+			ownerWindow.scrollX === lockedScrollX &&
+			ownerWindow.scrollY === lockedScrollY
+		) {
+			return;
+		}
+
+		isRestoringScroll = true;
+		ownerWindow.scrollTo( lockedScrollX, lockedScrollY );
+		isRestoringScroll = false;
 	}
 
 	function setTriggerExpanded( trigger, isExpanded ) {
@@ -427,7 +468,7 @@ import './style.css';
 		overlay.classList.remove( 'show-closing-animation' );
 		overlay.classList.add( 'reformbox-active' );
 		overlay.classList.add( 'active' );
-		ownerDocument.body?.classList.add( 'reformbox-open' );
+		lockDocumentScroll( ownerDocument );
 		prepareOverlayMedia( overlay );
 		refreshOverlayStylesOnMediaReady( overlay, trigger );
 
@@ -478,7 +519,7 @@ import './style.css';
 		if ( activeOverlay === overlay ) {
 			activeOverlay = null;
 			activeTrigger = null;
-			ownerDocument.body?.classList.remove( 'reformbox-open' );
+			unlockDocumentScroll( ownerDocument );
 		}
 
 		if ( ! restoreFocus ) {
@@ -612,5 +653,9 @@ import './style.css';
 			resizeFrame = null;
 			setOverlayStyles( activeOverlay, activeTrigger );
 		} );
+	} );
+
+	window.addEventListener( 'scroll', keepDocumentScrollLocked, {
+		passive: true,
 	} );
 } )();
