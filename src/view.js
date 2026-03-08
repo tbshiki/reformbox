@@ -221,9 +221,6 @@ import './style.css';
 
 	function getLightboxTargetSize( overlay, triggerRect, mediaOverlay ) {
 		const content = overlay.querySelector( '.reformbox-content' );
-		const intrinsicMedia = getIntrinsicMediaSize(
-			getPrimaryMedia( overlay )
-		);
 		let maxWidth = Math.max( 1, window.innerWidth - getViewportPadding() );
 		let maxHeight = Math.max( 1, window.innerHeight - 80 );
 
@@ -233,7 +230,29 @@ import './style.css';
 				maxHeight,
 				Math.max( 1, window.innerHeight * 0.9 )
 			);
+
+			// Content dialogs should keep their natural box size (with viewport caps),
+			// instead of image-style aspect-ratio fitting.
+			const width =
+				content?.scrollWidth ||
+				content?.offsetWidth ||
+				triggerRect?.width ||
+				maxWidth;
+			const height =
+				content?.scrollHeight ||
+				content?.offsetHeight ||
+				triggerRect?.height ||
+				maxHeight;
+
+			return {
+				width: clamp( width, 1, maxWidth ),
+				height: clamp( height, 1, maxHeight ),
+			};
 		}
+
+		const intrinsicMedia = getIntrinsicMediaSize(
+			getPrimaryMedia( overlay )
+		);
 		let width =
 			intrinsicMedia?.width ||
 			content?.scrollWidth ||
@@ -275,10 +294,6 @@ import './style.css';
 			'.reformbox-lightbox-container'
 		);
 		const mediaOverlay = isMediaOverlay( overlay );
-		const zoomAnimation = overlay.classList.contains(
-			'reformbox-animation-zoom'
-		);
-		const shouldUseCoreStartPosition = mediaOverlay || zoomAnimation;
 
 		if ( lightboxContainer ) {
 			lightboxContainer.style.setProperty(
@@ -298,7 +313,9 @@ import './style.css';
 			);
 		}
 
-		if ( ! shouldUseCoreStartPosition ) {
+		// Content dialogs should rely on CSS auto sizing to avoid forced wraps
+		// and clipped corners caused by media-oriented JS sizing.
+		if ( ! mediaOverlay ) {
 			overlay.style.removeProperty(
 				'--wp--lightbox-initial-top-position'
 			);
@@ -333,25 +350,34 @@ import './style.css';
 					'90vh',
 					'important'
 				);
+				lightboxContainer.style.setProperty(
+					'overflow',
+					'visible',
+					'important'
+				);
 			}
 
 			return;
 		}
 
+		const zoomAnimation = overlay.classList.contains(
+			'reformbox-animation-zoom'
+		);
 		const triggerRect = getTriggerRect( trigger, sourceElement );
+		const animationStartRect = zoomAnimation ? triggerRect : null;
 		const target = getLightboxTargetSize(
 			overlay,
 			triggerRect,
 			mediaOverlay
 		);
-		const initialTop = triggerRect
-			? triggerRect.y
+		const initialTop = animationStartRect
+			? animationStartRect.top
 			: ( window.innerHeight - target.height ) / 2;
-		const initialLeft = triggerRect
-			? triggerRect.x
+		const initialLeft = animationStartRect
+			? animationStartRect.left
 			: ( window.innerWidth - target.width ) / 2;
-		const initialWidth = triggerRect?.width || target.width;
-		const initialHeight = triggerRect?.height || target.height;
+		const initialWidth = animationStartRect?.width || target.width;
+		const initialHeight = animationStartRect?.height || target.height;
 		const scale = Math.min(
 			initialWidth / target.width,
 			initialHeight / target.height,

@@ -165,6 +165,7 @@
 	height: auto;
 	max-height: 90vh;
 	max-width: min(90vw, 960px);
+	overflow: visible;
 	width: auto;
 }
 
