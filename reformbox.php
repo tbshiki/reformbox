@@ -11,6 +11,8 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: reformbox
  * Domain Path: /languages
+ *
+ * @package ReformBox
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
