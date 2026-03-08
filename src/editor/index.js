@@ -23,8 +23,8 @@ const CONTAINER_BLOCKS = [ 'core/group' ];
 const SELF_LIGHTBOX_BLOCKS = [ 'core/video', 'core/paragraph' ];
 const CORE_IMAGE_BLOCK = 'core/image';
 const ANIMATION_OPTIONS = [
-	{ label: __( 'Fade', 'reformbox' ), value: 'fade' },
 	{ label: __( 'Zoom', 'reformbox' ), value: 'zoom' },
+	{ label: __( 'Fade', 'reformbox' ), value: 'fade' },
 	{ label: __( 'Slide', 'reformbox' ), value: 'slide' },
 ];
 
@@ -62,7 +62,7 @@ function addReformBoxAttributes( settings, name ) {
 	if ( isContainer || isSelfLightbox ) {
 		attrs.reformboxEnabled = { type: 'boolean', default: false };
 		attrs.reformboxId = { type: 'string', default: '' };
-		attrs.reformboxAnimation = { type: 'string', default: 'fade' };
+		attrs.reformboxAnimation = { type: 'string', default: 'zoom' };
 		attrs.reformboxOverlayClose = { type: 'boolean', default: true };
 	}
 

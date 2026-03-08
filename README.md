@@ -180,7 +180,7 @@ For future core-layout follow-up work, see:
 </div>
 
 <!-- Lightbox Overlay -->
-<div class="reformbox-overlay wp-lightbox-overlay reformbox-animation-fade"
+<div class="reformbox-overlay wp-lightbox-overlay reformbox-animation-zoom"
      id="rb-abc123"
      data-reformbox-dialog-type="content"
      data-reformbox-overlay-close="true"
