@@ -189,14 +189,12 @@ class ReformBox {
 	 * @return string
 	 */
 	private function get_lightbox_overlay( $content, $id, $attrs, $type = 'content' ) {
-		$animation     = isset( $attrs['reformboxAnimation'] ) ? sanitize_key( $attrs['reformboxAnimation'] ) : 'zoom';
-		$animation     = in_array( $animation, array( 'fade', 'zoom', 'slide' ), true ) ? $animation : 'zoom';
 		$overlay_close = isset( $attrs['reformboxOverlayClose'] ) ? (bool) $attrs['reformboxOverlayClose'] : true;
 		$dialog_label  = 'media' === $type
 			? __( 'Video lightbox dialog', 'reformbox' )
 			: __( 'Lightbox dialog', 'reformbox' );
 
-		$overlay_class = 'reformbox-overlay wp-lightbox-overlay reformbox-animation-' . $animation;
+		$overlay_class = 'reformbox-overlay wp-lightbox-overlay reformbox-animation-zoom';
 		if ( 'media' === $type ) {
 			$overlay_class .= ' reformbox-overlay--media';
 		}

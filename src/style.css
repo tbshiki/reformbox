@@ -195,22 +195,6 @@
 
 @media (prefers-reduced-motion: no-preference) {
 
-	.reformbox-overlay.reformbox-active:where(:not(.reformbox-animation-zoom)):where(:not(.reformbox-animation-slide)) {
-		animation: turn-on-visibility 0.25s both;
-	}
-
-	.reformbox-overlay.reformbox-active:where(:not(.reformbox-animation-zoom)):where(:not(.reformbox-animation-slide)) .reformbox-lightbox-container {
-		animation: turn-on-visibility 0.35s both;
-	}
-
-	.reformbox-overlay.show-closing-animation:not(.reformbox-active):where(:not(.reformbox-animation-zoom)):where(:not(.reformbox-animation-slide)) {
-		animation: turn-off-visibility 0.35s both;
-	}
-
-	.reformbox-overlay.show-closing-animation:not(.reformbox-active):where(:not(.reformbox-animation-zoom)):where(:not(.reformbox-animation-slide)) .reformbox-lightbox-container {
-		animation: turn-off-visibility 0.25s both;
-	}
-
 	.reformbox-overlay.reformbox-animation-zoom.reformbox-active {
 		animation: none;
 		opacity: 1;
@@ -223,30 +207,6 @@
 
 	.reformbox-overlay.reformbox-animation-zoom.reformbox-active .scrim {
 		animation: turn-on-visibility 0.4s forwards;
-	}
-
-	.reformbox-overlay.reformbox-animation-slide.reformbox-active {
-		animation: turn-on-visibility 0.25s both;
-	}
-
-	.reformbox-overlay.reformbox-animation-slide.reformbox-active .reformbox-lightbox-container {
-		animation: lightbox-slide-in 0.5s both;
-	}
-
-	.reformbox-overlay.reformbox-animation-slide.reformbox-active .scrim {
-		animation: turn-on-visibility 0.35s both;
-	}
-
-	.reformbox-overlay.reformbox-animation-slide.show-closing-animation:not(.reformbox-active) {
-		animation: turn-off-visibility 0.45s both;
-	}
-
-	.reformbox-overlay.reformbox-animation-slide.show-closing-animation:not(.reformbox-active) .reformbox-lightbox-container {
-		animation: lightbox-slide-out 0.45s both;
-	}
-
-	.reformbox-overlay.reformbox-animation-slide.show-closing-animation:not(.reformbox-active) .scrim {
-		animation: turn-off-visibility 0.35s both;
 	}
 
 	.reformbox-overlay.reformbox-animation-zoom.show-closing-animation:not(.reformbox-active) {
@@ -320,32 +280,6 @@
 			translate(calc((-100vw + var(--wp--lightbox-scrollbar-width, 0px)) / 2 + var(--wp--lightbox-initial-left-position, 0px)), calc(-50vh + var(--wp--lightbox-initial-top-position, 0px)))
 			scale(var(--wp--lightbox-scale, 1));
 		visibility: hidden;
-	}
-}
-
-@keyframes lightbox-slide-in {
-
-	0% {
-		opacity: 0;
-		transform: translate(-50%, calc(-50% + 40px));
-	}
-
-	100% {
-		opacity: 1;
-		transform: translate(-50%, -50%);
-	}
-}
-
-@keyframes lightbox-slide-out {
-
-	0% {
-		opacity: 1;
-		transform: translate(-50%, -50%);
-	}
-
-	100% {
-		opacity: 0;
-		transform: translate(-50%, calc(-50% + 40px));
 	}
 }
 

@@ -27,7 +27,7 @@ Traditional lightbox plugins only enlarge images. ReformBox redefines the lightb
 | Video Block -> Lightbox | ✅ |
 | Group Block as Lightbox Container | ✅ |
 | Paragraph Block as Self-Lightbox | ✅ |
-| Fade / Zoom / Slide animation | ✅ |
+| Zoom animation (core-aligned) | ✅ |
 | ESC key close | ✅ |
 | Overlay click close (optional) | ✅ |
 | Focus trap & keyboard navigation | ✅ |
@@ -55,7 +55,7 @@ ReformBox adds a **"ReformBox" panel** to the Block Editor sidebar for supported
 2. **Enable lightbox** - Toggle ReformBox in the sidebar (for Image, enable Core Image Lightbox).
 3. **Done** - Visitors click the block and its content appears in a modal overlay.
 
-For **Video** blocks, simply toggle "Enable Lightbox on Click" in the ReformBox panel and optionally choose the animation / overlay-click behavior.
+For **Video** blocks, simply toggle "Enable Lightbox on Click" in the ReformBox panel and optionally configure overlay-click behavior.
 For **Image** blocks, ReformBox delegates to the WordPress core lightbox via "Enable Core Image Lightbox".
 When a parent Group already has ReformBox enabled, nested blocks inherit the parent behavior and their ReformBox controls are disabled.
 
@@ -65,7 +65,6 @@ When a parent Group already has ReformBox enabled, nested blocks inherit the par
 |---|---|---|
 | Enable ReformBox | Group, Video, Paragraph | On / Off |
 | Enable Core Image Lightbox | Image | On / Off |
-| Animation | Group, Video, Paragraph | Fade, Zoom, Slide |
 | Close on Overlay Click | Group, Video, Paragraph | On / Off |
 
 ## Requirements

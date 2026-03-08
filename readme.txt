@@ -28,7 +28,7 @@ Development source: https://github.com/tbshiki/reformbox
 * No-code lightbox creation via block editor controls
 * Core-first image lightbox integration (`core/image`)
 * Core-aligned overlay markup for custom lightboxes
-* Fade, zoom, and slide animations
+* Core-aligned zoom animation
 * ESC key and overlay click to close
 * Accessible (ARIA attributes, focus management, keyboard navigation)
 * Lazy-loaded assets (CSS/JS only loaded when needed)
@@ -81,5 +81,5 @@ Before submitting a new plugin to WordPress.org, also:
 * Group block as lightbox container
 * Image/Video block self-lightbox
 * Paragraph block as self-lightbox
-* Fade, zoom, slide animations
+* Core-aligned zoom animation
 * Keyboard and accessibility support

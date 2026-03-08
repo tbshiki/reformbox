@@ -6,12 +6,7 @@
 
 import { InspectorControls } from '@wordpress/block-editor';
 import { createHigherOrderComponent } from '@wordpress/compose';
-import {
-	Button,
-	PanelBody,
-	SelectControl,
-	ToggleControl,
-} from '@wordpress/components';
+import { Button, PanelBody, ToggleControl } from '@wordpress/components';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
@@ -22,11 +17,6 @@ import './editor.css';
 const CONTAINER_BLOCKS = [ 'core/group' ];
 const SELF_LIGHTBOX_BLOCKS = [ 'core/video', 'core/paragraph' ];
 const CORE_IMAGE_BLOCK = 'core/image';
-const ANIMATION_OPTIONS = [
-	{ label: __( 'Zoom', 'reformbox' ), value: 'zoom' },
-	{ label: __( 'Fade', 'reformbox' ), value: 'fade' },
-	{ label: __( 'Slide', 'reformbox' ), value: 'slide' },
-];
 
 function sanitizeReformBoxId( value ) {
 	return String( value || '' ).replace( /[^a-zA-Z0-9_-]/g, '' );
@@ -62,7 +52,6 @@ function addReformBoxAttributes( settings, name ) {
 	if ( isContainer || isSelfLightbox ) {
 		attrs.reformboxEnabled = { type: 'boolean', default: false };
 		attrs.reformboxId = { type: 'string', default: '' };
-		attrs.reformboxAnimation = { type: 'string', default: 'zoom' };
 		attrs.reformboxOverlayClose = { type: 'boolean', default: true };
 	}
 
@@ -275,20 +264,6 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 						{ attributes.reformboxEnabled &&
 							( isContainer || isSelfLightbox ) && (
 								<>
-									<SelectControl
-										__nextHasNoMarginBottom
-										label={ __( 'Animation', 'reformbox' ) }
-										value={ attributes.reformboxAnimation }
-										options={ ANIMATION_OPTIONS }
-										disabled={
-											isInheritedFromParentContainer
-										}
-										onChange={ ( value ) =>
-											setAttributes( {
-												reformboxAnimation: value,
-											} )
-										}
-									/>
 									<ToggleControl
 										__nextHasNoMarginBottom
 										label={ __(
