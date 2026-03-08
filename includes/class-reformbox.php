@@ -21,6 +21,9 @@ class ReformBox {
 	/** @var bool Whether frontend assets have been registered for the request. */
 	private $frontend_assets_registered = false;
 
+	/** @var array<string,bool> ReformBox IDs reserved during the current request. */
+	private $reserved_reformbox_ids = array();
+
 	/**
 	 * Initialize the singleton instance.
 	 */
@@ -204,12 +207,35 @@ class ReformBox {
 	}
 
 	/**
-	 * Get or generate a ReformBox ID from block attributes.
+	 * Reserve a unique ReformBox ID for the current request.
+	 *
+	 * @param string $preferred_id Sanitized preferred ID.
+	 * @return string
+	 */
+	private function reserve_reformbox_id( $preferred_id ) {
+		$base_id   = '' !== $preferred_id ? $preferred_id : wp_unique_id( 'rb-' );
+		$candidate = $base_id;
+		$suffix    = 2;
+
+		while ( isset( $this->reserved_reformbox_ids[ $candidate ] ) ) {
+			$candidate = sprintf( '%1$s-%2$d', $base_id, $suffix );
+			++$suffix;
+		}
+
+		$this->reserved_reformbox_ids[ $candidate ] = true;
+
+		return $candidate;
+	}
+
+	/**
+	 * Resolve a unique ReformBox ID from block attributes.
 	 */
 	private function get_reformbox_id( $attrs ) {
-		return isset( $attrs['reformboxId'] )
+		$preferred_id = isset( $attrs['reformboxId'] )
 			? $this->sanitize_reformbox_id( $attrs['reformboxId'] )
 			: '';
+
+		return $this->reserve_reformbox_id( $preferred_id );
 	}
 
 	/**

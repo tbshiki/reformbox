@@ -32,6 +32,45 @@ import './style.css';
 		return element ? element.closest( '[data-reformbox-trigger]' ) : null;
 	}
 
+	const NESTED_INTERACTIVE_SELECTOR = [
+		'a[href]',
+		'button',
+		'input',
+		'select',
+		'textarea',
+		'summary',
+		'details',
+		'iframe',
+		'audio[controls]',
+		'video[controls]',
+		'[contenteditable="true"]',
+		'[role="button"]',
+		'[role="link"]',
+		'[role="checkbox"]',
+		'[role="menuitem"]',
+		'[role="option"]',
+		'[role="radio"]',
+		'[role="switch"]',
+		'[tabindex]:not([tabindex="-1"])',
+	].join( ', ' );
+
+	function shouldIgnoreTriggerActivation( trigger, target ) {
+		const element = getElementTarget( target );
+		if ( ! trigger || ! element || element === trigger ) {
+			return false;
+		}
+
+		const interactiveAncestor = element.closest(
+			NESTED_INTERACTIVE_SELECTOR
+		);
+
+		return (
+			!! interactiveAncestor &&
+			interactiveAncestor !== trigger &&
+			trigger.contains( interactiveAncestor )
+		);
+	}
+
 	function getOverlayFromTrigger( trigger ) {
 		const targetId = trigger
 			? trigger.getAttribute( 'data-reformbox-trigger' )
@@ -642,6 +681,10 @@ import './style.css';
 	document.addEventListener( 'click', ( event ) => {
 		const trigger = getTriggerFromTarget( event.target );
 		if ( trigger ) {
+			if ( shouldIgnoreTriggerActivation( trigger, event.target ) ) {
+				return;
+			}
+
 			event.preventDefault();
 			const overlay = getOverlayFromTrigger( trigger );
 			if ( overlay ) {
@@ -677,6 +720,10 @@ import './style.css';
 		const trigger = getTriggerFromTarget( event.target );
 
 		if ( trigger && ( event.key === 'Enter' || event.key === ' ' ) ) {
+			if ( shouldIgnoreTriggerActivation( trigger, event.target ) ) {
+				return;
+			}
+
 			event.preventDefault();
 			const overlay = getOverlayFromTrigger( trigger );
 			if ( overlay ) {

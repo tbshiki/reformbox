@@ -28,6 +28,43 @@ const REFORMBOX_SLOT_NONE = 'none';
 const REFORMBOX_SLOT_PREVIEW = 'preview';
 const REFORMBOX_SLOT_MODAL = 'modal';
 
+function isReformBoxManagedBlock( blockName ) {
+	return (
+		CONTAINER_BLOCKS.includes( blockName ) ||
+		SELF_LIGHTBOX_BLOCKS.includes( blockName )
+	);
+}
+
+function flattenBlocks( blocks = [] ) {
+	return blocks.reduce(
+		( result, block ) => [
+			...result,
+			block,
+			...flattenBlocks( block?.innerBlocks || [] ),
+		],
+		[]
+	);
+}
+
+function getDuplicateReformBoxOwnerClientId( select, reformboxId ) {
+	if ( ! reformboxId ) {
+		return null;
+	}
+
+	const { getBlocks } = select( 'core/block-editor' );
+	const matchingBlocks = flattenBlocks( getBlocks() ).filter(
+		( block ) =>
+			isReformBoxManagedBlock( block?.name ) &&
+			!! block?.attributes?.reformboxEnabled &&
+			sanitizeReformBoxId( block?.attributes?.reformboxId ) ===
+				reformboxId
+	);
+
+	return matchingBlocks.length > 1
+		? matchingBlocks[ 0 ]?.clientId || null
+		: null;
+}
+
 function getGroupModeFromAttributes( attributes = {} ) {
 	if ( attributes.reformboxMode === REFORMBOX_MODE_SPLIT ) {
 		return REFORMBOX_MODE_SPLIT;
@@ -143,6 +180,9 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 		const isSupported = isContainer || isSelfLightbox || isCoreImage;
 		const imageLightboxEnabled = !! attributes?.lightbox?.enabled;
 		const isLightboxEnabledBlock = isContainer || isSelfLightbox;
+		const normalizedReformboxId = sanitizeReformBoxId(
+			attributes?.reformboxId
+		);
 		const containerMode = getGroupModeFromAttributes( attributes );
 		const containerSlot = getGroupSlotFromAttributes( attributes );
 		const { selectBlock } = useDispatch( 'core/block-editor' );
@@ -196,26 +236,58 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 			showModeControl &&
 			containerMode === REFORMBOX_MODE_SPLIT &&
 			! splitContainerHasModalSlot;
+		const duplicateReformBoxOwnerClientId = useSelect(
+			( select ) => {
+				if (
+					! isLightboxEnabledBlock ||
+					! attributes.reformboxEnabled ||
+					! normalizedReformboxId
+				) {
+					return null;
+				}
+
+				return getDuplicateReformBoxOwnerClientId(
+					select,
+					normalizedReformboxId
+				);
+			},
+			[
+				attributes.reformboxEnabled,
+				isLightboxEnabledBlock,
+				normalizedReformboxId,
+			]
+		);
+		const hasDuplicateReformboxId =
+			!! duplicateReformBoxOwnerClientId &&
+			duplicateReformBoxOwnerClientId !== clientId;
 
 		useEffect( () => {
 			if (
 				! isSupported ||
 				! isLightboxEnabledBlock ||
 				isInheritedFromParentContainer ||
-				! attributes.reformboxEnabled ||
-				attributes.reformboxId
+				! attributes.reformboxEnabled
 			) {
 				return;
 			}
 
-			setAttributes( { reformboxId: generateId( clientId ) } );
+			const nextReformboxId =
+				hasDuplicateReformboxId || ! normalizedReformboxId
+					? generateId( clientId )
+					: normalizedReformboxId;
+
+			if ( nextReformboxId !== attributes.reformboxId ) {
+				setAttributes( { reformboxId: nextReformboxId } );
+			}
 		}, [
 			clientId,
 			attributes.reformboxEnabled,
 			attributes.reformboxId,
+			hasDuplicateReformboxId,
 			isInheritedFromParentContainer,
 			isLightboxEnabledBlock,
 			isSupported,
+			normalizedReformboxId,
 			setAttributes,
 		] );
 
@@ -268,9 +340,10 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 
 		const handleEnableToggle = ( value ) => {
 			const next = { reformboxEnabled: value };
+			const sanitizedId = sanitizeReformBoxId( attributes.reformboxId );
 
-			if ( value && ! attributes.reformboxId ) {
-				next.reformboxId = generateId( clientId );
+			if ( value ) {
+				next.reformboxId = sanitizedId || generateId( clientId );
 			}
 
 			setAttributes( next );
