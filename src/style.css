@@ -187,7 +187,7 @@ body.reformbox-open {
 
 .reformbox-video-trigger {
 	position: relative;
-	cursor: pointer;
+	cursor: zoom-in;
 }
 
 .wp-lightbox-container {
@@ -237,5 +237,5 @@ body.reformbox-open {
  * ----------------------------------------------------------------*/
 
 [data-reformbox-trigger] {
-	cursor: pointer;
+	cursor: zoom-in;
 }
