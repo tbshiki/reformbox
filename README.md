@@ -163,6 +163,7 @@ reformbox/
 For future core-layout follow-up work, see:
 
 - `docs/CORE_LIGHTBOX_LAYOUT_REFERENCE.md`
+- `docs/GROUP_SPLIT_LIGHTBOX_DESIGN.ja.md` (group split design for display/modal slots)
 
 ### HTML Output
 

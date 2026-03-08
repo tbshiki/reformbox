@@ -6,7 +6,12 @@
 
 import { InspectorControls } from '@wordpress/block-editor';
 import { createHigherOrderComponent } from '@wordpress/compose';
-import { Button, PanelBody, ToggleControl } from '@wordpress/components';
+import {
+	Button,
+	PanelBody,
+	SelectControl,
+	ToggleControl,
+} from '@wordpress/components';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
@@ -17,6 +22,54 @@ import './editor.css';
 const CONTAINER_BLOCKS = [ 'core/group' ];
 const SELF_LIGHTBOX_BLOCKS = [ 'core/video', 'core/paragraph' ];
 const CORE_IMAGE_BLOCK = 'core/image';
+const REFORMBOX_MODE_SAME = 'same';
+const REFORMBOX_MODE_SPLIT = 'split';
+const REFORMBOX_SLOT_NONE = 'none';
+const REFORMBOX_SLOT_PREVIEW = 'preview';
+const REFORMBOX_SLOT_MODAL = 'modal';
+
+function getGroupModeFromAttributes( attributes = {} ) {
+	if ( attributes.reformboxMode === REFORMBOX_MODE_SPLIT ) {
+		return REFORMBOX_MODE_SPLIT;
+	}
+
+	return REFORMBOX_MODE_SAME;
+}
+
+function getGroupSlotFromAttributes( attributes = {} ) {
+	const slot = attributes.reformboxSlot;
+
+	if ( slot === REFORMBOX_SLOT_PREVIEW || slot === REFORMBOX_SLOT_MODAL ) {
+		return slot;
+	}
+
+	return REFORMBOX_SLOT_NONE;
+}
+
+function findParentContainerInfo( select, clientId ) {
+	const { getBlock, getBlockParents } = select( 'core/block-editor' );
+	const parentClientIds = getBlockParents( clientId );
+	const matchedParentClientId = parentClientIds.find( ( parentClientId ) => {
+		const parentBlock = getBlock( parentClientId );
+
+		return (
+			!! parentBlock &&
+			CONTAINER_BLOCKS.includes( parentBlock.name ) &&
+			!! parentBlock.attributes?.reformboxEnabled
+		);
+	} );
+
+	if ( ! matchedParentClientId ) {
+		return null;
+	}
+
+	const matchedParentBlock = getBlock( matchedParentClientId );
+
+	return {
+		clientId: matchedParentClientId,
+		mode: getGroupModeFromAttributes( matchedParentBlock?.attributes ),
+	};
+}
 
 function sanitizeReformBoxId( value ) {
 	return String( value || '' ).replace( /[^a-zA-Z0-9_-]/g, '' );
@@ -55,6 +108,17 @@ function addReformBoxAttributes( settings, name ) {
 		attrs.reformboxOverlayClose = { type: 'boolean', default: true };
 	}
 
+	if ( isContainer ) {
+		attrs.reformboxMode = {
+			type: 'string',
+			default: REFORMBOX_MODE_SAME,
+		};
+		attrs.reformboxSlot = {
+			type: 'string',
+			default: REFORMBOX_SLOT_NONE,
+		};
+	}
+
 	return {
 		...settings,
 		attributes: {
@@ -79,35 +143,59 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 		const isSupported = isContainer || isSelfLightbox || isCoreImage;
 		const imageLightboxEnabled = !! attributes?.lightbox?.enabled;
 		const isLightboxEnabledBlock = isContainer || isSelfLightbox;
+		const containerMode = getGroupModeFromAttributes( attributes );
+		const containerSlot = getGroupSlotFromAttributes( attributes );
 		const { selectBlock } = useDispatch( 'core/block-editor' );
 		const parentContainerInfo = useSelect(
-			( select ) => {
-				const { getBlock, getBlockParents } =
-					select( 'core/block-editor' );
-				const parentClientIds = getBlockParents( clientId );
-				const matchedParentClientId = parentClientIds.find(
-					( parentClientId ) => {
-						const parentBlock = getBlock( parentClientId );
-
-						return (
-							!! parentBlock &&
-							CONTAINER_BLOCKS.includes( parentBlock.name ) &&
-							!! parentBlock.attributes?.reformboxEnabled
-						);
-					}
-				);
-
-				if ( ! matchedParentClientId ) {
-					return null;
-				}
-
-				return {
-					clientId: matchedParentClientId,
-				};
-			},
+			( select ) => findParentContainerInfo( select, clientId ),
 			[ clientId ]
 		);
 		const isInheritedFromParentContainer = !! parentContainerInfo;
+		const parentIsSplitContainer =
+			parentContainerInfo?.mode === REFORMBOX_MODE_SPLIT;
+		const showModeControl =
+			isContainer &&
+			!! attributes.reformboxEnabled &&
+			! isInheritedFromParentContainer;
+		const showSlotControl =
+			isContainer &&
+			isInheritedFromParentContainer &&
+			parentIsSplitContainer;
+		const splitContainerHasModalSlot = useSelect(
+			( select ) => {
+				if (
+					! isContainer ||
+					! attributes.reformboxEnabled ||
+					containerMode !== REFORMBOX_MODE_SPLIT
+				) {
+					return true;
+				}
+
+				const { getBlock } = select( 'core/block-editor' );
+				const currentBlock = getBlock( clientId );
+
+				if ( ! currentBlock ) {
+					return true;
+				}
+
+				return currentBlock.innerBlocks.some(
+					( innerBlock ) =>
+						innerBlock.name === 'core/group' &&
+						getGroupSlotFromAttributes( innerBlock.attributes ) ===
+							REFORMBOX_SLOT_MODAL
+				);
+			},
+			[
+				attributes.reformboxEnabled,
+				clientId,
+				containerMode,
+				isContainer,
+			]
+		);
+		const showSplitModalWarning =
+			showModeControl &&
+			containerMode === REFORMBOX_MODE_SPLIT &&
+			! splitContainerHasModalSlot;
 
 		useEffect( () => {
 			if (
@@ -173,6 +261,8 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 		const showImageLightboxToggle = isCoreImage;
 		const initialOpen =
 			isInheritedFromParentContainer ||
+			showModeControl ||
+			showSlotControl ||
 			!! attributes.reformboxEnabled ||
 			imageLightboxEnabled;
 
@@ -192,6 +282,23 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 					attributes.lightbox,
 					value
 				),
+			} );
+		};
+		const handleContainerModeChange = ( value ) => {
+			setAttributes( {
+				reformboxMode:
+					value === REFORMBOX_MODE_SPLIT
+						? REFORMBOX_MODE_SPLIT
+						: REFORMBOX_MODE_SAME,
+			} );
+		};
+		const handleContainerSlotChange = ( value ) => {
+			setAttributes( {
+				reformboxSlot:
+					value === REFORMBOX_SLOT_PREVIEW ||
+					value === REFORMBOX_SLOT_MODAL
+						? value
+						: REFORMBOX_SLOT_NONE,
 			} );
 		};
 		const handleSelectParentContainer = () => {
@@ -261,6 +368,63 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 							/>
 						) }
 
+						{ showModeControl && (
+							<SelectControl
+								__nextHasNoMarginBottom
+								label={ __( 'Display Mode', 'reformbox' ) }
+								value={ containerMode }
+								options={ [
+									{
+										label: __(
+											'Same (preview and modal use the same content)',
+											'reformbox'
+										),
+										value: REFORMBOX_MODE_SAME,
+									},
+									{
+										label: __(
+											'Split (separate preview and modal content)',
+											'reformbox'
+										),
+										value: REFORMBOX_MODE_SPLIT,
+									},
+								] }
+								onChange={ handleContainerModeChange }
+							/>
+						) }
+
+						{ showSplitModalWarning && (
+							<p className="reformbox-editor-warning">
+								{ __(
+									'No child Group is assigned to "Modal". Preview content will be used as fallback until you assign one.',
+									'reformbox'
+								) }
+							</p>
+						) }
+
+						{ showSlotControl && (
+							<SelectControl
+								__nextHasNoMarginBottom
+								label={ __( 'Slot Type', 'reformbox' ) }
+								value={ containerSlot }
+								options={ [
+									{
+										label: __( 'None', 'reformbox' ),
+										value: REFORMBOX_SLOT_NONE,
+									},
+									{
+										label: __( 'Preview', 'reformbox' ),
+										value: REFORMBOX_SLOT_PREVIEW,
+									},
+									{
+										label: __( 'Modal', 'reformbox' ),
+										value: REFORMBOX_SLOT_MODAL,
+									},
+								] }
+								onChange={ handleContainerSlotChange }
+							/>
+						) }
+
 						{ attributes.reformboxEnabled &&
 							( isContainer || isSelfLightbox ) && (
 								<>
@@ -300,19 +464,57 @@ addFilter(
 const withReformBoxEditorClass = createHigherOrderComponent(
 	( BlockListBlock ) => {
 		return function ReformBoxEditorClass( props ) {
-			if (
-				CONTAINER_BLOCKS.includes( props.name ) &&
-				props.attributes?.reformboxEnabled
-			) {
-				return (
-					<BlockListBlock
-						{ ...props }
-						className="is-reformbox-container"
-					/>
-				);
+			const isGroupBlock = CONTAINER_BLOCKS.includes( props.name );
+			const parentContainerInfo = useSelect(
+				( select ) => {
+					if ( ! isGroupBlock ) {
+						return null;
+					}
+
+					return findParentContainerInfo( select, props.clientId );
+				},
+				[ isGroupBlock, props.clientId ]
+			);
+
+			if ( ! isGroupBlock ) {
+				return <BlockListBlock { ...props } />;
 			}
 
-			return <BlockListBlock { ...props } />;
+			const parentIsSplitContainer =
+				parentContainerInfo?.mode === REFORMBOX_MODE_SPLIT;
+			const blockMode = getGroupModeFromAttributes( props.attributes );
+			const blockSlot = getGroupSlotFromAttributes( props.attributes );
+			const classNames = [];
+
+			if ( props.attributes?.reformboxEnabled ) {
+				classNames.push( 'is-reformbox-container' );
+
+				if ( blockMode === REFORMBOX_MODE_SPLIT ) {
+					classNames.push( 'reformbox-mode-split' );
+				}
+			}
+
+			if ( parentIsSplitContainer ) {
+				if ( blockSlot === REFORMBOX_SLOT_PREVIEW ) {
+					classNames.push( 'reformbox-slot-preview' );
+				}
+
+				if ( blockSlot === REFORMBOX_SLOT_MODAL ) {
+					classNames.push( 'reformbox-slot-modal' );
+				}
+			}
+
+			if ( classNames.length === 0 ) {
+				return <BlockListBlock { ...props } />;
+			}
+
+			const mergedClassName = [ props.className, ...classNames ]
+				.filter( Boolean )
+				.join( ' ' );
+
+			return (
+				<BlockListBlock { ...props } className={ mergedClassName } />
+			);
 		};
 	},
 	'withReformBoxEditorClass'

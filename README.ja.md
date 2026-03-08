@@ -163,6 +163,7 @@ reformbox/
 今後、WordPress コアの Lightbox レイアウトに追従する際の参照先は以下です。
 
 - `docs/CORE_LIGHTBOX_LAYOUT_REFERENCE.md`
+- `docs/GROUP_SPLIT_LIGHTBOX_DESIGN.ja.md`（表示用/モーダル用の分離設計）
 
 ### CSS カスタマイズ
 
