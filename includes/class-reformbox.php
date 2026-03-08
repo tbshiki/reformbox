@@ -4,24 +4,45 @@
  *
  * Registers editor extensions and modifies block output
  * to add lightbox functionality.
+ *
+ * @package ReformBox
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * ReformBox plugin runtime.
+ */
 class ReformBox {
 
-	/** @var self|null */
+	/**
+	 * Singleton instance.
+	 *
+	 * @var self|null
+	 */
 	private static $instance = null;
 
-	/** @var bool Whether the current page has lightbox content. */
+	/**
+	 * Whether the current page has lightbox content.
+	 *
+	 * @var bool
+	 */
 	private $has_lightbox = false;
 
-	/** @var bool Whether frontend assets have been registered for the request. */
+	/**
+	 * Whether frontend assets have been registered for the request.
+	 *
+	 * @var bool
+	 */
 	private $frontend_assets_registered = false;
 
-	/** @var array<string,bool> ReformBox IDs reserved during the current request. */
+	/**
+	 * ReformBox IDs reserved during the current request.
+	 *
+	 * @var array<string,bool>
+	 */
 	private $reserved_reformbox_ids = array();
 
 	/**
@@ -55,9 +76,7 @@ class ReformBox {
 		add_filter( 'render_block_core/paragraph', array( $this, 'render_trigger_block' ), 10, 2 );
 	}
 
-	/* ------------------------------------------------------------------
-	 * Asset loading
-	 * ----------------------------------------------------------------*/
+	// Asset loading.
 
 	/**
 	 * Enqueue editor script and style.
@@ -144,7 +163,10 @@ class ReformBox {
 			REFORMBOX_PLUGIN_URL . 'build/view.js',
 			$asset['dependencies'],
 			$asset['version'],
-			array( 'in_footer' => true, 'strategy' => 'defer' )
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
 		);
 
 		if ( file_exists( REFORMBOX_PLUGIN_DIR . 'build/style-view.css' ) ) {
@@ -183,12 +205,13 @@ class ReformBox {
 		}
 	}
 
-	/* ------------------------------------------------------------------
-	 * Helpers
-	 * ----------------------------------------------------------------*/
+	// Helpers.
 
 	/**
 	 * Sanitize a ReformBox ID to safe HTML id characters.
+	 *
+	 * @param string $id ReformBox ID candidate.
+	 * @return string
 	 */
 	private function sanitize_reformbox_id( $id ) {
 		return preg_replace( '/[^a-zA-Z0-9_-]/', '', (string) $id );
@@ -217,6 +240,9 @@ class ReformBox {
 
 	/**
 	 * Resolve a unique ReformBox ID from block attributes.
+	 *
+	 * @param array $attrs Block attributes.
+	 * @return string
 	 */
 	private function get_reformbox_id( $attrs ) {
 		$preferred_id = isset( $attrs['reformboxId'] )
@@ -532,20 +558,20 @@ class ReformBox {
 		}
 
 		if ( $poster ) {
-			$wrapper          = $this->get_video_trigger_wrapper( $block_content );
-			$wrapper_tag      = $wrapper['tag'];
-			$wrapper_classes  = trim( $wrapper['class'] . ' reformbox-video-trigger wp-lightbox-container' );
-			$wrapper_style    = $wrapper['style'];
-			$caption_html     = $this->get_figcaption_html( $block_content );
-			$wrapper_attrs    = array(
-				'class'                 => $wrapper_classes,
+			$wrapper         = $this->get_video_trigger_wrapper( $block_content );
+			$wrapper_tag     = $wrapper['tag'];
+			$wrapper_classes = trim( $wrapper['class'] . ' reformbox-video-trigger wp-lightbox-container' );
+			$wrapper_style   = $wrapper['style'];
+			$caption_html    = $this->get_figcaption_html( $block_content );
+			$wrapper_attrs   = array(
+				'class'                  => $wrapper_classes,
 				'data-reformbox-trigger' => $id,
-				'aria-controls'         => $id,
-				'aria-expanded'         => 'false',
-				'aria-haspopup'         => 'dialog',
-				'aria-label'            => __( 'Play video', 'reformbox' ),
-				'role'                  => 'button',
-				'tabindex'              => '0',
+				'aria-controls'          => $id,
+				'aria-expanded'          => 'false',
+				'aria-haspopup'          => 'dialog',
+				'aria-label'             => __( 'Play video', 'reformbox' ),
+				'role'                   => 'button',
+				'tabindex'               => '0',
 			);
 
 			if ( $wrapper_style ) {
@@ -567,12 +593,14 @@ class ReformBox {
 		return $trigger_html;
 	}
 
-	/* ------------------------------------------------------------------
-	 * render_block callbacks
-	 * ----------------------------------------------------------------*/
+	// render_block callbacks.
 
 	/**
 	 * Group → lightbox container.
+	 *
+	 * @param string $block_content Rendered block content.
+	 * @param array  $block         Parsed block data.
+	 * @return string
 	 */
 	public function render_container_block( $block_content, $block ) {
 		if ( empty( $block['attrs']['reformboxEnabled'] ) ) {
@@ -586,9 +614,9 @@ class ReformBox {
 
 		$this->enqueue_frontend();
 
-		$mode            = $this->get_reformbox_mode( $block['attrs'] );
-		$trigger_source  = $block_content;
-		$overlay_source  = $block_content;
+		$mode           = $this->get_reformbox_mode( $block['attrs'] );
+		$trigger_source = $block_content;
+		$overlay_source = $block_content;
 
 		if ( 'split' === $mode ) {
 			$split_content  = $this->build_split_group_content( $block_content, $block );
@@ -604,6 +632,10 @@ class ReformBox {
 
 	/**
 	 * Video → self-lightbox.
+	 *
+	 * @param string $block_content Rendered block content.
+	 * @param array  $block         Parsed block data.
+	 * @return string
 	 */
 	public function render_video_block( $block_content, $block ) {
 		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {
@@ -632,6 +664,10 @@ class ReformBox {
 
 	/**
 	 * Paragraph → self-lightbox.
+	 *
+	 * @param string $block_content Rendered block content.
+	 * @param array  $block         Parsed block data.
+	 * @return string
 	 */
 	public function render_trigger_block( $block_content, $block ) {
 		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {
