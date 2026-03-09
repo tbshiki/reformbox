@@ -580,8 +580,7 @@ import './style.css';
 
 		const ownerDocument = overlay.ownerDocument || document;
 		const closingTrigger = activeTrigger;
-		const shouldAnimateClose =
-			! immediate && ! reducedMotionQuery.matches;
+		const shouldAnimateClose = ! immediate && ! reducedMotionQuery.matches;
 
 		clearCloseTimer( overlay );
 
