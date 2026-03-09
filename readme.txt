@@ -4,7 +4,7 @@ Tags: lightbox, modal, gutenberg, blocks, popup
 Requires at least: 6.4
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.3.1
+Stable tag: 0.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -94,6 +94,12 @@ Before submitting a new plugin to WordPress.org, also:
 5. Commit the build assets to your WordPress.org SVN `trunk/` and copy the release to `tags/<version>/`
 
 == Changelog ==
+
+= 0.3.2 =
+* Scoped ReformBox lightbox styles to ReformBox overlay selectors to avoid unintended styling effects on core lightbox instances
+* Prevented click-through during close animation so background links are not triggered while the overlay is fading out
+* Updated trigger activation handling to call `preventDefault` only when a valid overlay target exists
+* Fixed close animation end-frame flicker by retaining the final keyframe state until the overlay cleanup runs
 
 = 0.3.1 =
 * Clarified that Image lightbox behavior is delegated to WordPress core and ReformBox syncs the core toggle only
