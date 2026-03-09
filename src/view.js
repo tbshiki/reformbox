@@ -32,6 +32,8 @@ import './style.css';
 		return element ? element.closest( '[data-reformbox-trigger]' ) : null;
 	}
 
+	// Interactive elements nested inside a trigger should not activate the lightbox.
+	// This ensures links, buttons, and form controls work as expected.
 	const NESTED_INTERACTIVE_SELECTOR = [
 		'a[href]',
 		'button',

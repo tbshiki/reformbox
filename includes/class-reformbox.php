@@ -324,7 +324,9 @@ class ReformBox {
 			return $matches[1] . $inner_html . $matches[3];
 		}
 
-		return $inner_html;
+		// Fallback: If the wrapper cannot be safely detected, return the original HTML
+		// to avoid breaking the layout by removing necessary container tags.
+		return $group_html;
 	}
 
 	/**
