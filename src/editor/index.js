@@ -108,6 +108,16 @@ function findParentContainerInfo( select, clientId ) {
 	};
 }
 
+function findDirectParentClientId( select, clientId ) {
+	const { getBlockRootClientId } = select( 'core/block-editor' );
+
+	if ( typeof getBlockRootClientId !== 'function' ) {
+		return null;
+	}
+
+	return getBlockRootClientId( clientId );
+}
+
 function sanitizeReformBoxId( value ) {
 	return String( value || '' ).replace( /[^a-zA-Z0-9_-]/g, '' );
 }
@@ -203,17 +213,29 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 			( select ) => findParentContainerInfo( select, clientId ),
 			[ clientId ]
 		);
+		const directParentClientId = useSelect(
+			( select ) => findDirectParentClientId( select, clientId ),
+			[ clientId ]
+		);
 		const isInheritedFromParentContainer = !! parentContainerInfo;
 		const parentIsSplitContainer =
 			parentContainerInfo?.mode === REFORMBOX_MODE_SPLIT;
+		const isDirectChildOfParentContainer =
+			!! parentContainerInfo?.clientId &&
+			directParentClientId === parentContainerInfo.clientId;
 		const showModeControl =
 			isContainer &&
 			!! attributes.reformboxEnabled &&
 			! isInheritedFromParentContainer;
 		const showSlotControl =
 			isContainer &&
-			isInheritedFromParentContainer &&
+			isDirectChildOfParentContainer &&
 			parentIsSplitContainer;
+		const showSlotDirectChildNotice =
+			isContainer &&
+			isInheritedFromParentContainer &&
+			parentIsSplitContainer &&
+			! isDirectChildOfParentContainer;
 		const splitContainerHasModalSlot = useSelect(
 			( select ) => {
 				if (
@@ -373,6 +395,7 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 			isInheritedFromParentContainer ||
 			showModeControl ||
 			showSlotControl ||
+			showSlotDirectChildNotice ||
 			!! attributes.reformboxEnabled ||
 			imageLightboxEnabled ||
 			videoRequiresPoster;
@@ -408,7 +431,8 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 			setAttributes( {
 				reformboxSlot:
 					value === REFORMBOX_SLOT_PREVIEW ||
-					value === REFORMBOX_SLOT_MODAL
+					value === REFORMBOX_SLOT_MODAL ||
+					value === REFORMBOX_SLOT_NONE
 						? value
 						: REFORMBOX_SLOT_NONE,
 			} );
@@ -525,6 +549,15 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 							</p>
 						) }
 
+						{ showSlotDirectChildNotice && (
+							<p className="reformbox-editor-note">
+								{ __(
+									'Slot Type is available only on direct child Group blocks of the split parent.',
+									'reformbox'
+								) }
+							</p>
+						) }
+
 						{ showSlotControl && (
 							<SelectControl
 								__nextHasNoMarginBottom
@@ -538,6 +571,13 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 									{
 										label: __( 'Modal', 'reformbox' ),
 										value: REFORMBOX_SLOT_MODAL,
+									},
+									{
+										label: __(
+											'Preview + Modal (Both)',
+											'reformbox'
+										),
+										value: REFORMBOX_SLOT_NONE,
 									},
 								] }
 								onChange={ handleContainerSlotChange }
@@ -594,6 +634,16 @@ const withReformBoxEditorClass = createHigherOrderComponent(
 				},
 				[ isGroupBlock, props.clientId ]
 			);
+			const directParentClientId = useSelect(
+				( select ) => {
+					if ( ! isGroupBlock ) {
+						return null;
+					}
+
+					return findDirectParentClientId( select, props.clientId );
+				},
+				[ isGroupBlock, props.clientId ]
+			);
 
 			if ( ! isGroupBlock ) {
 				return <BlockListBlock { ...props } />;
@@ -601,6 +651,9 @@ const withReformBoxEditorClass = createHigherOrderComponent(
 
 			const parentIsSplitContainer =
 				parentContainerInfo?.mode === REFORMBOX_MODE_SPLIT;
+			const isDirectChildOfParentContainer =
+				!! parentContainerInfo?.clientId &&
+				directParentClientId === parentContainerInfo.clientId;
 			const blockMode = getGroupModeFromAttributes( props.attributes );
 			const blockSlot = getGroupSlotFromAttributes( props.attributes );
 			const classNames = [];
@@ -613,7 +666,7 @@ const withReformBoxEditorClass = createHigherOrderComponent(
 				}
 			}
 
-			if ( parentIsSplitContainer ) {
+			if ( parentIsSplitContainer && isDirectChildOfParentContainer ) {
 				if ( blockSlot === REFORMBOX_SLOT_PREVIEW ) {
 					classNames.push( 'reformbox-slot-preview' );
 				}

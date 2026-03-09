@@ -46,6 +46,10 @@
 	visibility: visible;
 }
 
+.reformbox-overlay.show-closing-animation {
+	visibility: visible;
+}
+
 .reformbox-overlay .scrim {
 	background-color: #fff;
 	height: 100%;

@@ -20,7 +20,7 @@ Development source: https://github.com/tbshiki/reformbox
 
 * Image Block – Uses WordPress core lightbox behavior (ReformBox panel toggles core `lightbox.enabled`)
 * Video Block – Opens in a lightbox when a poster image is set (poster acts as the click trigger)
-* Group Block – Supports both `same` mode (same content in page + modal) and `split` mode (separate Preview/Modal child Group slots)
+* Group Block – Supports both `same` mode (same content in page + modal) and `split` mode (separate Preview/Modal direct child Group slots)
 * Paragraph Block – Click to open itself in a lightbox
 
 **Features:**
@@ -61,9 +61,10 @@ Video self-lightbox uses the poster image as the visible in-page trigger and loa
 
 = How does Group split mode work? =
 
-Enable ReformBox on a Group block, then switch `Display Mode` to `Split`. Inside that parent Group, set child Group blocks to `Preview` or `Modal` slots in the sidebar.
+Enable ReformBox on a Group block, then switch `Display Mode` to `Split`. Inside that parent Group, set direct child Group blocks to `Preview`, `Modal`, or `Preview + Modal (Both)` in the sidebar.
 
 `Preview` content is rendered in-page, `Modal` content is rendered inside the lightbox overlay, and unassigned child Groups (`none`) are rendered in both. If modal content is still empty, ReformBox automatically falls back to `Preview` content.
+`Slot Type` controls are shown only on direct child Group blocks of the split parent.
 
 = Where is the development source? =
 

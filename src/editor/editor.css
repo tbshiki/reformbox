@@ -95,3 +95,11 @@
 	background: rgba(221, 107, 32, 0.12);
 	font-size: 12px;
 }
+
+.reformbox-editor-note {
+	margin: 10px 0 0;
+	padding: 8px 10px;
+	border-left: 4px solid #2b6cb0;
+	background: rgba(43, 108, 176, 0.12);
+	font-size: 12px;
+}
