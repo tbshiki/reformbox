@@ -756,7 +756,9 @@ import './style.css';
 
 		resizeFrame = window.requestAnimationFrame( () => {
 			resizeFrame = null;
-			setOverlayStyles( activeOverlay, activeTrigger );
+			if ( activeOverlay ) {
+				setOverlayStyles( activeOverlay, activeTrigger );
+			}
 		} );
 	} );
 
