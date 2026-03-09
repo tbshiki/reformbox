@@ -4,7 +4,7 @@ Tags: lightbox, modal, gutenberg, blocks, popup
 Requires at least: 6.4
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,14 +12,14 @@ Universal Lightbox for WordPress – lightbox support for Group, Paragraph, Vide
 
 == Description ==
 
-ReformBox extends WordPress Lightbox functionality beyond images. It currently supports Group, Paragraph, and Video blocks with poster images directly, while delegating Image lightbox behavior to WordPress core.
+ReformBox extends WordPress Lightbox functionality beyond images. It currently supports Group, Paragraph, and Video blocks with poster images directly, while delegating Image lightbox behavior to WordPress core. For `core/image`, ReformBox only syncs the sidebar toggle with core lightbox settings.
 
 Development source: https://github.com/tbshiki/reformbox
 
 **Supported Blocks:**
 
-* Image Block – Uses WordPress core lightbox behavior
-* Video Block – Opens in a lightbox when a poster image is set
+* Image Block – Uses WordPress core lightbox behavior (ReformBox panel toggles core `lightbox.enabled`)
+* Video Block – Opens in a lightbox when a poster image is set (poster acts as the click trigger)
 * Group Block – Supports both `same` mode (same content in page + modal) and `split` mode (separate Preview/Modal child Group slots)
 * Paragraph Block – Click to open itself in a lightbox
 
@@ -35,6 +35,7 @@ Development source: https://github.com/tbshiki/reformbox
 * Safe split fallback: if no Modal slot is assigned, Preview content is used
 * Lazy-loaded assets (CSS/JS only loaded when needed)
 * Self-lightbox videos defer preload/autoplay until opened
+* Core image workflow integration without overriding core image rendering
 * Lightweight and performant
 
 == Installation ==
@@ -42,7 +43,7 @@ Development source: https://github.com/tbshiki/reformbox
 1. Upload the `reformbox` folder to `/wp-content/plugins/`
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Open the block editor and select any supported block
-4. Enable ReformBox in the block's settings panel
+4. Enable ReformBox in the block's settings panel (for Image blocks, use "Enable Core Image Lightbox")
 
 For Video blocks, add a poster image in the block settings before enabling ReformBox.
 
@@ -51,6 +52,12 @@ For Video blocks, add a poster image in the block settings before enabling Refor
 = Does ReformBox replace the core image lightbox? =
 
 No. `core/image` self-lightbox behavior is delegated to the WordPress core lightbox. ReformBox extends the surrounding workflow so images, videos, and container content can share a common modal workflow.
+
+For images, the ReformBox sidebar toggle only updates the core `lightbox.enabled` setting; the clickable link behavior and overlay rendering are still handled by WordPress core.
+
+= Why does Video lightbox require a poster image? =
+
+Video self-lightbox uses the poster image as the visible in-page trigger and loads the full video inside the overlay. Without a poster image, ReformBox keeps the video lightbox toggle disabled.
 
 = How does Group split mode work? =
 
@@ -86,6 +93,11 @@ Before submitting a new plugin to WordPress.org, also:
 5. Commit the build assets to your WordPress.org SVN `trunk/` and copy the release to `tags/<version>/`
 
 == Changelog ==
+
+= 0.3.1 =
+* Clarified that Image lightbox behavior is delegated to WordPress core and ReformBox syncs the core toggle only
+* Clarified Video self-lightbox behavior: poster image is required and used as the visible trigger
+* Synced README/README.ja/readme.txt wording with current plugin behavior
 
 = 0.3.0 =
 * PHPCS cleanup for plugin bootstrap and core class documentation
