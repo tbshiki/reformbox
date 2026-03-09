@@ -39,6 +39,13 @@ class ReformBox {
 	private $frontend_assets_registered = false;
 
 	/**
+	 * Cached editor asset manifest (false = build file missing).
+	 *
+	 * @var array|false|null
+	 */
+	private $editor_asset_cache = null;
+
+	/**
 	 * ReformBox IDs reserved during the current request.
 	 *
 	 * @var array<string,bool>
@@ -79,14 +86,29 @@ class ReformBox {
 	// Asset loading.
 
 	/**
+	 * Load and cache the editor asset manifest.
+	 *
+	 * @return array|false False when the build file is missing.
+	 */
+	private function get_editor_asset() {
+		if ( null !== $this->editor_asset_cache ) {
+			return $this->editor_asset_cache;
+		}
+
+		$asset_file               = REFORMBOX_PLUGIN_DIR . 'build/editor.asset.php';
+		$this->editor_asset_cache = file_exists( $asset_file ) ? require $asset_file : false;
+
+		return $this->editor_asset_cache;
+	}
+
+	/**
 	 * Enqueue editor script and style.
 	 */
 	public function enqueue_editor_assets() {
-		$asset_file = REFORMBOX_PLUGIN_DIR . 'build/editor.asset.php';
-		if ( ! file_exists( $asset_file ) ) {
+		$asset = $this->get_editor_asset();
+		if ( false === $asset ) {
 			return;
 		}
-		$asset = require $asset_file;
 
 		wp_enqueue_script(
 			'reformbox-editor',
@@ -120,14 +142,20 @@ class ReformBox {
 			return;
 		}
 
+		// Limit to block editor screens only (e.g. exclude plugins/settings pages).
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || ! $screen->is_block_editor() ) {
+			return;
+		}
+
 		$css_file = REFORMBOX_PLUGIN_DIR . 'build/editor.css';
 		if ( ! file_exists( $css_file ) ) {
 			return;
 		}
 
-		$asset_file = REFORMBOX_PLUGIN_DIR . 'build/editor.asset.php';
-		$asset      = file_exists( $asset_file )
-			? require $asset_file
+		$cached = $this->get_editor_asset();
+		$asset  = false !== $cached
+			? $cached
 			: array(
 				'version' => REFORMBOX_VERSION,
 			);
@@ -324,7 +352,9 @@ class ReformBox {
 			return $matches[1] . $inner_html . $matches[3];
 		}
 
-		return $inner_html;
+		// Fallback: If the wrapper cannot be safely detected, return the original HTML
+		// to avoid breaking the layout by removing necessary container tags.
+		return $group_html;
 	}
 
 	/**
@@ -347,12 +377,21 @@ class ReformBox {
 			}
 
 			$is_group = isset( $inner_block['blockName'] ) && 'core/group' === $inner_block['blockName'];
-			if ( $is_group && 'modal' === $this->get_reformbox_slot( $inner_block['attrs'] ?? array() ) ) {
-				$modal_blocks[] = $inner_block;
-				continue;
+			if ( $is_group ) {
+				$slot = $this->get_reformbox_slot( $inner_block['attrs'] ?? array() );
+				if ( 'modal' === $slot ) {
+					$modal_blocks[] = $inner_block;
+					continue;
+				}
+
+				if ( 'none' === $slot ) {
+					$preview_blocks[] = $inner_block;
+					$modal_blocks[]   = $inner_block;
+					continue;
+				}
 			}
 
-			// Non-group blocks and "none" slot groups are treated as preview.
+			// Non-group blocks and preview slot groups are treated as preview.
 			$preview_blocks[] = $inner_block;
 		}
 
@@ -486,6 +525,26 @@ class ReformBox {
 	}
 
 	/**
+	 * Extract the poster URL from a rendered video block.
+	 *
+	 * @param string $block_content Rendered video block HTML.
+	 * @param array  $attrs         Block attributes.
+	 * @return string
+	 */
+	private function get_video_poster_url( $block_content, $attrs ) {
+		if ( ! empty( $attrs['poster'] ) ) {
+			return (string) $attrs['poster'];
+		}
+
+		$processor = new WP_HTML_Tag_Processor( $block_content );
+		if ( $processor->next_tag( 'video' ) ) {
+			return (string) $processor->get_attribute( 'poster' );
+		}
+
+		return '';
+	}
+
+	/**
 	 * Convert an associative array into escaped HTML attributes.
 	 *
 	 * @param array<string,string> $attributes Attribute map.
@@ -546,51 +605,38 @@ class ReformBox {
 	 * @return string Trigger HTML.
 	 */
 	private function build_video_trigger( $block_content, $id, $attrs ) {
-		$poster = '';
-		if ( ! empty( $attrs['poster'] ) ) {
-			$poster = $attrs['poster'];
-		} else {
-			// Try to extract poster from <video> tag.
-			$processor = new WP_HTML_Tag_Processor( $block_content );
-			if ( $processor->next_tag( 'video' ) ) {
-				$poster = (string) $processor->get_attribute( 'poster' );
-			}
+		$poster = $this->get_video_poster_url( $block_content, $attrs );
+		if ( '' === $poster ) {
+			return $block_content;
 		}
 
-		if ( $poster ) {
-			$wrapper         = $this->get_video_trigger_wrapper( $block_content );
-			$wrapper_tag     = $wrapper['tag'];
-			$wrapper_classes = trim( $wrapper['class'] . ' reformbox-video-trigger wp-lightbox-container' );
-			$wrapper_style   = $wrapper['style'];
-			$caption_html    = $this->get_figcaption_html( $block_content );
-			$wrapper_attrs   = array(
-				'class'                  => $wrapper_classes,
-				'data-reformbox-trigger' => $id,
-				'aria-controls'          => $id,
-				'aria-expanded'          => 'false',
-				'aria-haspopup'          => 'dialog',
-				'aria-label'             => __( 'Play video', 'reformbox' ),
-				'role'                   => 'button',
-				'tabindex'               => '0',
-			);
+		$wrapper         = $this->get_video_trigger_wrapper( $block_content );
+		$wrapper_tag     = $wrapper['tag'];
+		$wrapper_classes = trim( $wrapper['class'] . ' reformbox-video-trigger wp-lightbox-container' );
+		$wrapper_style   = $wrapper['style'];
+		$caption_html    = $this->get_figcaption_html( $block_content );
+		$wrapper_attrs   = array(
+			'class'                  => $wrapper_classes,
+			'data-reformbox-trigger' => $id,
+			'aria-controls'          => $id,
+			'aria-expanded'          => 'false',
+			'aria-haspopup'          => 'dialog',
+			'aria-label'             => __( 'Play video', 'reformbox' ),
+			'role'                   => 'button',
+			'tabindex'               => '0',
+		);
 
-			if ( $wrapper_style ) {
-				$wrapper_attrs['style'] = $wrapper_style;
-			}
-
-			$trigger_html = sprintf(
-				'<%1$s%2$s><span class="reformbox-video-trigger__frame"><img src="%3$s" alt="" class="reformbox-video-trigger__poster" loading="lazy" decoding="async" /><span class="reformbox-video-trigger__play" aria-hidden="true">&#9654;</span></span>%4$s</%1$s>',
-				tag_escape( $wrapper_tag ),
-				$this->build_html_attributes( $wrapper_attrs ),
-				esc_url( $poster ),
-				$caption_html
-			);
-		} else {
-			// No poster available — fall back to adding trigger on original block.
-			$trigger_html = $this->add_trigger_attribute( $block_content, $id );
+		if ( $wrapper_style ) {
+			$wrapper_attrs['style'] = $wrapper_style;
 		}
 
-		return $trigger_html;
+		return sprintf(
+			'<%1$s%2$s><span class="reformbox-video-trigger__frame"><img src="%3$s" alt="" class="reformbox-video-trigger__poster" loading="lazy" decoding="async" /><span class="reformbox-video-trigger__play" aria-hidden="true">&#9654;</span></span>%4$s</%1$s>',
+			tag_escape( $wrapper_tag ),
+			$this->build_html_attributes( $wrapper_attrs ),
+			esc_url( $poster ),
+			$caption_html
+		);
 	}
 
 	// render_block callbacks.
@@ -639,6 +685,10 @@ class ReformBox {
 	 */
 	public function render_video_block( $block_content, $block ) {
 		if ( ! empty( $block['attrs']['reformboxEnabled'] ) ) {
+			if ( '' === $this->get_video_poster_url( $block_content, $block['attrs'] ?? array() ) ) {
+				return $block_content;
+			}
+
 			$id = $this->get_reformbox_id( $block['attrs'] );
 			if ( '' === $id ) {
 				return $block_content;

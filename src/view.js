@@ -32,6 +32,8 @@ import './style.css';
 		return element ? element.closest( '[data-reformbox-trigger]' ) : null;
 	}
 
+	// Interactive elements nested inside a trigger should not activate the lightbox.
+	// This ensures links, buttons, and form controls work as expected.
 	const NESTED_INTERACTIVE_SELECTOR = [
 		'a[href]',
 		'button',
@@ -578,10 +580,7 @@ import './style.css';
 
 		const ownerDocument = overlay.ownerDocument || document;
 		const closingTrigger = activeTrigger;
-		const shouldAnimateClose =
-			! immediate &&
-			! reducedMotionQuery.matches &&
-			isMediaOverlay( overlay );
+		const shouldAnimateClose = ! immediate && ! reducedMotionQuery.matches;
 
 		clearCloseTimer( overlay );
 
@@ -611,7 +610,12 @@ import './style.css';
 		if ( activeOverlay === overlay ) {
 			activeOverlay = null;
 			activeTrigger = null;
-			unlockDocumentScroll( ownerDocument );
+
+			// Skip scroll unlock when closing for immediate replacement
+			// (another overlay is about to open and will keep scroll locked).
+			if ( ! immediate ) {
+				unlockDocumentScroll( ownerDocument );
+			}
 		}
 
 		if ( ! restoreFocus ) {
@@ -751,7 +755,9 @@ import './style.css';
 
 		resizeFrame = window.requestAnimationFrame( () => {
 			resizeFrame = null;
-			setOverlayStyles( activeOverlay, activeTrigger );
+			if ( activeOverlay ) {
+				setOverlayStyles( activeOverlay, activeTrigger );
+			}
 		} );
 	} );
 

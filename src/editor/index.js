@@ -36,14 +36,14 @@ function isReformBoxManagedBlock( blockName ) {
 }
 
 function flattenBlocks( blocks = [] ) {
-	return blocks.reduce(
-		( result, block ) => [
-			...result,
-			block,
-			...flattenBlocks( block?.innerBlocks || [] ),
-		],
-		[]
-	);
+	const result = [];
+	for ( const block of blocks ) {
+		result.push( block );
+		if ( block?.innerBlocks?.length ) {
+			result.push( ...flattenBlocks( block.innerBlocks ) );
+		}
+	}
+	return result;
 }
 
 function getDuplicateReformBoxOwnerClientId( select, reformboxId ) {
@@ -129,6 +129,16 @@ function getImageLightboxAttributes( lightbox = {}, enabled ) {
 	};
 }
 
+function getVideoPosterUrl( attributes = {} ) {
+	return typeof attributes?.poster === 'string'
+		? attributes.poster.trim()
+		: '';
+}
+
+function hasVideoPoster( attributes = {} ) {
+	return !! getVideoPosterUrl( attributes );
+}
+
 function addReformBoxAttributes( settings, name ) {
 	const isContainer = CONTAINER_BLOCKS.includes( name );
 	const isSelfLightbox = SELF_LIGHTBOX_BLOCKS.includes( name );
@@ -177,8 +187,11 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 		const isContainer = CONTAINER_BLOCKS.includes( name );
 		const isSelfLightbox = SELF_LIGHTBOX_BLOCKS.includes( name );
 		const isCoreImage = name === CORE_IMAGE_BLOCK;
+		const isVideoBlock = name === 'core/video';
 		const isSupported = isContainer || isSelfLightbox || isCoreImage;
 		const imageLightboxEnabled = !! attributes?.lightbox?.enabled;
+		const videoHasPoster = isVideoBlock && hasVideoPoster( attributes );
+		const videoRequiresPoster = isVideoBlock && ! videoHasPoster;
 		const isLightboxEnabledBlock = isContainer || isSelfLightbox;
 		const normalizedReformboxId = sanitizeReformBoxId(
 			attributes?.reformboxId
@@ -218,12 +231,20 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 					return true;
 				}
 
-				return currentBlock.innerBlocks.some(
-					( innerBlock ) =>
-						innerBlock.name === 'core/group' &&
-						getGroupSlotFromAttributes( innerBlock.attributes ) ===
-							REFORMBOX_SLOT_MODAL
-				);
+				return currentBlock.innerBlocks.some( ( innerBlock ) => {
+					if ( innerBlock.name !== 'core/group' ) {
+						return false;
+					}
+
+					const innerSlot = getGroupSlotFromAttributes(
+						innerBlock.attributes
+					);
+
+					return (
+						innerSlot === REFORMBOX_SLOT_MODAL ||
+						innerSlot === REFORMBOX_SLOT_NONE
+					);
+				} );
 			},
 			[
 				attributes.reformboxEnabled,
@@ -325,6 +346,23 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 			setAttributes,
 		] );
 
+		useEffect( () => {
+			if (
+				! isVideoBlock ||
+				! attributes.reformboxEnabled ||
+				videoHasPoster
+			) {
+				return;
+			}
+
+			setAttributes( { reformboxEnabled: false } );
+		}, [
+			attributes.reformboxEnabled,
+			isVideoBlock,
+			setAttributes,
+			videoHasPoster,
+		] );
+
 		if ( ! isSupported ) {
 			return <BlockEdit { ...props } />;
 		}
@@ -336,7 +374,8 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 			showModeControl ||
 			showSlotControl ||
 			!! attributes.reformboxEnabled ||
-			imageLightboxEnabled;
+			imageLightboxEnabled ||
+			videoRequiresPoster;
 
 		const handleEnableToggle = ( value ) => {
 			const next = { reformboxEnabled: value };
@@ -418,8 +457,19 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 												'reformbox'
 										  )
 								}
+								help={
+									videoRequiresPoster
+										? __(
+												'Video lightbox requires a poster image. Add a poster in the Video block settings first.',
+												'reformbox'
+										  )
+										: undefined
+								}
 								checked={ !! attributes.reformboxEnabled }
-								disabled={ isInheritedFromParentContainer }
+								disabled={
+									isInheritedFromParentContainer ||
+									videoRequiresPoster
+								}
 								onChange={ handleEnableToggle }
 							/>
 						) }
@@ -469,7 +519,7 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 						{ showSplitModalWarning && (
 							<p className="reformbox-editor-warning">
 								{ __(
-									'No child Group is assigned to "Modal". Preview content will be used as fallback until you assign one.',
+									'No child Group is assigned to "Modal". Unassigned child Groups (None) and Preview content will be used in the modal.',
 									'reformbox'
 								) }
 							</p>
@@ -481,10 +531,6 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 								label={ __( 'Slot Type', 'reformbox' ) }
 								value={ containerSlot }
 								options={ [
-									{
-										label: __( 'Both (None)', 'reformbox' ),
-										value: REFORMBOX_SLOT_NONE,
-									},
 									{
 										label: __( 'Preview', 'reformbox' ),
 										value: REFORMBOX_SLOT_PREVIEW,
