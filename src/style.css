@@ -8,13 +8,14 @@
  * Trigger baseline
  * ----------------------------------------------------------------*/
 
-.wp-lightbox-container {
+.reformbox-video-trigger {
+	cursor: zoom-in;
 	display: flex;
 	flex-direction: column;
 	position: relative;
 }
 
-.wp-lightbox-container img {
+.reformbox-video-trigger img {
 	cursor: zoom-in;
 }
 
@@ -47,6 +48,7 @@
 }
 
 .reformbox-overlay.show-closing-animation {
+	pointer-events: auto;
 	visibility: visible;
 }
 
@@ -63,8 +65,8 @@
  * Close button
  * ----------------------------------------------------------------*/
 
-.wp-lightbox-overlay .close-button,
-.reformbox-close {
+.reformbox-overlay .close-button,
+.reformbox-overlay .reformbox-close {
 	align-items: center;
 	background: none;
 	border: none;
@@ -81,19 +83,19 @@
 	z-index: 5000000;
 }
 
-.wp-lightbox-overlay .close-button:focus-visible,
-.reformbox-close:focus-visible {
+.reformbox-overlay .close-button:focus-visible,
+.reformbox-overlay .reformbox-close:focus-visible {
 	outline: 3px auto #5a5a5a40;
 	outline: 3px auto -webkit-focus-ring-color;
 	outline-offset: 3px;
 }
 
-.wp-lightbox-overlay .close-button:focus,
-.wp-lightbox-overlay .close-button:hover,
-.wp-lightbox-overlay .close-button:not(:hover):not(:active):not(.has-background),
-.reformbox-close:focus,
-.reformbox-close:hover,
-.reformbox-close:not(:hover):not(:active):not(.has-background) {
+.reformbox-overlay .close-button:focus,
+.reformbox-overlay .close-button:hover,
+.reformbox-overlay .close-button:not(:hover):not(:active):not(.has-background),
+.reformbox-overlay .reformbox-close:focus,
+.reformbox-overlay .reformbox-close:hover,
+.reformbox-overlay .reformbox-close:not(:hover):not(:active):not(.has-background) {
 	background: none;
 	border: none;
 }
@@ -220,7 +222,7 @@
 	}
 
 	.reformbox-overlay.reformbox-animation-zoom.show-closing-animation:not(.reformbox-active) .reformbox-lightbox-container {
-		animation: lightbox-zoom-out 0.4s;
+		animation: lightbox-zoom-out 0.4s forwards;
 	}
 
 	.reformbox-overlay.reformbox-animation-zoom.show-closing-animation:not(.reformbox-active) .scrim {
@@ -310,11 +312,6 @@ body.reformbox-open {
 /* ------------------------------------------------------------------
  * Video trigger (poster thumbnail + play icon)
  * ----------------------------------------------------------------*/
-
-.reformbox-video-trigger {
-	cursor: zoom-in;
-	position: relative;
-}
 
 .reformbox-video-trigger__frame {
 	display: block;
