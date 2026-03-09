@@ -83,7 +83,7 @@
 }
 
 .reformbox-slot-none::before {
-	content: "None" !important;
+	content: "Both" !important;
 	background: #e3e6ea;
 	color: #3e4954;
 }
