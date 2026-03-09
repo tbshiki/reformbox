@@ -6,29 +6,33 @@
 .is-reformbox-container {
 	border: none !important;
 	outline: 1px dashed var(--wp-admin-theme-color, #007cba);
-	outline-offset: 6px;
-	margin-top: 24px !important;
 	margin-inline: 8px !important;
 	position: relative;
-	overflow: visible !important;
 	box-shadow: none;
 }
 
-.is-reformbox-container::after {
-	content: "ReformBox";
-	position: absolute;
+.is-reformbox-container::before,
+.reformbox-slot-preview::before,
+.reformbox-slot-modal::before,
+.reformbox-slot-none::before {
+	position: absolute !important;
+	right: 0;
 	top: 0;
-	left: 8px;
-	transform: translateY(calc(-100% - 4px));
-	background: var(--wp-admin-theme-color, #007cba);
-	color: #fff;
-	font-size: 11px;
-	line-height: 1;
-	white-space: nowrap;
-	padding: 3px 8px;
-	border-radius: 3px;
+	font-size: 10px;
+	padding: 0.2em 0.6em;
+	z-index: 1000;
+	line-height: 1.2;
+	letter-spacing: 1px;
 	pointer-events: none;
-	z-index: 5;
+	color: #1e1e1e;
+	background: #eee;
+	border-bottom-left-radius: 3px;
+}
+
+.is-reformbox-container::before {
+	content: "ReformBox" !important;
+	background: #d9ecff;
+	color: #0a4b78;
 }
 
 .is-reformbox-container.reformbox-mode-split {
@@ -36,78 +40,52 @@
 }
 
 .is-reformbox-container.reformbox-mode-split::before {
-	content: "Split Mode";
-	position: absolute;
+	content: "ReformBox Split" !important;
+	background: #dbe5f1;
+	color: #2f4f74;
+	right: -1px;
 	top: 0;
-	right: 8px;
-	transform: translateY(calc(-100% - 4px));
-	background: #4b6b94;
-	color: #fff;
-	font-size: 11px;
-	line-height: 1;
-	white-space: nowrap;
-	padding: 3px 8px;
-	border-radius: 3px;
-	pointer-events: none;
-	z-index: 5;
-}
-
-.reformbox-slot-preview,
-.reformbox-slot-modal,
-.reformbox-slot-none {
-	position: relative;
-	overflow: visible !important;
+	transform: translateY(calc(-100% - 1px));
+	border-radius: 3px 3px 0 0;
 }
 
 .reformbox-slot-preview {
 	border: 1px solid #2b6cb0 !important;
 	background: rgba(43, 108, 176, 0.05);
+	position: relative;
 	box-shadow: none;
+}
+
+.reformbox-slot-preview::before {
+	content: "Preview" !important;
+	background: #d9e8f7;
+	color: #1e4e79;
 }
 
 .reformbox-slot-modal {
 	border: 1px solid #dd6b20 !important;
 	background: rgba(221, 107, 32, 0.06);
+	position: relative;
 	box-shadow: none;
 }
 
-.reformbox-slot-preview::before,
-.reformbox-slot-modal::before,
-.reformbox-slot-none::before {
-	position: absolute;
-	top: 6px;
-	right: 8px;
-	left: auto;
-	transform: none;
-	color: #fff;
-	font-size: 11px;
-	line-height: 1;
-	white-space: nowrap;
-	padding: 3px 8px;
-	border-radius: 3px;
-	pointer-events: none;
-	z-index: 5;
-}
-
-.reformbox-slot-preview::before {
-	content: "Preview";
-	background: #2b6cb0;
-}
-
 .reformbox-slot-modal::before {
-	content: "Modal";
-	background: #dd6b20;
+	content: "Modal" !important;
+	background: #f8e1d2;
+	color: #8a4214;
 }
 
 .reformbox-slot-none {
 	border: 1px solid #5f6b7a !important;
 	background: rgba(95, 107, 122, 0.08);
+	position: relative;
 	box-shadow: none;
 }
 
 .reformbox-slot-none::before {
-	content: "Both (None)";
-	background: #5f6b7a;
+	content: "Both" !important;
+	background: #e3e6ea;
+	color: #3e4954;
 }
 
 .reformbox-editor-warning {
