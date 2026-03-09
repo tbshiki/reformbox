@@ -36,14 +36,14 @@ function isReformBoxManagedBlock( blockName ) {
 }
 
 function flattenBlocks( blocks = [] ) {
-	return blocks.reduce(
-		( result, block ) => [
-			...result,
-			block,
-			...flattenBlocks( block?.innerBlocks || [] ),
-		],
-		[]
-	);
+	const result = [];
+	for ( const block of blocks ) {
+		result.push( block );
+		if ( block?.innerBlocks?.length ) {
+			result.push( ...flattenBlocks( block.innerBlocks ) );
+		}
+	}
+	return result;
 }
 
 function getDuplicateReformBoxOwnerClientId( select, reformboxId ) {

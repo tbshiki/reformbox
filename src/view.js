@@ -581,9 +581,7 @@ import './style.css';
 		const ownerDocument = overlay.ownerDocument || document;
 		const closingTrigger = activeTrigger;
 		const shouldAnimateClose =
-			! immediate &&
-			! reducedMotionQuery.matches &&
-			isMediaOverlay( overlay );
+			! immediate && ! reducedMotionQuery.matches;
 
 		clearCloseTimer( overlay );
 
@@ -613,7 +611,12 @@ import './style.css';
 		if ( activeOverlay === overlay ) {
 			activeOverlay = null;
 			activeTrigger = null;
-			unlockDocumentScroll( ownerDocument );
+
+			// Skip scroll unlock when closing for immediate replacement
+			// (another overlay is about to open and will keep scroll locked).
+			if ( ! immediate ) {
+				unlockDocumentScroll( ownerDocument );
+			}
 		}
 
 		if ( ! restoreFocus ) {
