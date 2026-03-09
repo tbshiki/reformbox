@@ -377,12 +377,21 @@ class ReformBox {
 			}
 
 			$is_group = isset( $inner_block['blockName'] ) && 'core/group' === $inner_block['blockName'];
-			if ( $is_group && 'modal' === $this->get_reformbox_slot( $inner_block['attrs'] ?? array() ) ) {
-				$modal_blocks[] = $inner_block;
-				continue;
+			if ( $is_group ) {
+				$slot = $this->get_reformbox_slot( $inner_block['attrs'] ?? array() );
+				if ( 'modal' === $slot ) {
+					$modal_blocks[] = $inner_block;
+					continue;
+				}
+
+				if ( 'none' === $slot ) {
+					$preview_blocks[] = $inner_block;
+					$modal_blocks[]   = $inner_block;
+					continue;
+				}
 			}
 
-			// Non-group blocks and "none" slot groups are treated as preview.
+			// Non-group blocks and preview slot groups are treated as preview.
 			$preview_blocks[] = $inner_block;
 		}
 

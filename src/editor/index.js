@@ -231,12 +231,20 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 					return true;
 				}
 
-				return currentBlock.innerBlocks.some(
-					( innerBlock ) =>
-						innerBlock.name === 'core/group' &&
-						getGroupSlotFromAttributes( innerBlock.attributes ) ===
-							REFORMBOX_SLOT_MODAL
-				);
+				return currentBlock.innerBlocks.some( ( innerBlock ) => {
+					if ( innerBlock.name !== 'core/group' ) {
+						return false;
+					}
+
+					const innerSlot = getGroupSlotFromAttributes(
+						innerBlock.attributes
+					);
+
+					return (
+						innerSlot === REFORMBOX_SLOT_MODAL ||
+						innerSlot === REFORMBOX_SLOT_NONE
+					);
+				} );
 			},
 			[
 				attributes.reformboxEnabled,
@@ -511,7 +519,7 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 						{ showSplitModalWarning && (
 							<p className="reformbox-editor-warning">
 								{ __(
-									'No child Group is assigned to "Modal". Preview content will be used as fallback until you assign one.',
+									'No child Group is assigned to "Modal". Unassigned child Groups (None) and Preview content will be used in the modal.',
 									'reformbox'
 								) }
 							</p>
@@ -523,10 +531,6 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 								label={ __( 'Slot Type', 'reformbox' ) }
 								value={ containerSlot }
 								options={ [
-									{
-										label: __( 'Both (None)', 'reformbox' ),
-										value: REFORMBOX_SLOT_NONE,
-									},
 									{
 										label: __( 'Preview', 'reformbox' ),
 										value: REFORMBOX_SLOT_PREVIEW,

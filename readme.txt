@@ -63,7 +63,7 @@ Video self-lightbox uses the poster image as the visible in-page trigger and loa
 
 Enable ReformBox on a Group block, then switch `Display Mode` to `Split`. Inside that parent Group, set child Group blocks to `Preview` or `Modal` slots in the sidebar.
 
-`Preview` content is rendered in-page, `Modal` content is rendered inside the lightbox overlay. If no `Modal` slot is defined, ReformBox automatically falls back to `Preview` content for the modal.
+`Preview` content is rendered in-page, `Modal` content is rendered inside the lightbox overlay, and unassigned child Groups (`none`) are rendered in both. If modal content is still empty, ReformBox automatically falls back to `Preview` content.
 
 = Where is the development source? =
 

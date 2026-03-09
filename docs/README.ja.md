@@ -60,7 +60,7 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 動画ブロックの場合は、先にブロック設定でポスター画像を設定してから、ReformBox パネルの「クリックでライトボックス表示」を ON にします。ポスター画像が未設定の場合、このトグルは有効化できません。
 画像ブロックの場合は ReformBox パネルの「Enable Core Image Lightbox」で WordPress コア Lightbox を ON/OFF します。ReformBox が画像オーバーレイを独自実装するのではなく、画像リンクのクリック挙動と表示はコア実装をそのまま利用します。
 グループブロックでは `表示モード` を選べます。`same` は従来どおり同内容表示、`split` は子 Group の `スロット種別` で表示用/モーダル用を分離します。
-`split` モードでモーダル用スロットが未設定の場合は、空モーダルを避けるため表示用コンテンツへフォールバックします。
+`split` モードでは `Preview` の子 Group は本文表示、`Modal` の子 Group はモーダル表示、未割り当て（`none`）の子 Group は両方に表示されます。モーダル側が空になる場合は、空モーダルを避けるため表示用コンテンツへフォールバックします。
 親のグループで ReformBox が有効な場合、内側ブロックの ReformBox 設定は親に継承され、子ブロック側の設定UIは無効化されます。
 
 ### 設定項目
@@ -70,7 +70,7 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 | ReformBox を有効化 | グループ, 段落, ポスター画像付き動画 | ON / OFF |
 | Core 画像 Lightbox を有効化 | 画像 | ON / OFF（`core/image` の `lightbox.enabled` を連携して切替） |
 | 表示モード | グループ（ReformBox 有効時） | Same / Split |
-| スロット種別 | split 親配下の子 Group | None / Preview / Modal |
+| スロット種別 | split 親配下の子 Group | Preview / Modal（未割り当ての子 Group は None 表示） |
 | オーバーレイクリックで閉じる | グループ, 段落, ポスター画像付き動画 | ON / OFF |
 
 ## 動作要件
