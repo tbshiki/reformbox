@@ -39,6 +39,13 @@ class ReformBox {
 	private $frontend_assets_registered = false;
 
 	/**
+	 * Cached editor asset manifest (false = build file missing).
+	 *
+	 * @var array|false|null
+	 */
+	private $editor_asset_cache = null;
+
+	/**
 	 * ReformBox IDs reserved during the current request.
 	 *
 	 * @var array<string,bool>
@@ -79,14 +86,29 @@ class ReformBox {
 	// Asset loading.
 
 	/**
+	 * Load and cache the editor asset manifest.
+	 *
+	 * @return array|false False when the build file is missing.
+	 */
+	private function get_editor_asset() {
+		if ( null !== $this->editor_asset_cache ) {
+			return $this->editor_asset_cache;
+		}
+
+		$asset_file               = REFORMBOX_PLUGIN_DIR . 'build/editor.asset.php';
+		$this->editor_asset_cache = file_exists( $asset_file ) ? require $asset_file : false;
+
+		return $this->editor_asset_cache;
+	}
+
+	/**
 	 * Enqueue editor script and style.
 	 */
 	public function enqueue_editor_assets() {
-		$asset_file = REFORMBOX_PLUGIN_DIR . 'build/editor.asset.php';
-		if ( ! file_exists( $asset_file ) ) {
+		$asset = $this->get_editor_asset();
+		if ( false === $asset ) {
 			return;
 		}
-		$asset = require $asset_file;
 
 		wp_enqueue_script(
 			'reformbox-editor',
@@ -120,14 +142,20 @@ class ReformBox {
 			return;
 		}
 
+		// Limit to block editor screens only (e.g. exclude plugins/settings pages).
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || ! $screen->is_block_editor() ) {
+			return;
+		}
+
 		$css_file = REFORMBOX_PLUGIN_DIR . 'build/editor.css';
 		if ( ! file_exists( $css_file ) ) {
 			return;
 		}
 
-		$asset_file = REFORMBOX_PLUGIN_DIR . 'build/editor.asset.php';
-		$asset      = file_exists( $asset_file )
-			? require $asset_file
+		$cached = $this->get_editor_asset();
+		$asset  = false !== $cached
+			? $cached
 			: array(
 				'version' => REFORMBOX_VERSION,
 			);
