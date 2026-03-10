@@ -689,11 +689,13 @@ import './style.css';
 				return;
 			}
 
-			event.preventDefault();
 			const overlay = getOverlayFromTrigger( trigger );
-			if ( overlay ) {
-				openLightbox( overlay, trigger, event.target );
+			if ( ! overlay ) {
+				return;
 			}
+
+			event.preventDefault();
+			openLightbox( overlay, trigger, event.target );
 			return;
 		}
 
@@ -728,11 +730,13 @@ import './style.css';
 				return;
 			}
 
-			event.preventDefault();
 			const overlay = getOverlayFromTrigger( trigger );
-			if ( overlay ) {
-				openLightbox( overlay, trigger, trigger );
+			if ( ! overlay ) {
+				return;
 			}
+
+			event.preventDefault();
+			openLightbox( overlay, trigger, trigger );
 			return;
 		}
 

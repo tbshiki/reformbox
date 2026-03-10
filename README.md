@@ -4,7 +4,7 @@
 
 A WordPress plugin that extends the Lightbox concept beyond images. It adds lightbox support for **Group, Paragraph, and Video blocks with poster images**, while delegating **Image** behavior to WordPress core, all configured through the native Block Editor UI.
 
-> **Status:** v0.3.1 - Documentation and behavior notes update
+> **Status:** v0.3.2 - Close animation and interaction behavior fixes
 
 ## What is ReformBox?
 
@@ -47,7 +47,7 @@ ReformBox adds a **"ReformBox" panel** to the Block Editor sidebar for supported
 
 | Role | Blocks | Description |
 |---|---|---|
-| **Container** | Group | Supports `same` mode (same content in page + modal) and `split` mode (separate Preview/Modal child groups) |
+| **Container** | Group | Supports `same` mode (same content in page + modal) and `split` mode (separate Preview/Modal direct child groups) |
 | **Self-Lightbox** | Paragraph, Video with poster image | Clicks itself to open in a lightbox (video uses poster image as the trigger) |
 | **Core Image Integration** | Image (`core/image`) | ReformBox panel toggles core lightbox setting (`lightbox.enabled`), while rendering/click behavior remains WordPress core |
 
@@ -59,8 +59,9 @@ ReformBox adds a **"ReformBox" panel** to the Block Editor sidebar for supported
 
 For **Video** blocks, first set a poster image in the block settings, then toggle "Enable Lightbox on Click" in the ReformBox panel. If no poster is set, the toggle stays disabled.
 For **Image** blocks, "Enable Core Image Lightbox" in the ReformBox panel only toggles the core setting. ReformBox does not replace image overlay rendering; the open behavior remains WordPress core.
-For **Group** blocks, you can choose `Display Mode`: `Same` (legacy behavior) or `Split` (assign child Group blocks to `Preview` / `Modal` slots).
-In `Split` mode, child Groups set to `Preview` render in-page, `Modal` groups render inside the overlay, and unassigned child Groups (`none`) are rendered in both. If modal content is still empty, ReformBox falls back to the Preview content.
+For **Group** blocks, you can choose `Display Mode`: `Same` (legacy behavior) or `Split` (assign direct child Group blocks to `Preview` / `Modal` slots).
+In `Split` mode, direct child Groups set to `Preview` render in-page, `Modal` groups render inside the overlay, and unassigned child Groups (`none`) are rendered in both. If modal content is still empty, ReformBox falls back to the Preview content.
+`Slot Type` controls appear only on direct child Group blocks inside the split parent.
 When a parent Group already has ReformBox enabled, nested blocks inherit the parent behavior and their ReformBox controls are disabled.
 
 ### Settings
@@ -70,7 +71,7 @@ When a parent Group already has ReformBox enabled, nested blocks inherit the par
 | Enable ReformBox | Group, Paragraph, Video with poster image | On / Off |
 | Enable Core Image Lightbox | Image | On / Off (syncs `core/image` `lightbox.enabled`) |
 | Display Mode | Group (when ReformBox enabled) | Same / Split |
-| Slot Type | Child Group inside Split parent | Preview / Modal (unassigned child Group = None) |
+| Slot Type | Direct child Group inside Split parent | Preview / Modal / Preview + Modal (Both) |
 | Close on Overlay Click | Group, Paragraph, Video with poster image | On / Off |
 
 ## Requirements

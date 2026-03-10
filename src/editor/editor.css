@@ -83,7 +83,7 @@
 }
 
 .reformbox-slot-none::before {
-	content: "None" !important;
+	content: "Both" !important;
 	background: #e3e6ea;
 	color: #3e4954;
 }
@@ -93,5 +93,13 @@
 	padding: 8px 10px;
 	border-left: 4px solid #dd6b20;
 	background: rgba(221, 107, 32, 0.12);
+	font-size: 12px;
+}
+
+.reformbox-editor-note {
+	margin: 10px 0 0;
+	padding: 8px 10px;
+	border-left: 4px solid #2b6cb0;
+	background: rgba(43, 108, 176, 0.12);
 	font-size: 12px;
 }

@@ -4,7 +4,7 @@ Tags: lightbox, modal, gutenberg, blocks, popup
 Requires at least: 6.4
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.3.1
+Stable tag: 0.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,7 +20,7 @@ Development source: https://github.com/tbshiki/reformbox
 
 * Image Block – Uses WordPress core lightbox behavior (ReformBox panel toggles core `lightbox.enabled`)
 * Video Block – Opens in a lightbox when a poster image is set (poster acts as the click trigger)
-* Group Block – Supports both `same` mode (same content in page + modal) and `split` mode (separate Preview/Modal child Group slots)
+* Group Block – Supports both `same` mode (same content in page + modal) and `split` mode (separate Preview/Modal direct child Group slots)
 * Paragraph Block – Click to open itself in a lightbox
 
 **Features:**
@@ -61,9 +61,10 @@ Video self-lightbox uses the poster image as the visible in-page trigger and loa
 
 = How does Group split mode work? =
 
-Enable ReformBox on a Group block, then switch `Display Mode` to `Split`. Inside that parent Group, set child Group blocks to `Preview` or `Modal` slots in the sidebar.
+Enable ReformBox on a Group block, then switch `Display Mode` to `Split`. Inside that parent Group, set direct child Group blocks to `Preview`, `Modal`, or `Preview + Modal (Both)` in the sidebar.
 
 `Preview` content is rendered in-page, `Modal` content is rendered inside the lightbox overlay, and unassigned child Groups (`none`) are rendered in both. If modal content is still empty, ReformBox automatically falls back to `Preview` content.
+`Slot Type` controls are shown only on direct child Group blocks of the split parent.
 
 = Where is the development source? =
 
@@ -93,6 +94,12 @@ Before submitting a new plugin to WordPress.org, also:
 5. Commit the build assets to your WordPress.org SVN `trunk/` and copy the release to `tags/<version>/`
 
 == Changelog ==
+
+= 0.3.2 =
+* Scoped ReformBox lightbox styles to ReformBox overlay selectors to avoid unintended styling effects on core lightbox instances
+* Prevented click-through during close animation so background links are not triggered while the overlay is fading out
+* Updated trigger activation handling to call `preventDefault` only when a valid overlay target exists
+* Fixed close animation end-frame flicker by retaining the final keyframe state until the overlay cleanup runs
 
 = 0.3.1 =
 * Clarified that Image lightbox behavior is delegated to WordPress core and ReformBox syncs the core toggle only
