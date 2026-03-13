@@ -1,4 +1,4 @@
-=== ReformBox – Universal Lightbox ===
+=== ReformBox ===
 Contributors: tbshiki
 Tags: lightbox, modal, gutenberg, blocks, popup
 Requires at least: 6.4
@@ -84,14 +84,6 @@ To build and create a distributable ZIP:
 4. `npm run release:zip`
 
 This creates `reformbox.zip` in the project root.
-
-Before submitting a new plugin to WordPress.org, also:
-
-1. Enable WordPress.org account 2FA
-2. Run the Plugin Check plugin with the `Plugin Repo` ruleset
-3. Verify the plugin on the latest stable WordPress release
-4. Confirm the assigned plugin-directory slug is `reformbox` so it stays aligned with the plugin Text Domain
-5. Commit the build assets to your WordPress.org SVN `trunk/` and copy the release to `tags/<version>/`
 
 == Changelog ==
 
