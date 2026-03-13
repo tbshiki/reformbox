@@ -86,12 +86,14 @@ WordPress.org の表示用画像は、プラグイン ZIP ではなく SVN の�
 ReformBox の現状:
 
 - [reformbox.zip](reformbox.zip) には `build/`、`includes/`、`languages/`、[reformbox.php](reformbox.php)、[readme.txt](readme.txt) が含まれている
-- 追加で `src/`、[package.json](package.json)、[webpack.config.js](webpack.config.js)、`docs/` も同梱している
+- 追加で `src/`、[package.json](package.json)、[webpack.config.js](webpack.config.js) も同梱している（ビルド手順を監査可能にするため）
+- `docs/` は ZIP から除外済み（[package.json](package.json) の `files` から削除）
 - 現状の Plugin Check ではこの配布内容でエラーは出ていない
 
 ## 7. SVN 反映
 
-- [ ] WordPress.org で割り当てられた正式 slug を確認する
+- [ ] WordPress.org アカウントの 2FA を有効化する（初回提出前）
+- [ ] WordPress.org で割り当てられた正式 slug が `reformbox` であることを確認する（Text Domain と一致）
 - [ ] `trunk/` に今回の配布内容を配置する
 - [ ] `assets/` を `trunk/` の外、SVN ルート直下に配置する
 - [ ] `tags/<version>/` に同じリリース内容を配置する
@@ -120,5 +122,5 @@ ReformBox の現状:
 
 - [readme.txt](readme.txt) に `Screenshots` セクションがまだないため、画像を用意する場合は説明文も同時に追加する
 - `Contributors: tbshiki` が WordPress.org の実ユーザー名表記と完全一致しているかを提出前に確認する
-- `Development` セクションは許容範囲だが、将来的に readme が肥大化したら簡潔化を検討する
-- 配布 ZIP に `src/`、[package.json](package.json)、[webpack.config.js](webpack.config.js)、`docs/` を含める方針は現状でも通っているが、将来もし審査側から配布最小化を求められた場合は `package.json` の `files` 見直しで対応可能
+- `Development` セクションはビルド手順のみに整理済み（提出フロー記述は本ドキュメントへ移動）
+- 配布 ZIP に `src/`、[package.json](package.json)、[webpack.config.js](webpack.config.js) を含める方針は現状でも通っているが、将来もし審査側から配布最小化を求められた場合は `package.json` の `files` 見直しで対応可能
