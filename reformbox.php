@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: ReformBox – Universal Lightbox
+ * Plugin Name: ReformBox
  * Plugin URI:  https://github.com/tbshiki/reformbox
  * Description: Universal Lightbox for WordPress – lightbox support for Group, Paragraph, Video blocks with poster images, and core Image workflows.
  * Version:     0.3.2
