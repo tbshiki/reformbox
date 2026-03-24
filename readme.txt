@@ -14,8 +14,6 @@ Universal Lightbox for WordPress – lightbox support for Group, Paragraph, Vide
 
 ReformBox extends WordPress Lightbox functionality beyond images. It currently supports Group, Paragraph, and Video blocks with poster images directly, while delegating Image lightbox behavior to WordPress core. For `core/image`, ReformBox only syncs the sidebar toggle with core lightbox settings.
 
-Development source: https://github.com/tbshiki/reformbox
-
 **Supported Blocks:**
 
 * Image Block – Uses WordPress core lightbox behavior (ReformBox panel toggles core `lightbox.enabled`)
@@ -40,10 +38,11 @@ Development source: https://github.com/tbshiki/reformbox
 
 == Installation ==
 
-1. Upload the `reformbox` folder to `/wp-content/plugins/`
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Open the block editor and select any supported block
-4. Enable ReformBox in the block's settings panel (for Image blocks, use "Enable Core Image Lightbox")
+1. In your WordPress admin, go to Plugins > Add New Plugin
+2. Search for `ReformBox`
+3. Click `Install Now`, then click `Activate`
+4. Open the block editor and select any supported block
+5. Enable ReformBox in the block's settings panel (for Image blocks, use `Enable Core Image Lightbox`)
 
 For Video blocks, add a poster image in the block settings before enabling ReformBox.
 
@@ -63,27 +62,16 @@ Video self-lightbox uses the poster image as the visible in-page trigger and loa
 
 Enable ReformBox on a Group block, then switch `Display Mode` to `Split`. Inside that parent Group, set direct child Group blocks to `Preview`, `Modal`, or `Preview + Modal (Both)` in the sidebar.
 
-`Preview` content is rendered in-page, `Modal` content is rendered inside the lightbox overlay, and unassigned child Groups (`none`) are rendered in both. If modal content is still empty, ReformBox automatically falls back to `Preview` content.
-`Slot Type` controls are shown only on direct child Group blocks of the split parent.
+Preview` content is rendered in-page, `Modal` content is rendered inside the lightbox overlay, and unassigned child Groups (`none`) are rendered in both. If modal content is still empty, ReformBox automatically falls back to `Preview` content.
+Slot Type` controls are shown only on direct child Group blocks of the split parent.
 
-= Where is the development source? =
+== Development ==
 
 The canonical development repository is:
 
 https://github.com/tbshiki/reformbox
 
 The distributable ZIP also includes the original `src/`, `package.json`, and `webpack.config.js` files so build steps remain auditable.
-
-== Development ==
-
-To build and create a distributable ZIP:
-
-1. `npm install`
-2. `npm run lint:js`
-3. `npm run lint:css`
-4. `npm run release:zip`
-
-This creates `reformbox.zip` in the project root.
 
 == Changelog ==
 
