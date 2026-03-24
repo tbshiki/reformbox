@@ -76,26 +76,16 @@ The distributable ZIP also includes the original `src/`, `package.json`, and `we
 == Changelog ==
 
 = 0.3.2 =
-* Scoped ReformBox lightbox styles to ReformBox overlay selectors to avoid unintended styling effects on core lightbox instances
-* Prevented click-through during close animation so background links are not triggered while the overlay is fading out
-* Updated trigger activation handling to call `preventDefault` only when a valid overlay target exists
-* Fixed close animation end-frame flicker by retaining the final keyframe state until the overlay cleanup runs
+* Improved overlay styling and close behavior to avoid unintended interactions with page content and WordPress core lightbox instances
 
 = 0.3.1 =
-* Clarified that Image lightbox behavior is delegated to WordPress core and ReformBox syncs the core toggle only
-* Clarified Video self-lightbox behavior: poster image is required and used as the visible trigger
-* Synced README/README.ja/readme.txt wording with current plugin behavior
+* Clarified Image and Video lightbox behavior in the plugin documentation
 
 = 0.3.0 =
-* PHPCS cleanup for plugin bootstrap and core class documentation
-* Added project-level `phpcs.xml.dist` (WordPress standard) for consistent linting
-* Documentation/version metadata synced for release
+* Improved internal code quality and release preparation for the plugin
 
 = 0.2.0 =
-* Initial implementation completed
-* Core-aligned lightbox behavior refinements
-* Content and media overlay UX fixes (layout, animation, scroll lock)
-* Group split mode (Preview/Modal slots) for `core/group`
+* Added Group split mode and refined lightbox behavior for content and media blocks
 
 = 0.1.0 =
 * Initial release
