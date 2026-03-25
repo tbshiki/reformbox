@@ -4,6 +4,10 @@
 
 WordPress の Lightbox を画像以外にも拡張するプラグインです。現在は **グループ・段落・ポスター画像付き動画** ブロックを直接ライトボックス化でき、**画像** は WordPress コア Lightbox に委譲します。ブロックエディタの標準 UI から設定するだけで、コード不要です。
 
+[![WordPress Plugin Version](https://img.shields.io/wordpress/plugin/v/reformbox?logo=wordpress)](https://wordpress.org/plugins/reformbox/)
+[![WordPress Tested](https://img.shields.io/wordpress/plugin/tested/reformbox?logo=wordpress)](https://wordpress.org/plugins/reformbox/)
+![GitHub License](https://img.shields.io/github/license/tbshiki/reformbox)
+
 > **ステータス:** v0.3.2 - 閉じるアニメーションと操作挙動の修正
 
 ## ReformBox とは？
@@ -185,6 +189,43 @@ reformbox/
 .reformbox-close { }            /* 閉じるボタン */
 .reformbox-overlay--media { }   /* 画像/動画バリアント */
 ```
+
+## 変更履歴
+
+### 0.3.2
+
+- ReformBox のライトボックス用スタイルを ReformBox オーバーレイのセレクタに限定し、WordPress コア Lightbox へ意図せず影響しないよう修正
+- 閉じるアニメーション中のクリック抜けを防止し、フェードアウト中に背面リンクが誤って発火しないよう修正
+- 有効なオーバーレイ対象が存在する場合にのみ `preventDefault` を呼ぶよう、トリガーの起動処理を修正
+- オーバーレイのクリーンアップ完了まで最終キーフレーム状態を維持し、閉じるアニメーション終端のちらつきを修正
+
+### 0.3.1
+
+- 画像ライトボックスは WordPress コアへ委譲し、ReformBox はコアトグルのみ同期する挙動をドキュメントで明確化
+- 動画セルフライトボックスはポスター画像必須であり、ポスターが表示トリガーになることをドキュメントで明確化
+- README / README.ja / readme.txt の文言を現在のプラグイン挙動に合わせて同期
+
+### 0.3.0
+
+- プラグインブートストラップとコアクラスのドキュメントに対する PHPCS 整理
+- 一貫した lint のため、WordPress 標準の `phpcs.xml.dist` をプロジェクトに追加
+- リリースに向けてドキュメントとバージョンメタデータを同期
+
+### 0.2.0
+
+- 初期実装を完成
+- WordPress コアに寄せたライトボックス挙動へ調整
+- コンテンツ/メディアオーバーレイの UX を修正（レイアウト、アニメーション、スクロールロック）
+- `core/group` 向けに Group 分割モード（表示用/モーダル用スロット）を追加
+
+### 0.1.0
+
+- 初回リリース
+- Group ブロックをライトボックスコンテナとして対応
+- Image / Video ブロックのセルフライトボックスに対応
+- Paragraph ブロックのセルフライトボックスに対応
+- WordPress コア準拠のズームアニメーションを追加
+- キーボード操作とアクセシビリティ対応を追加
 
 ## ライセンス
 

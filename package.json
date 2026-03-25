@@ -20,10 +20,12 @@
     "lint:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js src/",
     "format:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js src/ --fix",
     "lint:css": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-style src/**/*.css",
-    "package:zip": "node node_modules/@wordpress/scripts/bin/wp-scripts.js plugin-zip",
-    "release:zip": "npm run build && npm run package:zip"
+    "package:zip": "node scripts/plugin-zip.js",
+    "release:zip": "node scripts/release-zip.js"
   },
   "devDependencies": {
-    "@wordpress/scripts": "^30.0.0"
+    "@wordpress/scripts": "^30.0.0",
+    "adm-zip": "^0.5.16",
+    "npm-packlist": "^3.0.0"
   }
 }

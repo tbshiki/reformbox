@@ -14,7 +14,7 @@ Universal Lightbox for WordPress – lightbox support for Group, Paragraph, Vide
 
 ReformBox extends WordPress Lightbox functionality beyond images. It currently supports Group, Paragraph, and Video blocks with poster images directly, while delegating Image lightbox behavior to WordPress core. For `core/image`, ReformBox only syncs the sidebar toggle with core lightbox settings.
 
-Development source: https://github.com/tbshiki/reformbox
+[This plugin is developed on GitHub.](https://github.com/tbshiki/reformbox)
 
 **Supported Blocks:**
 
@@ -40,10 +40,11 @@ Development source: https://github.com/tbshiki/reformbox
 
 == Installation ==
 
-1. Upload the `reformbox` folder to `/wp-content/plugins/`
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Open the block editor and select any supported block
-4. Enable ReformBox in the block's settings panel (for Image blocks, use "Enable Core Image Lightbox")
+1. In your WordPress admin, go to Plugins > Add New Plugin
+2. Search for `ReformBox`
+3. Click `Install Now`, then click `Activate`
+4. Open the block editor and select any supported block
+5. Enable ReformBox in the block's settings panel (for Image blocks, use `Enable Core Image Lightbox`)
 
 For Video blocks, add a poster image in the block settings before enabling ReformBox.
 
@@ -66,48 +67,19 @@ Enable ReformBox on a Group block, then switch `Display Mode` to `Split`. Inside
 `Preview` content is rendered in-page, `Modal` content is rendered inside the lightbox overlay, and unassigned child Groups (`none`) are rendered in both. If modal content is still empty, ReformBox automatically falls back to `Preview` content.
 `Slot Type` controls are shown only on direct child Group blocks of the split parent.
 
-= Where is the development source? =
-
-The canonical development repository is:
-
-https://github.com/tbshiki/reformbox
-
-The distributable ZIP also includes the original `src/`, `package.json`, and `webpack.config.js` files so build steps remain auditable.
-
-== Development ==
-
-To build and create a distributable ZIP:
-
-1. `npm install`
-2. `npm run lint:js`
-3. `npm run lint:css`
-4. `npm run release:zip`
-
-This creates `reformbox.zip` in the project root.
-
 == Changelog ==
 
 = 0.3.2 =
-* Scoped ReformBox lightbox styles to ReformBox overlay selectors to avoid unintended styling effects on core lightbox instances
-* Prevented click-through during close animation so background links are not triggered while the overlay is fading out
-* Updated trigger activation handling to call `preventDefault` only when a valid overlay target exists
-* Fixed close animation end-frame flicker by retaining the final keyframe state until the overlay cleanup runs
+* Improved overlay styling and close behavior to avoid unintended interactions with page content and WordPress core lightbox instances
 
 = 0.3.1 =
-* Clarified that Image lightbox behavior is delegated to WordPress core and ReformBox syncs the core toggle only
-* Clarified Video self-lightbox behavior: poster image is required and used as the visible trigger
-* Synced README/README.ja/readme.txt wording with current plugin behavior
+* Clarified Image and Video lightbox behavior in the plugin documentation
 
 = 0.3.0 =
-* PHPCS cleanup for plugin bootstrap and core class documentation
-* Added project-level `phpcs.xml.dist` (WordPress standard) for consistent linting
-* Documentation/version metadata synced for release
+* Improved internal code quality and release preparation for the plugin
 
 = 0.2.0 =
-* Initial implementation completed
-* Core-aligned lightbox behavior refinements
-* Content and media overlay UX fixes (layout, animation, scroll lock)
-* Group split mode (Preview/Modal slots) for `core/group`
+* Added Group split mode and refined lightbox behavior for content and media blocks
 
 = 0.1.0 =
 * Initial release
