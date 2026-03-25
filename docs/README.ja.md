@@ -4,7 +4,9 @@
 
 WordPress の Lightbox を画像以外にも拡張するプラグインです。現在は **グループ・段落・ポスター画像付き動画** ブロックを直接ライトボックス化でき、**画像** は WordPress コア Lightbox に委譲します。ブロックエディタの標準 UI から設定するだけで、コード不要です。
 
-[WordPress Plugin Directory](https://wordpress.org/plugins/reformbox/) で公開しています。
+[![WordPress Plugin Version](https://img.shields.io/wordpress/plugin/v/reformbox?logo=wordpress)](https://wordpress.org/plugins/reformbox/)
+[![WordPress Tested](https://img.shields.io/wordpress/plugin/tested/reformbox?logo=wordpress)](https://wordpress.org/plugins/reformbox/)
+![GitHub License](https://img.shields.io/github/license/tbshiki/reformbox)
 
 > **ステータス:** v0.3.2 - 閉じるアニメーションと操作挙動の修正
 

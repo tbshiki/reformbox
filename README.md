@@ -4,7 +4,9 @@
 
 A WordPress plugin that extends the Lightbox concept beyond images. It adds lightbox support for **Group, Paragraph, and Video blocks with poster images**, while delegating **Image** behavior to WordPress core, all configured through the native Block Editor UI.
 
-Available on the [WordPress Plugin Directory](https://wordpress.org/plugins/reformbox/).
+[![WordPress Plugin Version](https://img.shields.io/wordpress/plugin/v/reformbox?logo=wordpress)](https://wordpress.org/plugins/reformbox/)
+[![WordPress Tested](https://img.shields.io/wordpress/plugin/tested/reformbox?logo=wordpress)](https://wordpress.org/plugins/reformbox/)
+![GitHub License](https://img.shields.io/github/license/tbshiki/reformbox)
 
 > **Status:** v0.3.2 - Close animation and interaction behavior fixes
 
