@@ -14,6 +14,8 @@ Universal Lightbox for WordPress – lightbox support for Group, Paragraph, Vide
 
 ReformBox extends WordPress Lightbox functionality beyond images. It currently supports Group, Paragraph, and Video blocks with poster images directly, while delegating Image lightbox behavior to WordPress core. For `core/image`, ReformBox only syncs the sidebar toggle with core lightbox settings.
 
+[This plugin is developed on GitHub.](https://github.com/tbshiki/reformbox)
+
 **Supported Blocks:**
 
 * Image Block – Uses WordPress core lightbox behavior (ReformBox panel toggles core `lightbox.enabled`)
@@ -64,14 +66,6 @@ Enable ReformBox on a Group block, then switch `Display Mode` to `Split`. Inside
 
 Preview` content is rendered in-page, `Modal` content is rendered inside the lightbox overlay, and unassigned child Groups (`none`) are rendered in both. If modal content is still empty, ReformBox automatically falls back to `Preview` content.
 Slot Type` controls are shown only on direct child Group blocks of the split parent.
-
-== Development ==
-
-The canonical development repository is:
-
-https://github.com/tbshiki/reformbox
-
-The distributable ZIP also includes the original `src/`, `package.json`, and `webpack.config.js` files so build steps remain auditable.
 
 == Changelog ==
 
