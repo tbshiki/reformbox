@@ -86,6 +86,10 @@ class ReformBox {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_menu', array( $this, 'register_settings_page' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'output_overlay_css' ), 20 );
+		add_filter(
+			'plugin_action_links_' . REFORMBOX_PLUGIN_BASENAME,
+			array( $this, 'add_settings_action_link' )
+		);
 	}
 
 	// Asset loading.
@@ -755,6 +759,25 @@ class ReformBox {
 			'reformbox',
 			array( $this, 'render_settings_page' )
 		);
+	}
+
+	/**
+	 * Add a Settings shortcut link on the plugins list table.
+	 *
+	 * @param array $links Existing action links.
+	 * @return array
+	 */
+	public function add_settings_action_link( $links ) {
+		$settings_url  = admin_url( 'options-general.php?page=reformbox' );
+		$settings_link = sprintf(
+			'<a href="%1$s">%2$s</a>',
+			esc_url( $settings_url ),
+			esc_html__( 'Settings', 'reformbox' )
+		);
+
+		$links[] = $settings_link;
+
+		return $links;
 	}
 
 	/**
