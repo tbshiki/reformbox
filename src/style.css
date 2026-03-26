@@ -53,9 +53,8 @@
 }
 
 .reformbox-overlay .scrim {
-	background-color: #fff;
+	background-color: rgba(var(--reformbox-overlay-rgb, 255, 255, 255), var(--reformbox-overlay-alpha, 0.9));
 	height: 100%;
-	opacity: 0.9;
 	position: absolute;
 	width: 100%;
 	z-index: 2000000;
@@ -163,8 +162,7 @@
 }
 
 .reformbox-overlay--media .scrim {
-	background-color: #fff;
-	opacity: 0.9;
+	background-color: rgba(var(--reformbox-overlay-rgb, 255, 255, 255), var(--reformbox-overlay-alpha, 0.9));
 }
 
 .reformbox-overlay[data-reformbox-dialog-type="content"] .reformbox-lightbox-container.lightbox-image-container {
@@ -182,8 +180,7 @@
 }
 
 .reformbox-overlay[data-reformbox-dialog-type="content"] .scrim {
-	background-color: rgba(17, 17, 17, 0.28);
-	opacity: 1;
+	background-color: rgba(var(--reformbox-overlay-rgb, 255, 255, 255), var(--reformbox-overlay-alpha, 0.9));
 }
 
 .reformbox-overlay--media .reformbox-content video,
@@ -262,9 +259,7 @@
 @keyframes lightbox-zoom-in {
 
 	0% {
-		transform:
-			translate(calc((-100vw + var(--wp--lightbox-scrollbar-width, 0px)) / 2 + var(--wp--lightbox-initial-left-position, 0px)), calc(-50vh + var(--wp--lightbox-initial-top-position, 0px)))
-			scale(var(--wp--lightbox-scale, 1));
+		transform: translate(calc((-100vw + var(--wp--lightbox-scrollbar-width, 0px)) / 2 + var(--wp--lightbox-initial-left-position, 0px)), calc(-50vh + var(--wp--lightbox-initial-top-position, 0px))) scale(var(--wp--lightbox-scale, 1));
 	}
 
 	100% {
@@ -284,9 +279,7 @@
 	}
 
 	100% {
-		transform:
-			translate(calc((-100vw + var(--wp--lightbox-scrollbar-width, 0px)) / 2 + var(--wp--lightbox-initial-left-position, 0px)), calc(-50vh + var(--wp--lightbox-initial-top-position, 0px)))
-			scale(var(--wp--lightbox-scale, 1));
+		transform: translate(calc((-100vw + var(--wp--lightbox-scrollbar-width, 0px)) / 2 + var(--wp--lightbox-initial-left-position, 0px)), calc(-50vh + var(--wp--lightbox-initial-top-position, 0px))) scale(var(--wp--lightbox-scale, 1));
 		visibility: hidden;
 	}
 }

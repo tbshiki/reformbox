@@ -3,14 +3,14 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: ReformBox 0.3.2\n"
+"Project-Id-Version: ReformBox 0.3.3\n"
 "Report-Msgid-Bugs-To: https://github.com/tbshiki/reformbox/issues\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-13T00:00:00+00:00\n"
+"POT-Creation-Date: 2026-03-26T00:00:00+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Domain: reformbox\n"
 
@@ -30,10 +30,59 @@ msgstr ""
 msgid "Play video"
 msgstr ""
 
+#: includes/class-reformbox.php:775
+msgid "Settings"
+msgstr ""
+
+#: includes/class-reformbox.php:792
+msgid "ReformBox Settings"
+msgstr ""
+
+#: includes/class-reformbox.php:811
+msgid "WordPress Core Lightbox Opacity"
+msgstr ""
+
+#: includes/class-reformbox.php:812
+msgid "Background opacity of the WordPress core image lightbox."
+msgstr ""
+
+#: includes/class-reformbox.php:816
+msgid "ReformBox Overlay Opacity"
+msgstr ""
+
+#: includes/class-reformbox.php:817
+msgid "Background opacity for all ReformBox lightbox overlays."
+msgstr ""
+
+#: includes/class-reformbox.php:823
+msgid "WordPress Core Lightbox Background"
+msgstr ""
+
+#: includes/class-reformbox.php:824
+msgid "Background color of the WordPress core image lightbox."
+msgstr ""
+
+#: includes/class-reformbox.php:828
+msgid "ReformBox Overlay Background"
+msgstr ""
+
+#: includes/class-reformbox.php:829
+msgid "Background color for all ReformBox lightbox overlays."
+msgstr ""
+
+#: includes/class-reformbox.php:835
+msgid "ReformBox Lightbox"
+msgstr ""
+
+#: includes/class-reformbox.php:897
+msgid "Configure lightbox overlay background color and opacity. Opacity: 0 = fully transparent, 100 = fully opaque."
+msgstr ""
+
 #: src/editor/index.js:446
 msgid "ReformBox is enabled on the parent Group block. Settings here follow the parent."
 msgstr ""
 
+#: includes/class-reformbox.php:756
 #: src/editor/index.js:455
 msgid "ReformBox"
 msgstr ""

@@ -81,6 +81,15 @@ class ReformBox {
 
 		// Paragraph block (self-lightbox).
 		add_filter( 'render_block_core/paragraph', array( $this, 'render_trigger_block' ), 10, 2 );
+
+		// Overlay opacity settings.
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_menu', array( $this, 'register_settings_page' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'output_overlay_css' ), 20 );
+		add_filter(
+			'plugin_action_links_' . REFORMBOX_PLUGIN_BASENAME,
+			array( $this, 'add_settings_action_link' )
+		);
 	}
 
 	// Asset loading.
@@ -735,5 +744,329 @@ class ReformBox {
 		}
 
 		return $block_content;
+	}
+
+	// Settings.
+
+	/**
+	 * Register the ReformBox settings page under Settings.
+	 */
+	public function register_settings_page() {
+		add_options_page(
+			__( 'ReformBox', 'reformbox' ),
+			__( 'ReformBox', 'reformbox' ),
+			'manage_options',
+			'reformbox',
+			array( $this, 'render_settings_page' )
+		);
+	}
+
+	/**
+	 * Add a Settings shortcut link on the plugins list table.
+	 *
+	 * @param array $links Existing action links.
+	 * @return array
+	 */
+	public function add_settings_action_link( $links ) {
+		$settings_url  = admin_url( 'options-general.php?page=reformbox' );
+		$settings_link = sprintf(
+			'<a href="%1$s">%2$s</a>',
+			esc_url( $settings_url ),
+			esc_html__( 'Settings', 'reformbox' )
+		);
+
+		$links[] = $settings_link;
+
+		return $links;
+	}
+
+	/**
+	 * Render the ReformBox settings page.
+	 */
+	public function render_settings_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'ReformBox Settings', 'reformbox' ); ?></h1>
+			<form method="post" action="options.php">
+				<?php
+				settings_fields( 'reformbox' );
+				do_settings_sections( 'reformbox' );
+				submit_button();
+				?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Register lightbox overlay opacity settings on the ReformBox settings page.
+	 */
+	public function register_settings() {
+		$opacity_settings = array(
+			'reformbox_core_overlay_opacity' => array(
+				'default' => 90,
+				'label'   => __( 'WordPress Core Lightbox Opacity', 'reformbox' ),
+				'desc'    => __( 'Background opacity of the WordPress core image lightbox.', 'reformbox' ),
+			),
+			'reformbox_overlay_opacity'      => array(
+				'default' => 90,
+				'label'   => __( 'ReformBox Overlay Opacity', 'reformbox' ),
+				'desc'    => __( 'Background opacity for all ReformBox lightbox overlays.', 'reformbox' ),
+			),
+		);
+		$color_settings   = array(
+			'reformbox_core_overlay_color' => array(
+				'default' => '#ffffff',
+				'label'   => __( 'WordPress Core Lightbox Background', 'reformbox' ),
+				'desc'    => __( 'Background color of the WordPress core image lightbox.', 'reformbox' ),
+			),
+			'reformbox_overlay_color'      => array(
+				'default' => '#ffffff',
+				'label'   => __( 'ReformBox Overlay Background', 'reformbox' ),
+				'desc'    => __( 'Background color for all ReformBox lightbox overlays.', 'reformbox' ),
+			),
+		);
+
+		add_settings_section(
+			'reformbox_overlay_settings',
+			__( 'ReformBox Lightbox', 'reformbox' ),
+			array( $this, 'render_settings_section' ),
+			'reformbox'
+		);
+
+		foreach ( $opacity_settings as $option_name => $config ) {
+			register_setting(
+				'reformbox',
+				$option_name,
+				array(
+					'type'              => 'integer',
+					'default'           => $config['default'],
+					'sanitize_callback' => array( $this, 'sanitize_opacity' ),
+				)
+			);
+
+			add_settings_field(
+				$option_name,
+				$config['label'],
+				array( $this, 'render_opacity_field' ),
+				'reformbox',
+				'reformbox_overlay_settings',
+				array(
+					'label_for'   => $option_name,
+					'option_name' => $option_name,
+					'default'     => $config['default'],
+					'description' => $config['desc'],
+				)
+			);
+		}
+
+		foreach ( $color_settings as $option_name => $config ) {
+			register_setting(
+				'reformbox',
+				$option_name,
+				array(
+					'type'              => 'string',
+					'default'           => $config['default'],
+					'sanitize_callback' => array( $this, 'sanitize_overlay_color' ),
+				)
+			);
+
+			add_settings_field(
+				$option_name,
+				$config['label'],
+				array( $this, 'render_color_field' ),
+				'reformbox',
+				'reformbox_overlay_settings',
+				array(
+					'label_for'   => $option_name,
+					'option_name' => $option_name,
+					'default'     => $config['default'],
+					'description' => $config['desc'],
+				)
+			);
+		}
+	}
+
+	/**
+	 * Render the description for the overlay settings section.
+	 */
+	public function render_settings_section() {
+		echo '<p>' . esc_html__( 'Configure lightbox overlay background color and opacity. Opacity: 0 = fully transparent, 100 = fully opaque.', 'reformbox' ) . '</p>';
+	}
+
+	/**
+	 * Render a range input field for opacity settings.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public function render_opacity_field( $args ) {
+		$option_name = $args['option_name'];
+		$default     = $args['default'];
+		$value       = $this->sanitize_opacity( get_option( $option_name, $default ) );
+		$description = isset( $args['description'] ) ? $args['description'] : '';
+
+		printf(
+			'<input type="range" id="%1$s" name="%1$s" min="0" max="100" step="1" value="%2$d" '
+			. 'oninput="document.getElementById(\'%1$s_val\').textContent=this.value" style="vertical-align:middle" /> '
+			. '<output id="%1$s_val" style="min-width:2.5em;display:inline-block;text-align:right">%2$d</output>%%',
+			esc_attr( $option_name ),
+			absint( $value )
+		);
+
+		if ( '' !== $description ) {
+			printf( '<p class="description">%s</p>', esc_html( $description ) );
+		}
+	}
+
+	/**
+	 * Render a color input field for overlay background settings.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public function render_color_field( $args ) {
+		$option_name = $args['option_name'];
+		$default     = $this->normalize_hex_color( $args['default'], '#ffffff' );
+		$value       = $this->sanitize_overlay_color( get_option( $option_name, $default ) );
+		$description = isset( $args['description'] ) ? $args['description'] : '';
+
+		printf(
+			'<input type="color" id="%1$s" name="%1$s" value="%2$s" /> <code>%2$s</code>',
+			esc_attr( $option_name ),
+			esc_attr( $value )
+		);
+
+		if ( '' !== $description ) {
+			printf( '<p class="description">%s</p>', esc_html( $description ) );
+		}
+	}
+
+	/**
+	 * Sanitize an opacity value to 0-100 integer range.
+	 *
+	 * @param mixed $value Raw input.
+	 * @return int
+	 */
+	public function sanitize_opacity( $value ) {
+		return max( 0, min( 100, (int) $value ) );
+	}
+
+	/**
+	 * Sanitize an overlay color to a normalized 6-digit hex value.
+	 *
+	 * @param mixed $value Raw input.
+	 * @return string
+	 */
+	public function sanitize_overlay_color( $value ) {
+		return $this->normalize_hex_color( $value, '#ffffff' );
+	}
+
+	/**
+	 * Normalize a color string to a lower-case 6-digit hex color.
+	 *
+	 * @param mixed  $value    Raw color candidate.
+	 * @param string $fallback Fallback color.
+	 * @return string
+	 */
+	private function normalize_hex_color( $value, $fallback ) {
+		$sanitized = sanitize_hex_color( (string) $value );
+		if ( ! $sanitized ) {
+			$sanitized = sanitize_hex_color( $fallback );
+		}
+		if ( ! $sanitized ) {
+			$sanitized = '#ffffff';
+		}
+
+		if ( 4 === strlen( $sanitized ) ) {
+			$sanitized = sprintf(
+				'#%1$s%1$s%2$s%2$s%3$s%3$s',
+				$sanitized[1],
+				$sanitized[2],
+				$sanitized[3]
+			);
+		}
+
+		return strtolower( $sanitized );
+	}
+
+	/**
+	 * Convert a hex color to comma-separated RGB values.
+	 *
+	 * @param string $hex Hex color value.
+	 * @return string
+	 */
+	private function get_color_rgb( $hex ) {
+		$normalized = $this->normalize_hex_color( $hex, '#ffffff' );
+		$hex_value  = ltrim( $normalized, '#' );
+
+		return sprintf(
+			'%d, %d, %d',
+			hexdec( substr( $hex_value, 0, 2 ) ),
+			hexdec( substr( $hex_value, 2, 2 ) ),
+			hexdec( substr( $hex_value, 4, 2 ) )
+		);
+	}
+
+	/**
+	 * Convert an opacity percentage to a CSS alpha value string.
+	 *
+	 * @param int $opacity Opacity percentage.
+	 * @return string
+	 */
+	private function get_opacity_alpha( $opacity ) {
+		return number_format( $this->sanitize_opacity( $opacity ) / 100, 2, '.', '' );
+	}
+
+	/**
+	 * Output custom overlay opacity CSS on the frontend.
+	 */
+	public function output_overlay_css() {
+		$default_core_opacity    = 90;
+		$default_overlay_opacity = 90;
+		$default_core_color      = '#ffffff';
+		$default_overlay_color   = '#ffffff';
+
+		$core_opacity    = $this->sanitize_opacity( get_option( 'reformbox_core_overlay_opacity', $default_core_opacity ) );
+		$core_color      = $this->sanitize_overlay_color( get_option( 'reformbox_core_overlay_color', $default_core_color ) );
+		$overlay_opacity = $this->sanitize_opacity( get_option( 'reformbox_overlay_opacity', $default_overlay_opacity ) );
+		$overlay_color   = $this->sanitize_overlay_color( get_option( 'reformbox_overlay_color', $default_overlay_color ) );
+
+		$rules = array();
+
+		if ( $default_core_opacity !== $core_opacity || $default_core_color !== $core_color ) {
+			$rules[] = sprintf(
+				'.wp-lightbox-overlay:not(.reformbox-overlay) .scrim{background-color:rgba(%1$s,%2$s)!important}',
+				$this->get_color_rgb( $core_color ),
+				$this->get_opacity_alpha( $core_opacity )
+			);
+		}
+
+		if ( $default_overlay_opacity !== $overlay_opacity || $default_overlay_color !== $overlay_color ) {
+			$overlay_rgb   = $this->get_color_rgb( $overlay_color );
+			$overlay_alpha = $this->get_opacity_alpha( $overlay_opacity );
+
+			$rules[] = sprintf(
+				'.reformbox-overlay .scrim{--reformbox-overlay-rgb:%1$s;--reformbox-overlay-alpha:%2$s;background-color:rgba(%1$s,%2$s)!important}',
+				$overlay_rgb,
+				$overlay_alpha
+			);
+			$rules[] = sprintf(
+				'.reformbox-overlay[data-reformbox-dialog-type="content"] .scrim{background-color:rgba(%1$s,%2$s)!important}',
+				$overlay_rgb,
+				$overlay_alpha
+			);
+		}
+
+		if ( ! empty( $rules ) ) {
+			$handle = 'reformbox-overlay-inline';
+			if ( ! wp_style_is( $handle, 'registered' ) ) {
+				wp_register_style( $handle, false, array(), REFORMBOX_VERSION );
+			}
+
+			wp_enqueue_style( $handle );
+			wp_add_inline_style( $handle, implode( '', $rules ) );
+		}
 	}
 }
