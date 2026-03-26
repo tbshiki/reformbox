@@ -81,6 +81,10 @@ class ReformBox {
 
 		// Paragraph block (self-lightbox).
 		add_filter( 'render_block_core/paragraph', array( $this, 'render_trigger_block' ), 10, 2 );
+
+		// Overlay opacity settings.
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'wp_head', array( $this, 'output_overlay_css' ) );
 	}
 
 	// Asset loading.
@@ -735,5 +739,141 @@ class ReformBox {
 		}
 
 		return $block_content;
+	}
+
+	// Settings.
+
+	/**
+	 * Register lightbox overlay opacity settings on the Media settings page.
+	 */
+	public function register_settings() {
+		$settings = array(
+			'reformbox_core_overlay_opacity'    => array(
+				'default' => 90,
+				'label'   => __( 'WordPress Core Lightbox', 'reformbox' ),
+				'desc'    => __( 'Background opacity of the WordPress core image lightbox.', 'reformbox' ),
+			),
+			'reformbox_media_overlay_opacity'   => array(
+				'default' => 90,
+				'label'   => __( 'ReformBox Media Lightbox', 'reformbox' ),
+				'desc'    => __( 'Background opacity for video and image lightbox overlays.', 'reformbox' ),
+			),
+			'reformbox_content_overlay_opacity' => array(
+				'default' => 28,
+				'label'   => __( 'ReformBox Content Dialog', 'reformbox' ),
+				'desc'    => __( 'Background opacity for group and paragraph lightbox dialogs.', 'reformbox' ),
+			),
+		);
+
+		add_settings_section(
+			'reformbox_overlay_settings',
+			__( 'ReformBox Lightbox', 'reformbox' ),
+			array( $this, 'render_settings_section' ),
+			'media'
+		);
+
+		foreach ( $settings as $option_name => $config ) {
+			register_setting(
+				'media',
+				$option_name,
+				array(
+					'type'              => 'integer',
+					'default'           => $config['default'],
+					'sanitize_callback' => array( $this, 'sanitize_opacity' ),
+				)
+			);
+
+			add_settings_field(
+				$option_name,
+				$config['label'],
+				array( $this, 'render_opacity_field' ),
+				'media',
+				'reformbox_overlay_settings',
+				array(
+					'label_for'   => $option_name,
+					'option_name' => $option_name,
+					'default'     => $config['default'],
+					'description' => $config['desc'],
+				)
+			);
+		}
+	}
+
+	/**
+	 * Render the description for the overlay settings section.
+	 */
+	public function render_settings_section() {
+		echo '<p>' . esc_html__( 'Configure the background opacity for lightbox overlays. 0 = fully transparent, 100 = fully opaque.', 'reformbox' ) . '</p>';
+	}
+
+	/**
+	 * Render a range input field for opacity settings.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public function render_opacity_field( $args ) {
+		$option_name = $args['option_name'];
+		$default     = $args['default'];
+		$value       = (int) get_option( $option_name, $default );
+		$description = isset( $args['description'] ) ? $args['description'] : '';
+
+		printf(
+			'<input type="range" id="%1$s" name="%1$s" min="0" max="100" step="1" value="%2$d" '
+			. 'oninput="document.getElementById(\'%1$s_val\').textContent=this.value" style="vertical-align:middle" /> '
+			. '<output id="%1$s_val" style="min-width:2.5em;display:inline-block;text-align:right">%2$d</output>%%',
+			esc_attr( $option_name ),
+			absint( $value )
+		);
+
+		if ( '' !== $description ) {
+			printf( '<p class="description">%s</p>', esc_html( $description ) );
+		}
+	}
+
+	/**
+	 * Sanitize an opacity value to 0-100 integer range.
+	 *
+	 * @param mixed $value Raw input.
+	 * @return int
+	 */
+	public function sanitize_opacity( $value ) {
+		return max( 0, min( 100, (int) $value ) );
+	}
+
+	/**
+	 * Output inline CSS for custom overlay opacity values.
+	 */
+	public function output_overlay_css() {
+		$core_opacity    = (int) get_option( 'reformbox_core_overlay_opacity', 90 );
+		$media_opacity   = (int) get_option( 'reformbox_media_overlay_opacity', 90 );
+		$content_opacity = (int) get_option( 'reformbox_content_overlay_opacity', 28 );
+
+		$rules = array();
+
+		if ( 90 !== $core_opacity ) {
+			$rules[] = sprintf(
+				'.wp-lightbox-overlay:not(.reformbox-overlay) .scrim{background-color:rgba(255,255,255,%.2f)!important}',
+				$core_opacity / 100
+			);
+		}
+
+		if ( 90 !== $media_opacity ) {
+			$rules[] = sprintf(
+				'.reformbox-overlay .scrim{--reformbox-scrim-alpha:%.2f}',
+				$media_opacity / 100
+			);
+		}
+
+		if ( 28 !== $content_opacity ) {
+			$rules[] = sprintf(
+				'.reformbox-overlay[data-reformbox-dialog-type="content"] .scrim{--reformbox-content-scrim-alpha:%.2f}',
+				$content_opacity / 100
+			);
+		}
+
+		if ( ! empty( $rules ) ) {
+			// All rules are generated from sanitized integer values via sprintf — no user input.
+			echo "\n" . '<style id="reformbox-overlay-css">' . implode( '', $rules ) . '</style>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS generated from sanitized integers.
+		}
 	}
 }
