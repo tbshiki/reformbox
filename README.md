@@ -8,7 +8,7 @@ A WordPress plugin that extends the Lightbox concept beyond images. It adds ligh
 [![WordPress Tested](https://img.shields.io/wordpress/plugin/tested/reformbox?logo=wordpress)](https://wordpress.org/plugins/reformbox/)
 ![GitHub License](https://img.shields.io/github/license/tbshiki/reformbox)
 
-> **Status:** v0.3.2 - Close animation and interaction behavior fixes
+> **Status:** v0.3.3 - Unified overlay settings and admin UX improvements
 
 ## What is ReformBox?
 
@@ -39,6 +39,8 @@ Traditional lightbox plugins only enlarge images. ReformBox redefines the lightb
 | ARIA dialog attributes | ✅ |
 | Lazy-loaded assets | ✅ |
 | RTL support | ✅ |
+| Admin settings page (`Settings -> ReformBox`) | ✅ |
+| Plugin list `Settings` action link | ✅ |
 | Gallery navigation (prev/next) | 🔜 Planned |
 | Embed Block support | 🔜 Planned |
 | Custom animation hooks | 🔜 Planned |
@@ -79,6 +81,7 @@ When a parent Group already has ReformBox enabled, nested blocks inherit the par
 | Close on Overlay Click | Group, Paragraph, Video with poster image | On / Off |
 
 Global overlay background color and opacity are configured in **WP Admin -> Settings -> ReformBox**.
+You can also open the same screen from **Plugins -> ReformBox -> Settings**.
 
 ## Requirements
 
@@ -229,6 +232,14 @@ Override these classes in your theme:
 ```
 
 ## Changelog
+
+### 0.3.3
+
+- Added a dedicated settings screen at `Settings -> ReformBox` for lightbox appearance controls
+- Added `Settings` shortcut link on the plugins list row for faster access to the plugin options
+- Unified ReformBox overlay appearance settings into one background color + opacity pair
+- Kept WordPress core image lightbox appearance override as a separate setting group
+- Synced release metadata and documentation for the 0.3.3 release
 
 ### 0.3.2
 

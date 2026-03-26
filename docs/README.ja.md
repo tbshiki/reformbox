@@ -8,7 +8,7 @@ WordPress の Lightbox を画像以外にも拡張するプラグインです。
 [![WordPress Tested](https://img.shields.io/wordpress/plugin/tested/reformbox?logo=wordpress)](https://wordpress.org/plugins/reformbox/)
 ![GitHub License](https://img.shields.io/github/license/tbshiki/reformbox)
 
-> **ステータス:** v0.3.2 - 閉じるアニメーションと操作挙動の修正
+> **ステータス:** v0.3.3 - オーバーレイ設定の統合と管理画面 UX 改善
 
 ## ReformBox とは？
 
@@ -39,6 +39,8 @@ WordPress の Lightbox を画像以外にも拡張するプラグインです。
 | ARIA ダイアログ属性 | ✅ |
 | アセット遅延ロード | ✅ |
 | RTL 対応 | ✅ |
+| 管理画面の設定ページ（`設定 -> ReformBox`） | ✅ |
+| プラグイン一覧の `Settings` クイックリンク | ✅ |
 | ギャラリーナビゲーション（前/次） | 🔜 予定 |
 | 埋め込みブロック対応 | 🔜 予定 |
 | カスタムアニメーションフック | 🔜 予定 |
@@ -79,6 +81,7 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 | オーバーレイクリックで閉じる | グループ, 段落, ポスター画像付き動画 | ON / OFF |
 
 オーバーレイ背景の色と透過率（全体設定）は **WP 管理画面 -> 設定 -> ReformBox** で変更できます。
+同じ設定画面は **管理画面 -> プラグイン -> ReformBox の Settings（設定）** からも開けます。
 
 ## 動作要件
 
@@ -193,6 +196,14 @@ reformbox/
 ```
 
 ## 変更履歴
+
+### 0.3.3
+
+- ライトボックス外観設定用に `設定 -> ReformBox` の専用設定ページを追加
+- プラグイン一覧のアクションリンクに `Settings` を追加し、設定画面へ直接遷移できるよう改善
+- ReformBox 独自オーバーレイの外観設定を「背景色 + 透過率」の 1 系統へ統合
+- WordPress コア画像ライトボックス用の外観上書き設定は独立した設定として維持
+- 0.3.3 リリース向けにメタデータとドキュメントを同期
 
 ### 0.3.2
 

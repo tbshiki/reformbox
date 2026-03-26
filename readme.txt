@@ -4,7 +4,7 @@ Tags: lightbox, modal, gutenberg, blocks, popup
 Requires at least: 6.4
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.3.2
+Stable tag: 0.3.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,7 @@ ReformBox extends WordPress Lightbox functionality beyond images. It currently s
 * Self-lightbox videos defer preload/autoplay until opened
 * Core image workflow integration without overriding core image rendering
 * Global overlay background color and opacity controls in Settings > ReformBox
+* Plugin list row includes a Settings action link for quick access
 * Lightweight and performant
 
 == Installation ==
@@ -68,7 +69,17 @@ Enable ReformBox on a Group block, then switch `Display Mode` to `Split`. Inside
 `Preview` content is rendered in-page, `Modal` content is rendered inside the lightbox overlay, and unassigned child Groups (`none`) are rendered in both. If modal content is still empty, ReformBox automatically falls back to `Preview` content.
 `Slot Type` controls are shown only on direct child Group blocks of the split parent.
 
+= Where can I change ReformBox overlay appearance? =
+
+Open `Settings > ReformBox` in WP Admin. You can set the ReformBox overlay background color and opacity there.
+The same settings screen is also linked from the plugin row action (`Plugins > ReformBox > Settings`).
+
 == Changelog ==
+
+= 0.3.3 =
+* Unified ReformBox overlay controls into a single background color + opacity setting
+* Improved consistency of overlay background rendering across ReformBox lightboxes
+* Kept WordPress core lightbox appearance override separate from ReformBox overlay controls
 
 = 0.3.2 =
 * Improved overlay styling and close behavior to avoid unintended interactions with page content and WordPress core lightbox instances
