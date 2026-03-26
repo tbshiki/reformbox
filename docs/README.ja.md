@@ -78,6 +78,8 @@ ReformBox は対応ブロックのサイドバーに **「ReformBox」パネル*
 | スロット種別 | split 親配下の直下子 Group | Preview / Modal / Preview + Modal (Both) |
 | オーバーレイクリックで閉じる | グループ, 段落, ポスター画像付き動画 | ON / OFF |
 
+オーバーレイ背景の色と透過率（全体設定）は **WP 管理画面 -> 設定 -> ReformBox** で変更できます。
+
 ## 動作要件
 
 - WordPress 6.4 以上

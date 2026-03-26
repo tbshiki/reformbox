@@ -36,6 +36,7 @@ ReformBox extends WordPress Lightbox functionality beyond images. It currently s
 * Lazy-loaded assets (CSS/JS only loaded when needed)
 * Self-lightbox videos defer preload/autoplay until opened
 * Core image workflow integration without overriding core image rendering
+* Global overlay background color and opacity controls in Settings > ReformBox
 * Lightweight and performant
 
 == Installation ==

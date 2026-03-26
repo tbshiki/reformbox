@@ -78,6 +78,8 @@ When a parent Group already has ReformBox enabled, nested blocks inherit the par
 | Slot Type | Direct child Group inside Split parent | Preview / Modal / Preview + Modal (Both) |
 | Close on Overlay Click | Group, Paragraph, Video with poster image | On / Off |
 
+Global overlay background color and opacity are configured in **WP Admin -> Settings -> ReformBox**.
+
 ## Requirements
 
 - WordPress 6.4+
