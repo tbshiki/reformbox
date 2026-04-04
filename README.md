@@ -80,7 +80,7 @@ When a parent Group already has ReformBox enabled, nested blocks inherit the par
 | Slot Type | Direct child Group inside Split parent | Preview / Modal / Preview + Modal (Both) |
 | Close on Overlay Click | Group, Paragraph, Video with poster image | On / Off |
 
-Global overlay background color and opacity are configured in **WP Admin -> Settings -> ReformBox**.
+Global overlay background color and opacity are configured in **WordPress Admin -> Settings -> ReformBox**.
 You can also open the same screen from **Plugins -> ReformBox -> Settings**.
 
 ## Requirements
@@ -93,7 +93,7 @@ You can also open the same screen from **Plugins -> ReformBox -> Settings**.
 
 1. Download or clone this repository into `wp-content/plugins/reformbox/`
 2. Run `npm install && npm run build`
-3. Activate **ReformBox - Universal Lightbox** in WP Admin -> Plugins
+3. Activate **ReformBox - Universal Lightbox** in WordPress Admin -> Plugins
 
 ## Development
 
@@ -122,7 +122,7 @@ npm run lint:css
 npm run release:zip
 ```
 
-This generates `reformbox.zip` at the project root, ready to upload in **WP Admin -> Plugins -> Add New Plugin -> Upload Plugin**.
+This generates `reformbox.zip` at the project root, ready to upload in **WordPress Admin -> Plugins -> Add New Plugin -> Upload Plugin**.
 
 The ZIP intentionally includes both compiled assets and the original `src/`, `package.json`, and `webpack.config.js` files so WordPress.org reviewers can inspect the human-readable source that produced the build output.
 

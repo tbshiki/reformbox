@@ -410,7 +410,9 @@ import './style.css';
 				);
 				lightboxContainer.style.setProperty(
 					'max-width',
-					'min(90vw, 960px)',
+					window.innerWidth <= 480
+						? 'calc(100vw - 16px)'
+						: 'min(90vw, 960px)',
 					'important'
 				);
 				lightboxContainer.style.setProperty(
