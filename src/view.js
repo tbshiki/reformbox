@@ -357,7 +357,15 @@ import './style.css';
 		// Content dialogs should rely on CSS auto sizing to avoid forced wraps
 		// and clipped corners caused by media-oriented JS sizing.
 		if ( ! mediaOverlay ) {
-			const triggerRect = getTriggerRect( trigger, sourceElement );
+			// Always use the trigger block's own rect as the animation origin so
+			// that clicking different child elements gives a consistent result.
+			let triggerRect = null;
+			if ( trigger && typeof trigger.getBoundingClientRect === 'function' ) {
+				const r = trigger.getBoundingClientRect();
+				if ( r.width > 0 || r.height > 0 ) {
+					triggerRect = r;
+				}
+			}
 			const target = getLightboxTargetSize( overlay, triggerRect, false );
 			const initialTop = triggerRect
 				? triggerRect.top
