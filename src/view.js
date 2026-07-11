@@ -360,7 +360,10 @@ import './style.css';
 			// Always use the trigger block's own rect as the animation origin so
 			// that clicking different child elements gives a consistent result.
 			let triggerRect = null;
-			if ( trigger && typeof trigger.getBoundingClientRect === 'function' ) {
+			if (
+				trigger &&
+				typeof trigger.getBoundingClientRect === 'function'
+			) {
 				const r = trigger.getBoundingClientRect();
 				if ( r.width > 0 || r.height > 0 ) {
 					triggerRect = r;
@@ -406,9 +409,11 @@ import './style.css';
 			overlay.style.removeProperty( '--wp--lightbox-image-height' );
 
 			if ( lightboxContainer ) {
+				// max-content: with position:absolute + left:50%, `auto` shrink-wraps
+				// into "containing block - left" = 50vw and never reaches max-width.
 				lightboxContainer.style.setProperty(
 					'width',
-					'auto',
+					'max-content',
 					'important'
 				);
 				lightboxContainer.style.setProperty(
