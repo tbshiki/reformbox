@@ -8,7 +8,7 @@ A WordPress plugin that extends the Lightbox concept beyond images. It adds ligh
 [![WordPress Tested](https://img.shields.io/wordpress/plugin/tested/reformbox?logo=wordpress)](https://wordpress.org/plugins/reformbox/)
 ![GitHub License](https://img.shields.io/github/license/tbshiki/reformbox)
 
-> **Status:** v0.3.3 - Unified overlay settings and admin UX improvements
+> **Status:** v0.3.4 - WordPress 7.1 compatibility and responsive dialog sizing fixes
 
 ## What is ReformBox?
 
@@ -168,7 +168,7 @@ reformbox/
 
 - **No custom blocks** - Extends core blocks via `blocks.registerBlockType`, `editor.BlockEdit`, and `editor.BlockListBlock` WordPress JS filters
 - **Core-first image lightbox** - `core/image` self-lightbox behavior is delegated to WordPress core lightbox
-- **Core-aligned custom overlays** - ReformBox reuses core lightbox class conventions where practical (`wp-lightbox-overlay`, `close-button`, `wp-lightbox-container`)
+- **Core-aligned custom overlays** - ReformBox reuses core lightbox class conventions where practical (`wp-lightbox-overlay`, `wp-lightbox-close-button` / `close-button`, `wp-lightbox-container`)
 - **Server-side rendering** - PHP `render_block_core/{name}` filters inject lightbox markup on the frontend
 - **Split group rendering** - In `split` mode, child `core/group` blocks are mapped into preview/modal output with safe modal fallback
 - **Non-destructive** - No `save()` modifications, so blocks remain valid with or without the plugin active
@@ -232,6 +232,14 @@ Override these classes in your theme:
 ```
 
 ## Changelog
+
+### 0.3.4
+
+- Verified the plugin against WordPress 7.1 (front end, editor, and core image lightbox delegation) and raised `Tested up to` to 7.1
+- Fixed content lightbox dialogs rendering nearly edge-to-edge on phone widths; the viewport gutter is now a consistent 16px, matching the media overlay and core's image lightbox
+- Fixed short content collapsing the dialog into a narrow sliver (88px at a 375px viewport); dialogs now keep a sensible minimum width
+- Removed the 480px JavaScript breakpoint from the dialog sizing so rotating or resizing while the dialog is open no longer leaves a stale width
+- Added WordPress 7.1's `wp-lightbox-close-button` class to the ReformBox close button (core renamed `close-button` in 7.1) and mirrored core's button metrics so the appearance stays identical with or without core lightbox CSS on the page
 
 ### 0.3.3
 

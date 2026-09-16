@@ -64,6 +64,8 @@
  * Close button
  * ----------------------------------------------------------------*/
 
+/* Values mirror core's `.wp-lightbox-close-button` (WP 7.1) so the button looks
+   the same whether or not core's image lightbox CSS is present on the page. */
 .reformbox-overlay .close-button,
 .reformbox-overlay .reformbox-close {
 	align-items: center;
@@ -72,14 +74,22 @@
 	color: #111;
 	cursor: pointer;
 	display: flex;
+	font-family: inherit;
+	gap: 8px;
 	justify-content: center;
+	line-height: 1;
 	min-height: 40px;
 	min-width: 40px;
-	padding: 0;
+	padding: 0 4px;
 	position: absolute;
 	right: calc(env(safe-area-inset-right) + 16px);
 	top: calc(env(safe-area-inset-top) + 16px);
 	z-index: 5000000;
+}
+
+.reformbox-overlay .close-button svg,
+.reformbox-overlay .reformbox-close svg {
+	display: block;
 }
 
 .reformbox-overlay .close-button:focus-visible,
@@ -97,6 +107,7 @@
 .reformbox-overlay .reformbox-close:not(:hover):not(:active):not(.has-background) {
 	background: none;
 	border: none;
+	padding: 0 4px;
 }
 
 /* ------------------------------------------------------------------
@@ -168,7 +179,15 @@
 .reformbox-overlay[data-reformbox-dialog-type="content"] .reformbox-lightbox-container.lightbox-image-container {
 	height: auto;
 	max-height: 90vh;
-	max-width: min(90vw, 960px);
+
+	/* 16px viewport gutter, matching core's image lightbox and the media
+	   overlay below, capped for readability on wide screens. */
+	max-width: min(calc(100vw - 32px), 960px);
+
+	/* Floor so short content does not collapse into a sliver. Under a 512px
+	   viewport this equals max-width, so the gutter stays 16px whatever the
+	   content width is. */
+	min-width: min(calc(100vw - 32px), 480px);
 	overflow: visible;
 
 	/* max-content: `auto` would shrink-wrap into 50vw (left: 50% eats half the

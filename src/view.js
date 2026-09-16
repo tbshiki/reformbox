@@ -421,11 +421,16 @@ import './style.css';
 					'auto',
 					'important'
 				);
+				// Viewport-relative so rotating or resizing while the dialog is
+				// open keeps the 16px gutter; see style.css for the rationale.
 				lightboxContainer.style.setProperty(
 					'max-width',
-					window.innerWidth <= 480
-						? 'calc(100vw - 16px)'
-						: 'min(90vw, 960px)',
+					'min(calc(100vw - 32px), 960px)',
+					'important'
+				);
+				lightboxContainer.style.setProperty(
+					'min-width',
+					'min(calc(100vw - 32px), 480px)',
 					'important'
 				);
 				lightboxContainer.style.setProperty(

@@ -2,9 +2,9 @@
 Contributors: tbshiki
 Tags: lightbox, modal, gutenberg, blocks, popup
 Requires at least: 6.4
-Tested up to: 6.9
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.3
+Stable tag: 0.3.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,12 @@ Open `Settings > ReformBox` in WordPress Admin. You can set the ReformBox overla
 The same settings screen is also linked from the plugin row action (`Plugins > ReformBox > Settings`).
 
 == Changelog ==
+
+= 0.3.4 =
+* Verified against WordPress 7.1 and updated the tested-up-to version
+* Fixed lightbox dialogs being nearly edge-to-edge on phone widths; the gutter is now a consistent 16px at every viewport width
+* Fixed short content collapsing into a very narrow dialog box
+* Added WordPress 7.1's `wp-lightbox-close-button` class to the close button so it keeps matching the core lightbox design
 
 = 0.3.3 =
 * Unified ReformBox overlay controls into a single background color + opacity setting
