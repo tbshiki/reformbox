@@ -409,9 +409,11 @@ import './style.css';
 			overlay.style.removeProperty( '--wp--lightbox-image-height' );
 
 			if ( lightboxContainer ) {
+				// max-content: with position:absolute + left:50%, `auto` shrink-wraps
+				// into "containing block - left" = 50vw and never reaches max-width.
 				lightboxContainer.style.setProperty(
 					'width',
-					'auto',
+					'max-content',
 					'important'
 				);
 				lightboxContainer.style.setProperty(

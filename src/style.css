@@ -170,7 +170,10 @@
 	max-height: 90vh;
 	max-width: min(90vw, 960px);
 	overflow: visible;
-	width: auto;
+
+	/* max-content: `auto` would shrink-wrap into 50vw (left: 50% eats half the
+	   containing block) and never reach max-width. */
+	width: max-content;
 }
 
 .reformbox-overlay[data-reformbox-dialog-type="content"] .reformbox-content {
