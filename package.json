@@ -26,6 +26,7 @@
   "devDependencies": {
     "@wordpress/scripts": "^30.0.0",
     "adm-zip": "^0.5.16",
-    "npm-packlist": "^3.0.0"
+    "npm-packlist": "^3.0.0",
+    "typescript": "^5.9.3"
   }
 }
