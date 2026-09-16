@@ -1,0 +1,31 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "preferredVersions": {
+    "php": "8.3",
+    "wp": "latest"
+  },
+  "features": {
+    "networking": true
+  },
+  "landingPage": "/wp-admin/",
+  "login": true,
+  "siteOptions": {
+    "blogname": "ReformBox 検証環境",
+    "blogdescription": "ReformBox - Universal Lightbox の動作検証用 Playground",
+    "timezone_string": "Asia/Tokyo"
+  },
+  "steps": [
+    {
+      "step": "wp-cli",
+      "command": "wp language core install ja --activate"
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php require_once '/wordpress/wp-load.php'; require_once ABSPATH . 'wp-admin/includes/plugin.php'; require_once ABSPATH . 'wp-admin/includes/file.php'; $plugins = array(); foreach (array('akismet/akismet.php', 'hello.php') as $plugin) { if (file_exists(WP_PLUGIN_DIR . '/' . $plugin)) { $plugins[] = $plugin; } } if ($plugins) { deactivate_plugins($plugins, true); delete_plugins($plugins); }"
+    },
+    {
+      "step": "activatePlugin",
+      "pluginPath": "reformbox/reformbox.php"
+    }
+  ]
+}
