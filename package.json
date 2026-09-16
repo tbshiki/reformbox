@@ -19,7 +19,8 @@
     "start": "node node_modules/@wordpress/scripts/bin/wp-scripts.js start",
     "lint:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js src/",
     "format:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js src/ --fix",
-    "lint:css": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-style src/**/*.css",
+    "lint:css": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-style \"src/**/*.css\"",
+    "check:version": "node scripts/check-version-sync.js",
     "package:zip": "node scripts/plugin-zip.js",
     "release:zip": "node scripts/release-zip.js"
   },
