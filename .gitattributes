@@ -1,0 +1,18 @@
+# Normalize all text files to LF in the repository and in the working tree.
+# prettier (eslint) and PHP_CodeSniffer expect LF; without this, checkouts on
+# Windows (core.autocrlf=true) fail the lint gates.
+* text=auto eol=lf
+
+# Never convert line endings in binary assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svgz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.zip binary
+*.mo binary

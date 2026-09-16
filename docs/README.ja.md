@@ -8,7 +8,7 @@ WordPress の Lightbox を画像以外にも拡張するプラグインです。
 [![WordPress Tested](https://img.shields.io/wordpress/plugin/tested/reformbox?logo=wordpress)](https://wordpress.org/plugins/reformbox/)
 ![GitHub License](https://img.shields.io/github/license/tbshiki/reformbox)
 
-> **ステータス:** v0.3.3 - オーバーレイ設定の統合と管理画面 UX 改善
+> **ステータス:** v0.3.4 - WordPress 7.1 対応とモーダル幅のレスポンシブ修正
 
 ## ReformBox とは？
 
@@ -37,6 +37,7 @@ WordPress の Lightbox を画像以外にも拡張するプラグインです。
 | オーバーレイクリックで閉じる（任意） | ✅ |
 | フォーカストラップ & キーボード操作 | ✅ |
 | ARIA ダイアログ属性 | ✅ |
+| 表示中の背景の不活性化（inert） | ✅ |
 | アセット遅延ロード | ✅ |
 | RTL 対応 | ✅ |
 | 管理画面の設定ページ（`設定 -> ReformBox`） | ✅ |
@@ -168,7 +169,7 @@ reformbox/
 
 - **カスタムブロック不使用** - WordPress JS フィルタ（`blocks.registerBlockType`, `editor.BlockEdit`, `editor.BlockListBlock`）でコアブロックを拡張
 - **画像ライトボックスは Core 優先** - `core/image` のセルフライトボックスは WordPress コア Lightbox に委譲
-- **カスタムオーバーレイも Core に寄せる** - `wp-lightbox-overlay`, `close-button`, `wp-lightbox-container` など、使える箇所ではコア Lightbox のクラス規約に合わせる
+- **カスタムオーバーレイも Core に寄せる** - `wp-lightbox-overlay`, `wp-lightbox-close-button` / `close-button`, `wp-lightbox-container` など、使える箇所ではコア Lightbox のクラス規約に合わせる
 - **サーバーサイドレンダリング** - PHP `render_block_core/{name}` フィルタでフロントエンドにライトボックス HTML を注入
 - **Group 分割レンダリング** - `split` 時は子 `core/group` を表示用/モーダル用に振り分け、モーダル未設定時は安全にフォールバック
 - **非破壊的設計** - `save()` を変更しないため、プラグインの有効/無効に関わらずブロックは常に有効
@@ -196,6 +197,16 @@ reformbox/
 ```
 
 ## 変更履歴
+
+### 0.3.4
+
+- WordPress 7.1 で動作確認（フロント表示・エディタ・コア画像ライトボックス委譲）し、`Tested up to` を 7.1 へ更新
+- ライトボックス表示中、オーバーレイ以外の body 直下要素を `inert` にする対応を追加（コアの画像ライトボックスの `setInertElements` と同じ方式）。`aria-modal` だけでは支援技術の仮想カーソルが背景を読み上げてしまう問題を解消
+- コア画像ライトボックスの CSS が読み込まれるページで、オーバーレイの不透明度設定が無視される問題を修正。コアが同じ `.scrim` を同詳細度かつ後ろで指定するため、動画オーバーレイは alpha を失って完全不透明になり、コンテンツ用ダイアログは `prefers-reduced-motion` 時に 0.9 × 0.9 になっていた。不透明度は rgba の alpha 側だけで決まるよう統一
+- スマートフォン幅でコンテンツ用ライトボックスがほぼ画面幅いっぱいに表示される問題を修正。左右の余白をどの画面幅でも 16px に統一（media オーバーレイと同じ値）
+- 内容が短い場合にダイアログが極端に細く（375px 幅で 88px）なる問題を修正し、最小幅を確保
+- ダイアログ幅計算から 480px の JavaScript ブレークポイントを撤去。開いたまま画面回転・リサイズしても幅が古い値のまま残らないよう修正
+- 閉じるボタンに WordPress 7.1 のコアクラス `wp-lightbox-close-button` を追加（コアが 7.1 で `close-button` から改名）。あわせてコアのボタン寸法を ReformBox 側 CSS にも反映し、コアのライトボックス CSS の有無で見た目が変わらないよう統一
 
 ### 0.3.3
 

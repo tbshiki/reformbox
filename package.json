@@ -1,6 +1,6 @@
 {
   "name": "reformbox",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "ReformBox – Universal Lightbox for WordPress",
   "author": "tbshiki",
   "license": "GPL-2.0-or-later",
@@ -19,13 +19,20 @@
     "start": "node node_modules/@wordpress/scripts/bin/wp-scripts.js start",
     "lint:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js src/",
     "format:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js src/ --fix",
-    "lint:css": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-style src/**/*.css",
+    "lint:css": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-style \"src/**/*.css\"",
+    "check:version": "node scripts/check-version-sync.js",
+    "test:e2e": "playwright test",
+    "wp:start": "node scripts/start-playground.js --blueprint=playground/blueprint.json --mount-before-install=.:/wordpress/wp-content/plugins/reformbox",
+    "wp:start:content": "node scripts/start-playground.js --blueprint=playground/blueprint.with-content.json --mount-before-install=.:/wordpress/wp-content/plugins/reformbox",
+    "wp:help": "npx --yes @wp-playground/cli@3.1.54 server --help",
     "package:zip": "node scripts/plugin-zip.js",
     "release:zip": "node scripts/release-zip.js"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@wordpress/scripts": "^30.0.0",
     "adm-zip": "^0.5.16",
-    "npm-packlist": "^3.0.0"
+    "npm-packlist": "^3.0.0",
+    "typescript": "^5.9.3"
   }
 }

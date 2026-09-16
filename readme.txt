@@ -2,9 +2,9 @@
 Contributors: tbshiki
 Tags: lightbox, modal, gutenberg, blocks, popup
 Requires at least: 6.4
-Tested up to: 6.9
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.3
+Stable tag: 0.3.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,15 +66,23 @@ Video self-lightbox uses the poster image as the visible in-page trigger and loa
 
 Enable ReformBox on a Group block, then switch `Display Mode` to `Split`. Inside that parent Group, set direct child Group blocks to `Preview`, `Modal`, or `Preview + Modal (Both)` in the sidebar.
 
-`Preview` content is rendered in-page, `Modal` content is rendered inside the lightbox overlay, and unassigned child Groups (`none`) are rendered in both. If modal content is still empty, ReformBox automatically falls back to `Preview` content.
-`Slot Type` controls are shown only on direct child Group blocks of the split parent.
+Preview content is rendered in-page, Modal content is rendered inside the lightbox overlay, and unassigned child Groups (none) are rendered in both. If modal content is still empty, ReformBox automatically falls back to Preview content.
+Slot Type controls are shown only on direct child Group blocks of the split parent.
 
 = Where can I change ReformBox overlay appearance? =
 
-Open `Settings > ReformBox` in WP Admin. You can set the ReformBox overlay background color and opacity there.
+Open `Settings > ReformBox` in WordPress Admin. You can set the ReformBox overlay background color and opacity there.
 The same settings screen is also linked from the plugin row action (`Plugins > ReformBox > Settings`).
 
 == Changelog ==
+
+= 0.3.4 =
+* Verified against WordPress 7.1 and updated the tested-up-to version
+* Made the page behind an open lightbox inert, so screen readers and keyboard focus stay inside the dialog (same approach as the core image lightbox)
+* Fixed the overlay opacity setting being ignored on pages that also load core's image lightbox styles; video overlays could turn fully opaque there
+* Fixed lightbox dialogs being nearly edge-to-edge on phone widths; the gutter is now a consistent 16px at every viewport width
+* Fixed short content collapsing into a very narrow dialog box
+* Added WordPress 7.1's `wp-lightbox-close-button` class to the close button so it keeps matching the core lightbox design
 
 = 0.3.3 =
 * Unified ReformBox overlay controls into a single background color + opacity setting

@@ -1,0 +1,107 @@
+name: Quality
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  assets:
+    name: JS / CSS / build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint:js
+      - run: npm run lint:css
+      - run: npm run build
+
+  php-syntax:
+    name: PHP syntax (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The lowest version the plugin claims to support, and a current one.
+        php: ['7.4', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Lint every PHP file
+        run: |
+          find . \( -path ./node_modules -o -path ./vendor -o -path ./build \) -prune -o \
+            -name '*.php' -print0 | xargs -0 -r -n1 -P4 php -l
+
+  phpcs:
+    name: PHPCS (WordPress standard)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+      # The plugin has no composer.json, so install the ruleset globally.
+      # phpcodesniffer-composer-installer is a Composer plugin, and Composer 2.2+
+      # refuses to run it unless it is allow-listed first.
+      - name: Install PHP_CodeSniffer and the WordPress Coding Standards
+        run: |
+          composer global config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer global require --no-interaction --no-progress \
+            dealerdirect/phpcodesniffer-composer-installer:^1.0 \
+            wp-coding-standards/wpcs:^3.0
+          echo "$(composer global config bin-dir --absolute)" >> "$GITHUB_PATH"
+      - name: Confirm the WordPress standard is registered
+        run: phpcs -i
+      - run: phpcs --report=full
+
+  e2e:
+    name: E2E (Playwright + Playground)
+    runs-on: ubuntu-latest
+    # A cold Playground boot downloads WordPress and the PHP runtime.
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      # The suite drives the mounted plugin, so build/ must exist first.
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  version:
+    name: Version sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # No dependencies needed: the script only uses Node built-ins.
+      - run: node scripts/check-version-sync.js
