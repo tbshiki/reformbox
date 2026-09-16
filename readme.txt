@@ -78,6 +78,7 @@ The same settings screen is also linked from the plugin row action (`Plugins > R
 
 = 0.3.4 =
 * Verified against WordPress 7.1 and updated the tested-up-to version
+* Made the page behind an open lightbox inert, so screen readers and keyboard focus stay inside the dialog (same approach as the core image lightbox)
 * Fixed lightbox dialogs being nearly edge-to-edge on phone widths; the gutter is now a consistent 16px at every viewport width
 * Fixed short content collapsing into a very narrow dialog box
 * Added WordPress 7.1's `wp-lightbox-close-button` class to the close button so it keeps matching the core lightbox design
