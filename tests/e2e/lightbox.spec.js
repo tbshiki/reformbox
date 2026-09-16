@@ -66,6 +66,77 @@ test( 'Video: 開くまで動画をロードしない', async ( { page } ) => {
 	await expect( video ).toHaveAttribute( 'data-reformbox-loaded', 'true' );
 } );
 
+test( '背景の不活性化: 開いている間だけ背景が inert になり、閉じると完全に解除される', async ( {
+	page,
+} ) => {
+	const overlay = overlayFor( page, 'demo-group-same' );
+	const trigger = triggerFor( page, 'demo-group-same' );
+
+	expect( await page.locator( '[inert]' ).count() ).toBe( 0 );
+
+	await trigger.click();
+	await expect( overlay ).toHaveAttribute( 'aria-hidden', 'false' );
+
+	const whileOpen = await page.evaluate( () => ( {
+		inertCount: document.querySelectorAll( '[inert]' ).length,
+		// The background must be inert...
+		backgroundLeftOut: [
+			...document.querySelectorAll(
+				'body > :not(.wp-lightbox-overlay)'
+			),
+		]
+			.filter( ( element ) => ! element.hasAttribute( 'inert' ) )
+			.map( ( element ) => element.tagName.toLowerCase() ),
+		// ...and the overlay itself must not be.
+		overlayInert: document
+			.querySelector( '#demo-group-same' )
+			.hasAttribute( 'inert' ),
+	} ) );
+
+	expect( whileOpen.inertCount ).toBeGreaterThan( 0 );
+	expect(
+		whileOpen.backgroundLeftOut,
+		'inert が付いていない body 直下の要素が残っている'
+	).toEqual( [] );
+	expect( whileOpen.overlayInert, 'オーバーレイ自身が inert になっている' ).toBe(
+		false
+	);
+
+	await page.keyboard.press( 'Escape' );
+	await expect( overlay ).toHaveAttribute( 'aria-hidden', 'true' );
+
+	// The roadmap's acceptance criterion: nothing is left inert.
+	await expect( page.locator( '[inert]' ) ).toHaveCount( 0 );
+	// And the page is operable again.
+	await expect( trigger ).toBeFocused();
+} );
+
+test( '背景の不活性化: 別のライトボックスへ入れ替えても解除漏れが起きない', async ( {
+	page,
+} ) => {
+	await triggerFor( page, 'demo-group-same' ).click();
+	await expect( overlayFor( page, 'demo-group-same' ) ).toHaveAttribute(
+		'aria-hidden',
+		'false'
+	);
+
+	// Opening another lightbox closes the first one with the "immediate" path.
+	await page.keyboard.press( 'Escape' );
+	await triggerFor( page, 'demo-paragraph' ).click();
+	await expect( overlayFor( page, 'demo-paragraph' ) ).toHaveAttribute(
+		'aria-hidden',
+		'false'
+	);
+	expect( await page.locator( '[inert]' ).count() ).toBeGreaterThan( 0 );
+
+	await page.keyboard.press( 'Escape' );
+	await expect( overlayFor( page, 'demo-paragraph' ) ).toHaveAttribute(
+		'aria-hidden',
+		'true'
+	);
+	await expect( page.locator( '[inert]' ) ).toHaveCount( 0 );
+} );
+
 test( 'フォーカストラップ: Tab がオーバーレイ内に留まり、閉じるとトリガーへ戻る', async ( {
 	page,
 } ) => {

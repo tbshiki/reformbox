@@ -97,6 +97,32 @@ import './style.css';
 		}
 	}
 
+	/*
+	 * Takes the background out of the accessibility tree and out of reach of the
+	 * keyboard while a lightbox is open. `aria-modal` alone is not enough: some
+	 * assistive technology still reads past it with a virtual cursor.
+	 *
+	 * This mirrors the core image lightbox (`setInertElements` in
+	 * packages/block-library/src/image/view.js): every direct child of body that
+	 * is not a lightbox overlay becomes inert. Only `inert` is used, with no
+	 * `aria-hidden` fallback, because `aria-hidden` would leave the background
+	 * focusable while hiding it from assistive technology.
+	 *
+	 * Re-querying on every call keeps this idempotent, which is what makes the
+	 * "one overlay replaces another" path safe.
+	 */
+	function setInertElements( ownerDocument, inert ) {
+		ownerDocument
+			.querySelectorAll( 'body > :not(.wp-lightbox-overlay)' )
+			.forEach( ( element ) => {
+				if ( inert ) {
+					element.setAttribute( 'inert', '' );
+				} else {
+					element.removeAttribute( 'inert' );
+				}
+			} );
+	}
+
 	function getOwnerWindow( ownerDocument ) {
 		return ownerDocument?.defaultView || window;
 	}
@@ -583,6 +609,7 @@ import './style.css';
 		overlay.classList.add( 'reformbox-active' );
 		overlay.classList.add( 'active' );
 		lockDocumentScroll( ownerDocument );
+		setInertElements( ownerDocument, true );
 		prepareOverlayMedia( overlay );
 		refreshOverlayStylesOnMediaReady( overlay, trigger );
 
@@ -631,10 +658,13 @@ import './style.css';
 			activeOverlay = null;
 			activeTrigger = null;
 
-			// Skip scroll unlock when closing for immediate replacement
-			// (another overlay is about to open and will keep scroll locked).
+			// Skip scroll unlock and un-inert when closing for immediate
+			// replacement (another overlay is about to open and will keep both).
+			// This runs before focus is restored, otherwise the trigger would
+			// still be inside an inert subtree and could not take focus.
 			if ( ! immediate ) {
 				unlockDocumentScroll( ownerDocument );
+				setInertElements( ownerDocument, false );
 			}
 		}
 
