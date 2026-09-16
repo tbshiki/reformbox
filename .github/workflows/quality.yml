@@ -58,12 +58,17 @@ jobs:
           coverage: none
           tools: composer:v2
       # The plugin has no composer.json, so install the ruleset globally.
+      # phpcodesniffer-composer-installer is a Composer plugin, and Composer 2.2+
+      # refuses to run it unless it is allow-listed first.
       - name: Install PHP_CodeSniffer and the WordPress Coding Standards
         run: |
+          composer global config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
           composer global require --no-interaction --no-progress \
             dealerdirect/phpcodesniffer-composer-installer:^1.0 \
             wp-coding-standards/wpcs:^3.0
           echo "$(composer global config bin-dir --absolute)" >> "$GITHUB_PATH"
+      - name: Confirm the WordPress standard is registered
+        run: phpcs -i
       - run: phpcs --report=full
 
   version:
