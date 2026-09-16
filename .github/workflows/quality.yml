@@ -71,6 +71,30 @@ jobs:
         run: phpcs -i
       - run: phpcs --report=full
 
+  e2e:
+    name: E2E (Playwright + Playground)
+    runs-on: ubuntu-latest
+    # A cold Playground boot downloads WordPress and the PHP runtime.
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      # The suite drives the mounted plugin, so build/ must exist first.
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
   version:
     name: Version sync
     runs-on: ubuntu-latest

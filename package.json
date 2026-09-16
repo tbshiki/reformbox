@@ -21,6 +21,7 @@
     "format:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js src/ --fix",
     "lint:css": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-style \"src/**/*.css\"",
     "check:version": "node scripts/check-version-sync.js",
+    "test:e2e": "playwright test",
     "wp:start": "npx --yes @wp-playground/cli@3.1.54 server --blueprint=playground/blueprint.json --mount-before-install=.:/wordpress/wp-content/plugins/reformbox --port=9400",
     "wp:start:content": "npx --yes @wp-playground/cli@3.1.54 server --blueprint=playground/blueprint.with-content.json --mount-before-install=.:/wordpress/wp-content/plugins/reformbox --port=9400",
     "wp:help": "npx --yes @wp-playground/cli@3.1.54 server --help",
@@ -28,6 +29,7 @@
     "release:zip": "node scripts/release-zip.js"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@wordpress/scripts": "^30.0.0",
     "adm-zip": "^0.5.16",
     "npm-packlist": "^3.0.0",
