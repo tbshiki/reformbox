@@ -52,9 +52,18 @@
 	visibility: visible;
 }
 
-.reformbox-overlay .scrim {
+/* Both classes, because core ships `.wp-lightbox-overlay .scrim` with its own
+   `background-color: #fff` and `opacity: .9`, and prints it after this file:
+   at equal specificity core would win. Overlays always carry both classes, so
+   this rule matches exactly when core's does. Opacity is expressed through the
+   rgba alpha, so it is pinned here as well; otherwise the two multiplied
+   (0.9 x 0.9 = 0.81) wherever the fade animation is skipped, i.e. under
+   prefers-reduced-motion. Plain declarations suffice: the animation below
+   still overrides opacity while it runs. */
+.reformbox-overlay.wp-lightbox-overlay .scrim {
 	background-color: rgba(var(--reformbox-overlay-rgb, 255, 255, 255), var(--reformbox-overlay-alpha, 0.9));
 	height: 100%;
+	opacity: 1;
 	position: absolute;
 	width: 100%;
 	z-index: 2000000;
@@ -172,10 +181,6 @@
 	padding: 0;
 }
 
-.reformbox-overlay--media .scrim {
-	background-color: rgba(var(--reformbox-overlay-rgb, 255, 255, 255), var(--reformbox-overlay-alpha, 0.9));
-}
-
 .reformbox-overlay[data-reformbox-dialog-type="content"] .reformbox-lightbox-container.lightbox-image-container {
 	height: auto;
 	max-height: 90vh;
@@ -202,10 +207,6 @@
 	box-shadow: none;
 	height: auto;
 	max-height: 90vh;
-}
-
-.reformbox-overlay[data-reformbox-dialog-type="content"] .scrim {
-	background-color: rgba(var(--reformbox-overlay-rgb, 255, 255, 255), var(--reformbox-overlay-alpha, 0.9));
 }
 
 .reformbox-overlay--media .reformbox-content video,

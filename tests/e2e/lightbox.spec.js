@@ -162,3 +162,49 @@ test( 'フォーカストラップ: Tab がオーバーレイ内に留まり、�
 	await expect( overlay ).toHaveAttribute( 'aria-hidden', 'true' );
 	await expect( trigger ).toBeFocused();
 } );
+
+/*
+ * RB-24. The demo page also holds a core image lightbox, so core's block styles
+ * are printed on it — after this plugin's stylesheet. Core styles the same
+ * `.wp-lightbox-overlay .scrim` with an opaque background and `opacity: .9`, so
+ * at equal specificity it used to win: media overlays lost their alpha entirely
+ * and content dialogs ended up at 0.9 x 0.9 once the fade animation was out of
+ * the way. Reduced motion is what removes that animation, which is why these
+ * run with it forced on.
+ */
+test.describe( 'scrim の不透明度', () => {
+	test.use( { reducedMotion: 'reduce' } );
+
+	const scrimStyles = async ( page, id ) =>
+		page.evaluate( ( overlayId ) => {
+			const scrim = document.querySelector( `#${ overlayId } .scrim` );
+			const styles = getComputedStyle( scrim );
+			const channels = styles.backgroundColor.match( /[\d.]+/g ) || [];
+			return {
+				alpha: channels.length === 4 ? Number( channels[ 3 ] ) : 1,
+				opacity: Number( styles.opacity ),
+			};
+		}, id );
+
+	for ( const id of [ 'demo-group-same', 'demo-video' ] ) {
+		test( `${ id }: 不透明度が rgba の alpha 側だけで決まる`, async ( {
+			page,
+		} ) => {
+			await triggerFor( page, id ).click();
+			await expect( overlayFor( page, id ) ).toHaveAttribute(
+				'aria-hidden',
+				'false'
+			);
+
+			const styles = await scrimStyles( page, id );
+
+			/*
+			 * Asserting the product alone would not catch the regression: core's
+			 * opaque background at `opacity: .9` lands on the same 0.9 as the
+			 * default setting. The invariant is where the opacity comes from.
+			 */
+			expect( styles.alpha, 'rgba の alpha が設定値である' ).toBe( 0.9 );
+			expect( styles.opacity, '要素の opacity は 1 に固定' ).toBe( 1 );
+		} );
+	}
+} );

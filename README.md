@@ -238,6 +238,7 @@ Override these classes in your theme:
 
 - Verified the plugin against WordPress 7.1 (front end, editor, and core image lightbox delegation) and raised `Tested up to` to 7.1
 - Made every body-level element outside the overlay `inert` while a lightbox is open, mirroring core's image lightbox (`setInertElements`), so screen readers and Tab no longer reach the page behind the dialog; `aria-modal` alone still let a virtual cursor read the background
+- Fixed the overlay opacity setting being ignored on pages that also load core's image lightbox styles: core styles the same `.scrim` at equal specificity but later in the document, so video overlays lost their alpha and turned fully opaque, and content dialogs landed on 0.9 x 0.9 under `prefers-reduced-motion`. Opacity now comes from the rgba alpha alone
 - Fixed content lightbox dialogs rendering nearly edge-to-edge on phone widths; the viewport gutter is now a consistent 16px at every width, matching the media overlay
 - Fixed short content collapsing the dialog into a narrow sliver (88px at a 375px viewport); dialogs now keep a sensible minimum width
 - Removed the 480px JavaScript breakpoint from the dialog sizing so rotating or resizing while the dialog is open no longer leaves a stale width

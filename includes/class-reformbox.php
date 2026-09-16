@@ -1039,8 +1039,15 @@ class ReformBox {
 		$rules = array();
 
 		if ( $default_core_opacity !== $core_opacity || $default_core_color !== $core_color ) {
+			/*
+			 * `opacity` is pinned so the configured percentage is the effective one.
+			 * Core styles the scrim with `opacity: .9` on top of its background
+			 * color, which would otherwise multiply with the alpha below. It stays
+			 * a plain declaration (this selector already outranks core's) so core's
+			 * fade-in animation still wins while it runs.
+			 */
 			$rules[] = sprintf(
-				'.wp-lightbox-overlay:not(.reformbox-overlay) .scrim{background-color:rgba(%1$s,%2$s)!important}',
+				'.wp-lightbox-overlay:not(.reformbox-overlay) .scrim{background-color:rgba(%1$s,%2$s)!important;opacity:1}',
 				$this->get_color_rgb( $core_color ),
 				$this->get_opacity_alpha( $core_opacity )
 			);
