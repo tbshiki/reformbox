@@ -180,8 +180,11 @@
 	height: auto;
 	max-height: 90vh;
 
-	/* 16px viewport gutter, matching core's image lightbox and the media
-	   overlay below, capped for readability on wide screens. */
+	/* 16px viewport gutter, matching the media overlay above. Core's image
+	   lightbox reserves no horizontal gutter below 481px (measured 0px on
+	   WP 7.1: the image bleeds to the viewport edge), which suits a bare
+	   image but not this card with its border, 8px radius and shadow.
+	   Capped for readability on wide screens. */
 	max-width: min(calc(100vw - 32px), 960px);
 
 	/* Floor so short content does not collapse into a sliver. Under a 512px

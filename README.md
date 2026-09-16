@@ -236,7 +236,7 @@ Override these classes in your theme:
 ### 0.3.4
 
 - Verified the plugin against WordPress 7.1 (front end, editor, and core image lightbox delegation) and raised `Tested up to` to 7.1
-- Fixed content lightbox dialogs rendering nearly edge-to-edge on phone widths; the viewport gutter is now a consistent 16px, matching the media overlay and core's image lightbox
+- Fixed content lightbox dialogs rendering nearly edge-to-edge on phone widths; the viewport gutter is now a consistent 16px at every width, matching the media overlay
 - Fixed short content collapsing the dialog into a narrow sliver (88px at a 375px viewport); dialogs now keep a sensible minimum width
 - Removed the 480px JavaScript breakpoint from the dialog sizing so rotating or resizing while the dialog is open no longer leaves a stale width
 - Added WordPress 7.1's `wp-lightbox-close-button` class to the ReformBox close button (core renamed `close-button` in 7.1) and mirrored core's button metrics so the appearance stays identical with or without core lightbox CSS on the page

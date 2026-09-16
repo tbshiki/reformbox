@@ -3,6 +3,9 @@ const { defineConfig, devices } = require( '@playwright/test' );
 // Override to run the suite against a second instance while a manual
 // Playground stays up on the default port.
 const PORT = Number( process.env.REFORMBOX_E2E_PORT || 9400 );
+if ( ! Number.isInteger( PORT ) || PORT < 1 || PORT > 65535 ) {
+	throw new Error( 'REFORMBOX_E2E_PORT must be an integer from 1 to 65535.' );
+}
 const baseURL = `http://127.0.0.1:${ PORT }`;
 
 /**
@@ -43,7 +46,7 @@ module.exports = defineConfig( {
 		},
 	],
 	webServer: {
-		command: 'npm run wp:start:content',
+		command: `npm run wp:start:content -- --port=${ PORT }`,
 		/*
 		 * Must be a static file, not a PHP-handled path.
 		 *
