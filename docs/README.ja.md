@@ -8,7 +8,7 @@ WordPress の Lightbox を画像以外にも拡張するプラグインです。
 [![WordPress Tested](https://img.shields.io/wordpress/plugin/tested/reformbox?logo=wordpress)](https://wordpress.org/plugins/reformbox/)
 ![GitHub License](https://img.shields.io/github/license/tbshiki/reformbox)
 
-> **ステータス:** v0.3.4 - WordPress 7.1 対応とモーダル幅のレスポンシブ修正
+> **ステータス:** v0.3.5 - アクセシビリティ強化と開発依存の更新
 
 ## ReformBox とは？
 
@@ -197,6 +197,12 @@ reformbox/
 ```
 
 ## 変更履歴
+
+### 0.3.5
+
+- ライトボックスを閉じる際、テーマ・WordPress コア・他プラグインが元から指定した `inert` を保持し、ReformBox 自身が付与した属性だけを解除するよう修正
+- フォーカストラップの対象をメディアコントロール・iframe・summary・編集可能要素へ拡張し、disabled・非表示・inert 配下・負の tabindex は除外。キーボードだけで動画コントロールへ移動・操作できるよう改善
+- `adm-zip` と WordPress ビルドツールを更新し、開発依存の既知脆弱性を削減。`npm audit --omit=dev` は 0 件を維持し、配布プラグインに npm の実行時依存は含まれない
 
 ### 0.3.4
 

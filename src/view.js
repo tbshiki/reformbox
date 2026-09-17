@@ -19,6 +19,7 @@ import './style.css';
 	let lockedScrollY = 0;
 	let isRestoringScroll = false;
 	const closeTimers = new WeakMap();
+	const inertedElements = new Set();
 	const reducedMotionQuery = window.matchMedia(
 		'(prefers-reduced-motion: reduce)'
 	);
@@ -108,19 +109,28 @@ import './style.css';
 	 * `aria-hidden` fallback, because `aria-hidden` would leave the background
 	 * focusable while hiding it from assistive technology.
 	 *
-	 * Re-querying on every call keeps this idempotent, which is what makes the
-	 * "one overlay replaces another" path safe.
+	 * Track only attributes added here so closing a lightbox never removes an
+	 * `inert` state owned by the theme, core, or another plugin.
 	 */
 	function setInertElements( ownerDocument, inert ) {
-		ownerDocument
-			.querySelectorAll( 'body > :not(.wp-lightbox-overlay)' )
-			.forEach( ( element ) => {
-				if ( inert ) {
+		if ( inert ) {
+			ownerDocument
+				.querySelectorAll( 'body > :not(.wp-lightbox-overlay)' )
+				.forEach( ( element ) => {
+					if ( element.hasAttribute( 'inert' ) ) {
+						return;
+					}
+
 					element.setAttribute( 'inert', '' );
-				} else {
-					element.removeAttribute( 'inert' );
-				}
-			} );
+					inertedElements.add( element );
+				} );
+			return;
+		}
+
+		inertedElements.forEach( ( element ) => {
+			element.removeAttribute( 'inert' );
+		} );
+		inertedElements.clear();
 	}
 
 	function getOwnerWindow( ownerDocument ) {
@@ -676,7 +686,7 @@ import './style.css';
 		if ( previousFocus && typeof previousFocus.focus === 'function' ) {
 			try {
 				previousFocus.focus();
-			} catch ( error ) {
+			} catch {
 				// Ignore focus restoration errors for detached elements.
 			}
 		}
@@ -684,8 +694,43 @@ import './style.css';
 		previousFocus = null;
 	}
 
-	const FOCUSABLE =
-		'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+	const FOCUSABLE = [
+		'a[href]',
+		'button',
+		'textarea',
+		'input',
+		'select',
+		'summary',
+		'iframe',
+		'audio[controls]',
+		'video[controls]',
+		'[contenteditable="true"]',
+		'[tabindex]',
+	].join( ', ' );
+
+	function isFocusable( element ) {
+		if (
+			element.matches( ':disabled, input[type="hidden"]' ) ||
+			element.closest( '[inert]' )
+		) {
+			return false;
+		}
+
+		if ( element.hasAttribute( 'tabindex' ) && element.tabIndex < 0 ) {
+			return false;
+		}
+
+		if ( element.getClientRects().length === 0 ) {
+			return false;
+		}
+
+		const styles = getOwnerWindow( element.ownerDocument ).getComputedStyle(
+			element
+		);
+		return (
+			styles.visibility !== 'hidden' && styles.visibility !== 'collapse'
+		);
+	}
 
 	function handleTabKey( event ) {
 		if ( ! activeOverlay || event.key !== 'Tab' ) {
@@ -694,7 +739,7 @@ import './style.css';
 
 		const focusable = Array.from(
 			activeOverlay.querySelectorAll( FOCUSABLE )
-		);
+		).filter( isFocusable );
 		if ( ! focusable.length ) {
 			event.preventDefault();
 			activeOverlay.focus();

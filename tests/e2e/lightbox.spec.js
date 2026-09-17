@@ -66,7 +66,7 @@ test( 'Video: 開くまで動画をロードしない', async ( { page } ) => {
 	await expect( video ).toHaveAttribute( 'data-reformbox-loaded', 'true' );
 } );
 
-test( '背景の不活性化: 開いている間だけ背景が inert になり、閉じると完全に解除される', async ( {
+test( '背景の不活性化: 開いている間だけ背景が inert になり、閉じると付与分を解除する', async ( {
 	page,
 } ) => {
 	const overlay = overlayFor( page, 'demo-group-same' );
@@ -109,6 +109,34 @@ test( '背景の不活性化: 開いている間だけ背景が inert になり�
 	await expect( page.locator( '[inert]' ) ).toHaveCount( 0 );
 	// And the page is operable again.
 	await expect( trigger ).toBeFocused();
+} );
+
+test( '背景の不活性化: ページ側が元から指定した inert を閉じた後も保つ', async ( {
+	page,
+} ) => {
+	const preexistingInert = page.locator( '#preexisting-inert' );
+
+	await page.evaluate( () => {
+		const element = document.createElement( 'div' );
+		element.id = 'preexisting-inert';
+		element.setAttribute( 'inert', '' );
+		document.body.appendChild( element );
+	} );
+
+	await expect( preexistingInert ).toHaveAttribute( 'inert', '' );
+	await triggerFor( page, 'demo-group-same' ).click();
+	await expect( overlayFor( page, 'demo-group-same' ) ).toHaveAttribute(
+		'aria-hidden',
+		'false'
+	);
+
+	await page.keyboard.press( 'Escape' );
+
+	await expect( overlayFor( page, 'demo-group-same' ) ).toHaveAttribute(
+		'aria-hidden',
+		'true'
+	);
+	await expect( preexistingInert ).toHaveAttribute( 'inert', '' );
 } );
 
 test( '背景の不活性化: 別のライトボックスへ入れ替えても解除漏れが起きない', async ( {
@@ -161,6 +189,56 @@ test( 'フォーカストラップ: Tab がオーバーレイ内に留まり、�
 
 	await expect( overlay ).toHaveAttribute( 'aria-hidden', 'true' );
 	await expect( trigger ).toBeFocused();
+} );
+
+test( 'フォーカストラップ: 無効・非表示要素を飛ばして video と閉じるボタンを循環する', async ( {
+	page,
+} ) => {
+	const overlay = overlayFor( page, 'demo-video' );
+	const closeButton = overlay.locator( '.reformbox-close' );
+	const video = overlay.locator( 'video[controls]' );
+
+	await overlay.evaluate( ( element ) => {
+		const disabledButton = document.createElement( 'button' );
+		disabledButton.disabled = true;
+		element.appendChild( disabledButton );
+
+		const hiddenInput = document.createElement( 'input' );
+		hiddenInput.type = 'hidden';
+		element.appendChild( hiddenInput );
+
+		const negativeTabIndex = document.createElement( 'button' );
+		negativeTabIndex.tabIndex = -2;
+		element.appendChild( negativeTabIndex );
+
+		const displayNoneButton = document.createElement( 'button' );
+		displayNoneButton.style.display = 'none';
+		element.appendChild( displayNoneButton );
+	} );
+
+	await triggerFor( page, 'demo-video' ).click();
+	await expect( closeButton ).toBeFocused();
+
+	await page.keyboard.press( 'Tab' );
+	await expect( video ).toBeFocused();
+	await video.evaluate( ( media ) => {
+		media.addEventListener(
+			'play',
+			() => {
+				media.dataset.reformboxKeyboardPlayed = 'true';
+			},
+			{ once: true }
+		);
+	} );
+	await page.keyboard.press( 'Space' );
+	await expect( video ).toHaveAttribute(
+		'data-reformbox-keyboard-played',
+		'true'
+	);
+	await video.evaluate( ( media ) => media.pause() );
+
+	await page.keyboard.press( 'Tab' );
+	await expect( closeButton ).toBeFocused();
 } );
 
 /*

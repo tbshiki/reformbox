@@ -8,7 +8,7 @@ A WordPress plugin that extends the Lightbox concept beyond images. It adds ligh
 [![WordPress Tested](https://img.shields.io/wordpress/plugin/tested/reformbox?logo=wordpress)](https://wordpress.org/plugins/reformbox/)
 ![GitHub License](https://img.shields.io/github/license/tbshiki/reformbox)
 
-> **Status:** v0.3.4 - WordPress 7.1 compatibility and responsive dialog sizing fixes
+> **Status:** v0.3.5 - accessibility hardening and development dependency updates
 
 ## What is ReformBox?
 
@@ -233,6 +233,12 @@ Override these classes in your theme:
 ```
 
 ## Changelog
+
+### 0.3.5
+
+- Preserved `inert` attributes owned by themes, WordPress core, or other plugins when a ReformBox lightbox closes; ReformBox now removes only the attributes it added
+- Expanded the focus trap to media controls, iframes, summary elements, and editable content, while excluding disabled, hidden, inert, and negative-tabindex elements; keyboard users can now reach and operate video controls
+- Updated `adm-zip` and WordPress build tooling to reduce known development dependency vulnerabilities; `npm audit --omit=dev` remains at zero and the distributed plugin has no runtime npm dependencies
 
 ### 0.3.4
 

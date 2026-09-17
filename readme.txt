@@ -4,7 +4,7 @@ Tags: lightbox, modal, gutenberg, blocks, popup
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.4
+Stable tag: 0.3.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,11 @@ Open `Settings > ReformBox` in WordPress Admin. You can set the ReformBox overla
 The same settings screen is also linked from the plugin row action (`Plugins > ReformBox > Settings`).
 
 == Changelog ==
+
+= 0.3.5 =
+* Preserved `inert` attributes owned by themes, WordPress core, or other plugins when a ReformBox lightbox closes
+* Expanded the focus trap to media controls, iframes, summary elements, and editable content while excluding disabled, hidden, inert, and negative-tabindex elements
+* Updated development dependencies to reduce known build-tool vulnerabilities; the distributed WordPress plugin continues to have no runtime npm dependencies
 
 = 0.3.4 =
 * Verified against WordPress 7.1 and updated the tested-up-to version

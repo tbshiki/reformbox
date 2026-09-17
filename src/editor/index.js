@@ -475,18 +475,18 @@ const withReformBoxControls = createHigherOrderComponent( ( BlockEdit ) => {
 										? __(
 												'Enable as Lightbox Container',
 												'reformbox'
-										  )
+											)
 										: __(
 												'Enable Lightbox on Click',
 												'reformbox'
-										  )
+											)
 								}
 								help={
 									videoRequiresPoster
 										? __(
 												'Video lightbox requires a poster image. Add a poster in the Video block settings first.',
 												'reformbox'
-										  )
+											)
 										: undefined
 								}
 								checked={ !! attributes.reformboxEnabled }
