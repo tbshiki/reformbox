@@ -387,11 +387,30 @@ test.describe( 'カーソル', () => {
 		await triggerFor( page, 'demo-group-same' ).click();
 		await expect( overlay ).toHaveAttribute( 'aria-hidden', 'false' );
 
-		expect(
-			await overlay
-				.locator( '.scrim' )
-				.evaluate( ( element ) => getComputedStyle( element ).cursor )
-		).toBe( 'default' );
+		const cursors = await overlay.evaluate( ( element ) =>
+			Object.fromEntries(
+				[
+					[ 'overlay', element ],
+					[ 'scrim', element.querySelector( '.scrim' ) ],
+					[
+						'container',
+						element.querySelector(
+							'.reformbox-lightbox-container'
+						),
+					],
+					[ 'close', element.querySelector( '.reformbox-close' ) ],
+				].map( ( [ name, node ] ) => [
+					name,
+					getComputedStyle( node ).cursor,
+				] )
+			)
+		);
+		expect( cursors ).toEqual( {
+			overlay: 'auto',
+			scrim: 'auto',
+			container: 'auto',
+			close: 'pointer',
+		} );
 
 		await clickScrim( page );
 		await expect( overlay ).toHaveAttribute( 'aria-hidden', 'false' );

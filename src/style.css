@@ -407,7 +407,8 @@ body.reformbox-open {
 	cursor: auto;
 }
 
-/* With overlay click-to-close turned off, nothing on the backdrop closes it. */
+/* With overlay click-to-close turned off, nothing on the backdrop closes it,
+   so the whole overlay falls back to the browser's cursor. */
 .reformbox-overlay.wp-lightbox-overlay[data-reformbox-overlay-close="false"] {
-	cursor: default;
+	cursor: auto;
 }
