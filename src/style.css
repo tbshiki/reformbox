@@ -381,6 +381,33 @@ body.reformbox-open {
  * Trigger cursor
  * ----------------------------------------------------------------*/
 
-[data-reformbox-trigger] {
-	cursor: zoom-in;
+/* Core uses zoom-in only for images, which reappear unchanged but larger.
+   Group and paragraph triggers open a content dialog instead: a card capped at
+   960px, often no larger than the original, and in split mode showing different
+   content altogether. They are role="button", so they get the button cursor.
+   Video triggers keep zoom-in from the baseline rule at the top of the file.
+   :where() keeps the old 0,1,0 specificity, so a theme's class rule on the
+   block still overrides it. */
+[data-reformbox-trigger]:where(:not(.reformbox-video-trigger)) {
+	cursor: pointer;
+}
+
+/* ------------------------------------------------------------------
+ * Overlay cursor
+ * ----------------------------------------------------------------*/
+
+/* The overlay's zoom-out says "click to close", but view.js closes only on
+   clicks outside the container. Core reached the same behavior in Gutenberg
+   #78898 and set its container to `cursor: default`. `auto` renders the same
+   arrow over media and keeps the I-beam over text and the hand over links in
+   content dialogs. The selector carries both overlay classes because core's
+   `.wp-lightbox-overlay .lightbox-image-container` matches the same element and
+   can print after this file, where equal specificity would lose to it. */
+.reformbox-overlay.wp-lightbox-overlay .reformbox-lightbox-container {
+	cursor: auto;
+}
+
+/* With overlay click-to-close turned off, nothing on the backdrop closes it. */
+.reformbox-overlay.wp-lightbox-overlay[data-reformbox-overlay-close="false"] {
+	cursor: default;
 }

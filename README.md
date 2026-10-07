@@ -232,7 +232,14 @@ Override these classes in your theme:
 .reformbox-overlay--media { }   /* Image/Video variant */
 ```
 
+The container's `cursor` is set with `.reformbox-overlay.wp-lightbox-overlay .reformbox-lightbox-container`, so that core's image lightbox styles cannot override it. To change it, use a selector at least that specific.
+
 ## Changelog
+
+### 0.3.6
+
+- Changed the mouse cursor on Group and Paragraph triggers from `zoom-in` to `pointer`. They are buttons that open a card dialog, and in split mode the dialog shows different content, so a magnifier implied an enlargement that never happens. Core image lightboxes and video poster triggers keep `zoom-in`
+- Stopped the lightbox content from showing the `zoom-out` "click to close" cursor, since clicking the content never closed the dialog (core's image lightbox stopped closing on image clicks and dropped the cursor there too, in Gutenberg #78898). Text now shows the text-selection cursor (I-beam) and links the pointer. `zoom-out` stays on the backdrop that closes the dialog, and is dropped there too when "Close on Overlay Click" is turned off
 
 ### 0.3.5
 

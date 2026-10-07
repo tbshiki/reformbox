@@ -286,3 +286,141 @@ test.describe( 'scrim の不透明度', () => {
 		} );
 	}
 } );
+
+/*
+ * RB-40 / RB-41. getComputedStyle reports the cursor value, not the glyph the
+ * browser draws for `auto`, so these pin the contract: which elements get which
+ * keyword. Hovering first and reading the element under the pointer measures
+ * what the visitor actually points at, children included.
+ */
+test.describe( 'カーソル', () => {
+	const cursorUnderPointer = async ( page, locator ) => {
+		await locator.hover();
+		const box = await locator.boundingBox();
+		return page.evaluate(
+			( { x, y } ) =>
+				getComputedStyle( document.elementFromPoint( x, y ) ).cursor,
+			{ x: box.x + box.width / 2, y: box.y + box.height / 2 }
+		);
+	};
+
+	for ( const id of [
+		'demo-group-same',
+		'demo-group-split',
+		'demo-paragraph',
+	] ) {
+		test( `${ id }: content を開くトリガーは pointer`, async ( {
+			page,
+		} ) => {
+			expect(
+				await cursorUnderPointer( page, triggerFor( page, id ) )
+			).toBe( 'pointer' );
+		} );
+	}
+
+	test( 'Video: ポスターのトリガーは zoom-in のまま', async ( { page } ) => {
+		expect(
+			await cursorUnderPointer( page, triggerFor( page, 'demo-video' ) )
+		).toBe( 'zoom-in' );
+	} );
+
+	test( 'core/image: コアの画像ライトボックスは zoom-in のまま', async ( {
+		page,
+	} ) => {
+		const image = page
+			.locator( '.wp-block-image.wp-lightbox-container img' )
+			.first();
+
+		expect( await cursorUnderPointer( page, image ) ).toBe( 'zoom-in' );
+	} );
+
+	/*
+	 * The contract is "zoom-out only where a click closes", so each cursor check
+	 * also clicks there. The scrim sits under the centred container, and the
+	 * close button holds the top-right corner, so aim at the bottom-left one.
+	 */
+	const clickScrim = async ( page ) => {
+		const { height } = page.viewportSize();
+		await page.mouse.click( 5, height - 5 );
+	};
+
+	for ( const id of [ 'demo-group-same', 'demo-video' ] ) {
+		test( `${ id }: 閉じない中身は zoom-out を継がず、背景だけが zoom-out`, async ( {
+			page,
+		} ) => {
+			const overlay = overlayFor( page, id );
+
+			await triggerFor( page, id ).click();
+			await expect( overlay ).toHaveAttribute( 'aria-hidden', 'false' );
+
+			const cursorOf = ( selector ) =>
+				overlay
+					.locator( selector )
+					.evaluate(
+						( element ) => getComputedStyle( element ).cursor
+					);
+
+			expect( await cursorOf( '.reformbox-lightbox-container' ) ).toBe(
+				'auto'
+			);
+			expect( await cursorOf( '.reformbox-content' ) ).toBe( 'auto' );
+			expect( await cursorOf( '.scrim' ) ).toBe( 'zoom-out' );
+			expect( await cursorOf( '.reformbox-close' ) ).toBe( 'pointer' );
+
+			// closeLightbox() flips aria-hidden synchronously inside the click.
+			await overlay.locator( '.reformbox-content' ).click();
+			await expect( overlay ).toHaveAttribute( 'aria-hidden', 'false' );
+
+			await clickScrim( page );
+			await expect( overlay ).toHaveAttribute( 'aria-hidden', 'true' );
+		} );
+	}
+
+	test( 'オーバーレイクリックで閉じない設定では、背景も zoom-out にしない', async ( {
+		page,
+	} ) => {
+		const overlay = overlayFor( page, 'demo-group-same' );
+
+		await overlay.evaluate( ( element ) =>
+			element.setAttribute( 'data-reformbox-overlay-close', 'false' )
+		);
+		await triggerFor( page, 'demo-group-same' ).click();
+		await expect( overlay ).toHaveAttribute( 'aria-hidden', 'false' );
+
+		expect(
+			await overlay
+				.locator( '.scrim' )
+				.evaluate( ( element ) => getComputedStyle( element ).cursor )
+		).toBe( 'default' );
+
+		await clickScrim( page );
+		await expect( overlay ).toHaveAttribute( 'aria-hidden', 'false' );
+	} );
+
+	/*
+	 * Gutenberg #78898 gives core's own container `cursor: default` through
+	 * `.wp-lightbox-overlay .lightbox-image-container`, which also matches ours
+	 * and can be printed after this plugin's stylesheet. WordPress 7.1 does not
+	 * ship it yet, so append the rule after everything else.
+	 */
+	test( 'コアの後発 CSS が同じコンテナに cursor を当てても auto を保つ', async ( {
+		page,
+	} ) => {
+		const overlay = overlayFor( page, 'demo-group-same' );
+
+		await page.evaluate( () => {
+			const style = document.createElement( 'style' );
+			style.textContent =
+				'.wp-lightbox-overlay .lightbox-image-container{cursor:default}';
+			document.body.appendChild( style );
+		} );
+		await triggerFor( page, 'demo-group-same' ).click();
+		await expect( overlay ).toHaveAttribute( 'aria-hidden', 'false' );
+
+		expect(
+			await overlay
+				.locator( '.reformbox-lightbox-container' )
+				.evaluate( ( element ) => getComputedStyle( element ).cursor )
+		).toBe( 'auto' );
+	} );
+} );

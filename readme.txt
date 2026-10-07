@@ -4,7 +4,7 @@ Tags: lightbox, modal, gutenberg, blocks, popup
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.5
+Stable tag: 0.3.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,10 @@ Open `Settings > ReformBox` in WordPress Admin. You can set the ReformBox overla
 The same settings screen is also linked from the plugin row action (`Plugins > ReformBox > Settings`).
 
 == Changelog ==
+
+= 0.3.6 =
+* Group and Paragraph triggers now show the pointer cursor instead of the magnifier, since they open a dialog rather than enlarge an image; video and core image lightboxes keep the magnifier
+* The lightbox content no longer shows the "click to close" cursor, which only appears on the backdrop that actually closes the dialog
 
 = 0.3.5 =
 * Preserved `inert` attributes owned by themes, WordPress core, or other plugins when a ReformBox lightbox closes
